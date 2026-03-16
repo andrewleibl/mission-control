@@ -1,5 +1,6 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
+import ReactMarkdown from 'react-markdown'
 
 type Message = {
   id: string
@@ -23,8 +24,9 @@ export default function ChatPage() {
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    fetch('http://localhost:4200/api/message', { method: 'HEAD' })
-      .then(() => setConnected(true))
+    fetch('/api/chat')
+      .then((r) => r.json())
+      .then((d) => setConnected(d.ok))
       .catch(() => setConnected(false))
   }, [])
 
@@ -45,16 +47,27 @@ export default function ChatPage() {
     setLoading(true)
 
     try {
-      const res = await fetch('http://localhost:4200/api/message', {
+      const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          sessionKey: 'agent:main:main',
-          message: userMsg.content
+          tool: 'sessions_send',
+          args: {
+            sessionKey: 'agent:main:main',
+            message: userMsg.content,
+            timeoutSeconds: 120
+          }
         })
       })
       const data = await res.json()
-      const reply = data?.reply || data?.message || data?.content || JSON.stringify(data)
+      const result = data?.result
+      const status = result?.details?.status ?? result?.status
+      let reply: string
+      if (status === 'timeout') {
+        reply = '⏱ No response yet — try again in a moment.'
+      } else {
+        reply = result?.details?.reply ?? result?.reply ?? result?.message ?? '(no reply)'
+      }
       setMessages((prev) => [...prev, {
         id: Date.now().toString(),
         role: 'assistant',
@@ -65,7 +78,7 @@ export default function ChatPage() {
       setMessages((prev) => [...prev, {
         id: Date.now().toString(),
         role: 'assistant',
-        content: '⚠️ Could not reach OpenClaw. Make sure the Gateway is running on port 4200.',
+        content: '⚠️ Could not reach OpenClaw. Make sure the Gateway is running on port 18789.',
         timestamp: new Date()
       }])
     } finally {
@@ -130,7 +143,7 @@ export default function ChatPage() {
               lineHeight: 1.6,
               whiteSpace: 'pre-wrap'
             }}>
-              {msg.content}
+              {msg.role === 'assistant' ? <ReactMarkdown>{msg.content}</ReactMarkdown> : msg.content}
               <div style={{ fontSize: 10, color: msg.role === 'user' ? 'rgba(255,255,255,0.5)' : '#4A5568', marginTop: 4 }}>
                 {msg.timestamp.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
               </div>
