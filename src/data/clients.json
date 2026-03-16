@@ -1,0 +1,203 @@
+[
+  {
+    "id": "hector-huizar",
+    "name": "Hector Huizar",
+    "company": "Valley of the Sun Landscape",
+    "niche": "Tree Removal / Landscaping",
+    "status": "active",
+    "health": "green",
+    "avatar": "HH",
+    "service": "Facebook Appt Booking",
+    "signed": "2026-02-11",
+    "adsLive": "2026-03-10",
+    "renewal": "2026-04-10",
+    "upfront": 150,
+    "totalCollected": 785,
+    "remaining": 0,
+    "monthlyRate": 285,
+    "lastContact": "2026-03-10",
+    "phone": "(480) 555-0123",
+    "email": "hector@valleyofthesunlandscape.com",
+    "location": "Phoenix, AZ",
+    "notes": "First client signed. Website creation complete. Ads live and running.",
+    "atRisk": false,
+    "openTasks": 2,
+    "adPerformance": {
+      "spend": 420,
+      "leads": 14,
+      "appointments": 6,
+      "cpl": 30,
+      "cpa": 70,
+      "roas": 3.8,
+      "weeklyData": [
+        { "week": "Mar 1", "spend": 80, "leads": 2, "appointments": 1 },
+        { "week": "Mar 8", "spend": 120, "leads": 4, "appointments": 2 },
+        { "week": "Mar 15", "spend": 140, "leads": 5, "appointments": 2 },
+        { "week": "Mar 22", "spend": 80, "leads": 3, "appointments": 1 }
+      ]
+    },
+    "adjustmentLog": [
+      { "date": "2026-03-12", "note": "Increased daily budget from $20 to $25 — leads were consistent, testing scale." },
+      { "date": "2026-03-10", "note": "Ads went live. Initial creative set: 3 tree removal angles." },
+      { "date": "2026-03-08", "note": "Ad account review completed. Pixel installed and verified." }
+    ],
+    "contactLog": [
+      { "date": "2026-03-10", "type": "call", "note": "Checked in on ad launch. Hector happy. Expects 5-10 leads in first 2 weeks." },
+      { "date": "2026-02-24", "type": "call", "note": "Onboarding call. Pixel setup, intake form reviewed." },
+      { "date": "2026-02-11", "type": "call", "note": "Deal closed. $150 upfront collected." }
+    ],
+    "tasks": [
+      { "id": "t1", "text": "Send week 2 performance report", "done": false, "due": "2026-03-20" },
+      { "id": "t2", "text": "Review creative fatigue — swap ad set 1", "done": false, "due": "2026-03-22" },
+      { "id": "t3", "text": "Check renewal intent before 4/1", "done": false, "due": "2026-04-01" }
+    ],
+    "mondayScript": "Hey Hector, it's Andrew from Straight Point — good morning! Just calling to give you a quick Monday rundown on your campaigns. Last week we had [X] leads come in, [X] booked appointments. Your cost per appointment is sitting at $[X] which is well within range. This week we're [testing a new creative / scaling the winning set / holding steady]. Any feedback from the leads that came in? Anything the team noticed? ... Perfect. You'll get a written report by end of week. Let's keep pushing."
+  },
+  {
+    "id": "pj-sparks",
+    "name": "PJ Sparks",
+    "company": "We Do Hardscape",
+    "niche": "Hardscaping / Pavers / Retaining Walls",
+    "status": "active",
+    "health": "yellow",
+    "avatar": "PJ",
+    "service": "Facebook Appt Booking",
+    "signed": "2026-02-27",
+    "adsLive": "2026-03-09",
+    "renewal": "2026-04-09",
+    "upfront": 285,
+    "totalCollected": 285,
+    "remaining": 0,
+    "monthlyRate": 285,
+    "lastContact": "2026-02-28",
+    "phone": "(602) 555-0456",
+    "email": "pj@wedohardscape.com",
+    "location": "Scottsdale, AZ",
+    "notes": "Refund window has passed. No recent check-in — needs a Monday call. Ads live but no performance report sent yet.",
+    "atRisk": true,
+    "openTasks": 3,
+    "adPerformance": {
+      "spend": 310,
+      "leads": 9,
+      "appointments": 3,
+      "cpl": 34,
+      "cpa": 103,
+      "roas": 2.7,
+      "weeklyData": [
+        { "week": "Mar 1", "spend": 60, "leads": 1, "appointments": 0 },
+        { "week": "Mar 8", "spend": 100, "leads": 3, "appointments": 1 },
+        { "week": "Mar 15", "spend": 100, "leads": 3, "appointments": 1 },
+        { "week": "Mar 22", "spend": 50, "leads": 2, "appointments": 1 }
+      ]
+    },
+    "adjustmentLog": [
+      { "date": "2026-03-09", "note": "Ads live. 2 creative variants — paver patio & retaining wall angles." },
+      { "date": "2026-03-07", "note": "Ad copy finalized. Targeting: homeowners 35-65, HHI $80k+, AZ geo." }
+    ],
+    "contactLog": [
+      { "date": "2026-02-28", "type": "call", "note": "Post-close onboarding. Pixel set up, intake form ready." },
+      { "date": "2026-02-27", "type": "call", "note": "Deal closed. $285 collected." }
+    ],
+    "tasks": [
+      { "id": "t1", "text": "URGENT: Call PJ — no contact in 16 days", "done": false, "due": "2026-03-16" },
+      { "id": "t2", "text": "Send first performance report", "done": false, "due": "2026-03-17" },
+      { "id": "t3", "text": "Review CPA — $103 is high for hardscape", "done": false, "due": "2026-03-18" },
+      { "id": "t4", "text": "Test new creative angle: before/after patio", "done": false, "due": "2026-03-22" }
+    ],
+    "mondayScript": "Hey PJ, it's Andrew from Straight Point — hope the weekend was good! Quick Monday update on your campaigns: we've had [X] leads come in, [X] have booked consultations. We're seeing a CPA around $100 right now — we're actively testing new angles to bring that down. The hardscape niche takes a couple weeks to optimize, we're in that window. Any leads you've spoken to worth noting — good or bad fits? ... Good to know. I'll shoot you a report this week. Anything else on your end?"
+  },
+  {
+    "id": "ricardo-madera",
+    "name": "Ricardo Madera",
+    "company": "Madera Landscape",
+    "niche": "Landscaping / Lawn Care",
+    "status": "active",
+    "health": "yellow",
+    "avatar": "RM",
+    "service": "Facebook Appt Booking",
+    "signed": "2026-02-27",
+    "adsLive": "2026-03-09",
+    "renewal": "2026-04-09",
+    "upfront": 285,
+    "totalCollected": 285,
+    "remaining": 0,
+    "monthlyRate": 285,
+    "lastContact": "2026-02-28",
+    "phone": "(520) 555-0789",
+    "email": "ricardo@maderalandscape.com",
+    "location": "Tucson, AZ",
+    "notes": "Wants to compare $500 ad spend results to what he did last month — needs clear data. No check-in in 16 days.",
+    "atRisk": true,
+    "openTasks": 3,
+    "adPerformance": {
+      "spend": 290,
+      "leads": 11,
+      "appointments": 4,
+      "cpl": 26,
+      "cpa": 72,
+      "roas": 3.9,
+      "weeklyData": [
+        { "week": "Mar 1", "spend": 50, "leads": 2, "appointments": 1 },
+        { "week": "Mar 8", "spend": 90, "leads": 4, "appointments": 1 },
+        { "week": "Mar 15", "spend": 90, "leads": 3, "appointments": 1 },
+        { "week": "Mar 22", "spend": 60, "leads": 2, "appointments": 1 }
+      ]
+    },
+    "adjustmentLog": [
+      { "date": "2026-03-09", "note": "Ads live. Targeting Tucson + surrounding areas. 3 creative angles: lawn transformation, seasonal promo, reliability angle." },
+      { "date": "2026-03-07", "note": "Finalized ad copy. Budget: $500/mo test period." }
+    ],
+    "contactLog": [
+      { "date": "2026-02-28", "type": "call", "note": "Onboarding. Ricardo mentioned he spent ~$300 last month on his own ads. Wants to beat that." },
+      { "date": "2026-02-27", "type": "call", "note": "Closed. $285 collected." }
+    ],
+    "tasks": [
+      { "id": "t1", "text": "URGENT: Call Ricardo — 16 days no contact", "done": false, "due": "2026-03-16" },
+      { "id": "t2", "text": "Send comparison report: our $500 vs his old ads", "done": false, "due": "2026-03-17" },
+      { "id": "t3", "text": "Highlight CPL $26 vs industry avg $45-60", "done": false, "due": "2026-03-17" }
+    ],
+    "mondayScript": "Hey Ricardo, it's Andrew with Straight Point — good morning! Quick Monday update. Your campaigns have been live for about a week and a half. So far: [X] leads at $[X] cost per lead, [X] appointments booked. You mentioned you wanted to compare to what you were spending before — we're tracking better than the industry average right now. Cost per lead is $[X], industry average for landscaping is typically $45-60. I'll send you a full breakdown with the comparison you asked for. Anything from your end — how are the leads converting when you talk to them?"
+  },
+  {
+    "id": "vicelia-tinde",
+    "name": "Vicelia Tinde",
+    "company": "Clutch Barber Supply",
+    "niche": "Barber/Beauty Ecommerce",
+    "status": "active",
+    "health": "green",
+    "avatar": "VT",
+    "service": "Shopify Website Redesign",
+    "signed": "2026-03-01",
+    "adsLive": null,
+    "renewal": null,
+    "upfront": 900,
+    "totalCollected": 900,
+    "remaining": 900,
+    "monthlyRate": null,
+    "lastContact": "2026-03-15",
+    "phone": "(214) 555-0321",
+    "email": "vicelia@clutchbarbersupply.com",
+    "location": "Grand Prairie, TX",
+    "notes": "First half of $1,800 flat received. Full Shopify redesign in progress — HIGH PRIORITY. Barber supply retail + online store. Conversion audit in progress.",
+    "atRisk": false,
+    "openTasks": 4,
+    "adPerformance": null,
+    "adjustmentLog": [
+      { "date": "2026-03-15", "note": "Conversion audit initiated. Site crawled and product catalog reviewed." },
+      { "date": "2026-03-10", "note": "First design concepts discussed. Brand direction: premium, clean, professional." },
+      { "date": "2026-03-01", "note": "Contract signed. $900 deposit collected." }
+    ],
+    "contactLog": [
+      { "date": "2026-03-15", "type": "message", "note": "Check-in on design timeline. Vicelia confirmed she wants new site live before April." },
+      { "date": "2026-03-08", "type": "call", "note": "Discovery call. Reviewed current site pain points — navigation, product pages, no reviews." },
+      { "date": "2026-03-01", "type": "call", "note": "Contract call. Scope agreed: full Shopify redesign, mobile-first, conversion-optimized." }
+    ],
+    "tasks": [
+      { "id": "t1", "text": "Complete conversion audit (in progress)", "done": false, "due": "2026-03-16" },
+      { "id": "t2", "text": "Present redesign wireframes to Vicelia", "done": false, "due": "2026-03-20" },
+      { "id": "t3", "text": "Shopify theme selection + customization", "done": false, "due": "2026-03-25" },
+      { "id": "t4", "text": "Collect remaining $900 on delivery", "done": false, "due": "2026-04-01" }
+    ],
+    "mondayScript": "Hey Vicelia, Andrew here from Straight Point. Quick update on the website project — we've done a full audit of your current site and have a clear roadmap of what's going in, what's coming out, and what's going to move the needle for conversions. I'll be sending over the full breakdown this week along with the first wireframe concepts. We're on track to hit the April deadline. Any questions or things you want prioritized before I send that over?"
+  }
+]

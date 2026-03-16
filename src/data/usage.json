@@ -1,0 +1,27 @@
+{
+  "monthlyTotal": 12.84,
+  "monthlyTokens": 2847000,
+  "month": "March 2026",
+  "dailySpend": [
+    { "date": "Mar 10", "spend": 0.42, "tokens": 89000 },
+    { "date": "Mar 11", "spend": 0.31, "tokens": 67000 },
+    { "date": "Mar 12", "spend": 0.88, "tokens": 198000 },
+    { "date": "Mar 13", "spend": 0.71, "tokens": 154000 },
+    { "date": "Mar 14", "spend": 1.24, "tokens": 276000 },
+    { "date": "Mar 15", "spend": 3.18, "tokens": 712000 },
+    { "date": "Mar 16", "spend": 1.92, "tokens": 432000 }
+  ],
+  "sessionBreakdown": [
+    { "name": "Nightly Build", "tokens": 980000, "cost": 4.41, "color": "#E53E3E" },
+    { "name": "Morning Briefs", "tokens": 420000, "cost": 0.89, "color": "#C53030" },
+    { "name": "Direct Chat", "tokens": 380000, "cost": 1.72, "color": "#FC8181" },
+    { "name": "Client Monitor", "tokens": 210000, "cost": 0.44, "color": "#FEB2B2" },
+    { "name": "Email Check", "tokens": 180000, "cost": 0.38, "color": "#9B2C2C" },
+    { "name": "Other", "tokens": 677000, "cost": 3.00, "color": "#742A2A" }
+  ],
+  "modelBreakdown": [
+    { "model": "claude-sonnet-4", "inputTokens": 1240000, "outputTokens": 380000, "cost": 8.92 },
+    { "model": "claude-haiku-3.5", "inputTokens": 820000, "outputTokens": 210000, "cost": 1.84 },
+    { "model": "claude-opus-3", "inputTokens": 120000, "outputTokens": 45000, "cost": 2.08 }
+  ]
+}

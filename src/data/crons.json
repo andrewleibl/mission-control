@@ -1,0 +1,98 @@
+[
+  {
+    "id": "morning-brief",
+    "name": "Morning Brief",
+    "description": "Daily brief: weather, calendar, urgent client tasks, email highlights",
+    "schedule": "Daily at 7:00 AM CDT",
+    "cronExpr": "0 12 * * *",
+    "nextRun": "2026-03-17T12:00:00Z",
+    "lastRun": "2026-03-16T12:00:00Z",
+    "lastStatus": "success",
+    "model": "claude-haiku",
+    "category": "brief"
+  },
+  {
+    "id": "nightly-build",
+    "name": "Nightly Build Session",
+    "description": "Poseidon builds, researches, and delivers while Andrew sleeps",
+    "schedule": "Daily at 11:00 PM CDT",
+    "cronExpr": "0 4 * * *",
+    "nextRun": "2026-03-17T04:00:00Z",
+    "lastRun": "2026-03-16T04:00:00Z",
+    "lastStatus": "success",
+    "model": "claude-sonnet",
+    "category": "build"
+  },
+  {
+    "id": "email-check",
+    "name": "Email Check",
+    "description": "Scan inbox for urgent messages, flag anything requiring same-day response",
+    "schedule": "Every 4 hours (8am–8pm)",
+    "cronExpr": "0 13,17,21,25 * * *",
+    "nextRun": "2026-03-16T17:00:00Z",
+    "lastRun": "2026-03-16T13:00:00Z",
+    "lastStatus": "success",
+    "model": "claude-haiku",
+    "category": "monitor"
+  },
+  {
+    "id": "client-health-check",
+    "name": "Client Health Monitor",
+    "description": "Flag at-risk clients (no contact 7+ days), upcoming renewals, overdue tasks",
+    "schedule": "Daily at 6:00 AM CDT",
+    "cronExpr": "0 11 * * *",
+    "nextRun": "2026-03-17T11:00:00Z",
+    "lastRun": "2026-03-16T11:00:00Z",
+    "lastStatus": "success",
+    "model": "claude-haiku",
+    "category": "monitor"
+  },
+  {
+    "id": "monday-brief",
+    "name": "Monday Weekly Brief",
+    "description": "Weekly summary: revenue, pipeline, wins, priorities for the week",
+    "schedule": "Mondays at 8:00 AM CDT",
+    "cronExpr": "0 13 * * 1",
+    "nextRun": "2026-03-23T13:00:00Z",
+    "lastRun": "2026-03-16T13:00:00Z",
+    "lastStatus": "success",
+    "model": "claude-sonnet",
+    "category": "brief"
+  },
+  {
+    "id": "memory-maintenance",
+    "name": "Memory Maintenance",
+    "description": "Distill daily notes into MEMORY.md, clean up outdated entries",
+    "schedule": "Sundays at 10:00 PM CDT",
+    "cronExpr": "0 3 * * 0",
+    "nextRun": "2026-03-22T03:00:00Z",
+    "lastRun": "2026-03-15T03:00:00Z",
+    "lastStatus": "success",
+    "model": "claude-haiku",
+    "category": "maintenance"
+  },
+  {
+    "id": "sms-warmup-monitor",
+    "name": "SMS Account Monitor",
+    "description": "Check SMS send rates, delivery, reply flags — keep account warm",
+    "schedule": "Weekdays at 9:00 AM CDT",
+    "cronExpr": "0 14 * * 1-5",
+    "nextRun": "2026-03-17T14:00:00Z",
+    "lastRun": "2026-03-16T14:00:00Z",
+    "lastStatus": "pending",
+    "model": "claude-haiku",
+    "category": "monitor"
+  },
+  {
+    "id": "caller-debrief",
+    "name": "Caller Debrief Reminder",
+    "description": "Remind Andrew to debrief callers and log GHL dispositions before EOD",
+    "schedule": "Weekdays at 5:30 PM CDT",
+    "cronExpr": "30 22 * * 1-5",
+    "nextRun": "2026-03-16T22:30:00Z",
+    "lastRun": "2026-03-13T22:30:00Z",
+    "lastStatus": "success",
+    "model": "claude-haiku",
+    "category": "reminder"
+  }
+]
