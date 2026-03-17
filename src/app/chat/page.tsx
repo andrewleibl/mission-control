@@ -1,6 +1,5 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
-import ReactMarkdown from 'react-markdown'
 
 type Message = {
   id: string
@@ -25,8 +24,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     fetch('/api/chat')
-      .then((r) => r.json())
-      .then((d) => setConnected(d.ok))
+      .then(() => setConnected(true))
       .catch(() => setConnected(false))
   }, [])
 
@@ -51,23 +49,12 @@ export default function ChatPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tool: 'sessions_send',
-          args: {
-            sessionKey: 'agent:main:main',
-            message: userMsg.content,
-            timeoutSeconds: 120
-          }
+          
+          message: userMsg.content
         })
       })
       const data = await res.json()
-      const result = data?.result
-      const status = result?.details?.status ?? result?.status
-      let reply: string
-      if (status === 'timeout') {
-        reply = '⏱ No response yet — try again in a moment.'
-      } else {
-        reply = result?.details?.reply ?? result?.reply ?? result?.message ?? '(no reply)'
-      }
+      const reply = data?.reply || data?.message || data?.content || JSON.stringify(data)
       setMessages((prev) => [...prev, {
         id: Date.now().toString(),
         role: 'assistant',
@@ -78,7 +65,7 @@ export default function ChatPage() {
       setMessages((prev) => [...prev, {
         id: Date.now().toString(),
         role: 'assistant',
-        content: '⚠️ Could not reach OpenClaw. Make sure the Gateway is running on port 18789.',
+        content: '⚠️ Could not reach OpenClaw gateway. Is it running? Try: openclaw gateway start',
         timestamp: new Date()
       }])
     } finally {
@@ -143,7 +130,7 @@ export default function ChatPage() {
               lineHeight: 1.6,
               whiteSpace: 'pre-wrap'
             }}>
-              {msg.role === 'assistant' ? <ReactMarkdown>{msg.content}</ReactMarkdown> : msg.content}
+              {msg.content}
               <div style={{ fontSize: 10, color: msg.role === 'user' ? 'rgba(255,255,255,0.5)' : '#4A5568', marginTop: 4 }}>
                 {msg.timestamp.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
               </div>

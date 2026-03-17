@@ -1,39 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { exec } from 'child_process'
+import { promisify } from 'util'
 
-const GATEWAY = 'http://localhost:18789'
-const TOKEN = 'f034d1977a68ee431c961fb370b585f9b6f540d04837d9e5'
+const execAsync = promisify(exec)
 
-export async function POST(req: NextRequest) {
-  const { tool, args } = await req.json()
+export async function GET() {
+  // Health check — verify gateway is reachable
   try {
-    const res = await fetch(`${GATEWAY}/tools/invoke`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${TOKEN}`
-      },
-      body: JSON.stringify({ tool, args })
-    })
-    const data = await res.json()
-    return NextResponse.json(data)
-  } catch (e) {
-    return NextResponse.json({ ok: false, error: String(e) }, { status: 500 })
+    await execAsync('openclaw gateway health', { timeout: 5000 })
+    return NextResponse.json({ connected: true })
+  } catch {
+    return NextResponse.json({ connected: false }, { status: 503 })
   }
 }
 
-export async function GET() {
+export async function POST(req: NextRequest) {
   try {
-    const res = await fetch(`${GATEWAY}/tools/invoke`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${TOKEN}`
-      },
-      body: JSON.stringify({ tool: 'sessions_list', args: { limit: 1 } })
-    })
-    const data = await res.json()
-    return NextResponse.json({ ok: data.ok })
-  } catch (e) {
-    return NextResponse.json({ ok: false, error: String(e) }, { status: 500 })
+    const { message } = await req.json()
+    if (!message) return NextResponse.json({ error: 'No message' }, { status: 400 })
+
+    // Escape the message for shell safety
+    const escaped = message.replace(/'/g, `'\\''`)
+
+    const { stdout } = await execAsync(
+      `openclaw agent --message '${escaped}' --expect-final`,
+      { timeout: 60000 }
+    )
+
+    return NextResponse.json({ reply: stdout.trim() })
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : String(err)
+    console.error('Chat error:', errorMessage)
+    return NextResponse.json({ error: 'Agent call failed', detail: errorMessage }, { status: 500 })
   }
 }

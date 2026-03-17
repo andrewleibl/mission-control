@@ -1,37 +1,112 @@
-{
-  "backlog": {
-    "andrew": [
-      { "id": "a-b1", "title": "Record Loom follow-up for PJ Sparks", "description": "Custom 5-min video + strategy recap after first 2 weeks of ads", "priority": "high", "createdAt": "2026-03-15" },
-      { "id": "a-b2", "title": "Hire third cold caller", "description": "Post job on Indeed / refer out — 2 callers is bottleneck ceiling", "priority": "medium", "createdAt": "2026-03-14" },
-      { "id": "a-b3", "title": "Document onboarding SOPs for new clients", "description": "Turn the current in-head process into a step-by-step doc", "priority": "medium", "createdAt": "2026-03-13" },
-      { "id": "a-b4", "title": "Research Clutch Barber comp landscape", "description": "BarberSale, Capital Beauty, ConairPro — what they do on product pages", "priority": "low", "createdAt": "2026-03-12" }
-    ],
-    "poseidon": [
-      { "id": "p-b1", "title": "Build Monday morning brief automation", "description": "Weather, calendar events, client check-ins, urgent tasks — 7am daily", "priority": "high", "createdAt": "2026-03-15" },
-      { "id": "p-b2", "title": "Set up Google Sheets sync", "description": "Authenticate poseidonclaudebot@gmail.com and pull client data from Sheet", "priority": "high", "createdAt": "2026-03-15" },
-      { "id": "p-b3", "title": "Build lead qualification scoring system", "description": "Auto-score GHL leads by budget/timeline/location on intake", "priority": "medium", "createdAt": "2026-03-14" }
-    ]
+[
+  {
+    "id": "t1",
+    "title": "Review caller recordings",
+    "description": "Listen to call recordings from both callers, score performance, leave written feedback.",
+    "assignee": "andrew",
+    "project": "Agency",
+    "priority": "high",
+    "dueDate": "2026-03-17",
+    "createdAt": "2026-03-17T06:00:00Z",
+    "status": "backlog"
   },
-  "inProgress": {
-    "andrew": [
-      { "id": "a-ip1", "title": "Train Caller 2 to booking consistency", "description": "Daily live coaching, targeting 1-2 bookings/day within 2 weeks", "priority": "high", "createdAt": "2026-03-10" },
-      { "id": "a-ip2", "title": "Clutch Barber Supply Shopify Redesign", "description": "$900 remaining. Target: live by April. Conversion-first, mobile-first.", "priority": "high", "createdAt": "2026-03-01" }
-    ],
-    "poseidon": [
-      { "id": "p-ip1", "title": "Mission Control Dashboard", "description": "Full Next.js command center — clients, tasks, calendar, chat, usage", "priority": "high", "createdAt": "2026-03-15" },
-      { "id": "p-ip2", "title": "Clutch Conversion Audit", "description": "Full CRO breakdown of clutchbarbersupply.com with strategy roadmap", "priority": "high", "createdAt": "2026-03-15" }
-    ]
+  {
+    "id": "t2",
+    "title": "Send client check-ins",
+    "description": "Message Hector, PJ, and Ricardo with campaign status updates.",
+    "assignee": "andrew",
+    "project": "Agency",
+    "priority": "high",
+    "dueDate": "2026-03-17",
+    "createdAt": "2026-03-17T06:00:00Z",
+    "status": "backlog"
   },
-  "done": {
-    "andrew": [
-      { "id": "a-d1", "title": "Onboard Caller 1", "description": "First live session done, already booking", "priority": "high", "createdAt": "2026-03-08", "completedAt": "2026-03-12" },
-      { "id": "a-d2", "title": "Sign Clutch Barber Supply", "description": "$900 deposit collected on $1,800 web redesign contract", "priority": "high", "createdAt": "2026-03-01", "completedAt": "2026-03-01" }
-    ],
-    "poseidon": [
-      { "id": "p-d1", "title": "Cold Caller Script", "description": "Full script with 6 objections, voicemail, cadence, GHL guide", "priority": "high", "createdAt": "2026-03-14", "completedAt": "2026-03-15" },
-      { "id": "p-d2", "title": "SMS Outreach Sequence", "description": "5-touch, 10-day sequence with response handling and DNC rules", "priority": "high", "createdAt": "2026-03-14", "completedAt": "2026-03-15" },
-      { "id": "p-d3", "title": "New Offer Pitch Framework", "description": "15-min sales call structure, word-for-word pitch, objection guide", "priority": "high", "createdAt": "2026-03-14", "completedAt": "2026-03-15" },
-      { "id": "p-d4", "title": "Caller Onboarding SOP", "description": "Week 1 day-by-day plan, GHL dispositions, quality standards", "priority": "high", "createdAt": "2026-03-14", "completedAt": "2026-03-15" }
-    ]
+  {
+    "id": "t3",
+    "title": "Cold SMS setup",
+    "description": "Configure and launch the cold SMS outreach sequence — sequence doc ready.",
+    "assignee": "andrew",
+    "project": "Agency",
+    "priority": "medium",
+    "dueDate": "2026-03-18",
+    "createdAt": "2026-03-17T06:00:00Z",
+    "status": "backlog"
+  },
+  {
+    "id": "t4",
+    "title": "Mission Control build",
+    "description": "Nightly build sessions — dashboard, tasks, calendar improvements.",
+    "assignee": "poseidon",
+    "project": "Mission Control",
+    "priority": "high",
+    "dueDate": "2026-03-17",
+    "createdAt": "2026-03-14T00:00:00Z",
+    "status": "recurring"
+  },
+  {
+    "id": "t5",
+    "title": "Morning briefs",
+    "description": "Daily 8am weather + priorities + reminders sent via Telegram.",
+    "assignee": "poseidon",
+    "project": "Mission Control",
+    "priority": "medium",
+    "dueDate": "2026-03-18",
+    "createdAt": "2026-03-14T00:00:00Z",
+    "status": "recurring"
+  },
+  {
+    "id": "t6",
+    "title": "Nightly builds",
+    "description": "11pm nightly build session — build while Andrew sleeps.",
+    "assignee": "poseidon",
+    "project": "Mission Control",
+    "priority": "medium",
+    "dueDate": "2026-03-17",
+    "createdAt": "2026-03-14T00:00:00Z",
+    "status": "recurring"
+  },
+  {
+    "id": "t7",
+    "title": "Clutch Barber Supply audit",
+    "description": "Full conversion audit of clutchbarbersupply.com — strategy doc + client update.",
+    "assignee": "poseidon",
+    "project": "Clutch Barber",
+    "priority": "high",
+    "dueDate": "2026-03-17",
+    "createdAt": "2026-03-17T05:00:00Z",
+    "status": "inprogress"
+  },
+  {
+    "id": "t8",
+    "title": "Vicelia update message",
+    "description": "Draft message for Andrew to send Vicelia — progress update on redesign.",
+    "assignee": "poseidon",
+    "project": "Clutch Barber",
+    "priority": "high",
+    "dueDate": "2026-03-17",
+    "createdAt": "2026-03-17T05:00:00Z",
+    "status": "inprogress"
+  },
+  {
+    "id": "t9",
+    "title": "Caller onboarding SOP",
+    "description": "Document caller onboarding process — training, scripts, scoring.",
+    "assignee": "andrew",
+    "project": "Agency",
+    "priority": "medium",
+    "dueDate": "2026-03-20",
+    "createdAt": "2026-03-15T00:00:00Z",
+    "status": "done"
+  },
+  {
+    "id": "t10",
+    "title": "New offer pitch framework",
+    "description": "Pay-per-appointment pitch doc with objection handling.",
+    "assignee": "poseidon",
+    "project": "Agency",
+    "priority": "high",
+    "dueDate": "2026-03-15",
+    "createdAt": "2026-03-15T00:00:00Z",
+    "status": "done"
   }
-}
+]
