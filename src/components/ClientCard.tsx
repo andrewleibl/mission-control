@@ -59,35 +59,42 @@ export default function ClientCard({ client }: { client: MetaAdsOverview }) {
           <div style={{ fontSize: 28, fontWeight: 800, color: '#E53E3E', marginTop: 6 }}>
             {client.leads}
           </div>
+          <div style={{ fontSize: 12, color: '#718096', marginTop: 2 }}>
+            ${client.leads > 0 ? (client.spendMTD / client.leads).toFixed(2) : '0.00'} CPL
+          </div>
         </div>
       </div>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-          gap: 12,
-          paddingTop: 16,
-          borderTop: '1px solid #1A1A1A',
-        }}
-      >
-        <div>
+      <div style={{ paddingTop: 16, borderTop: '1px solid #1A1A1A' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
           <div style={{ fontSize: 10, color: '#4A5568', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            ROAS
+            Budget
           </div>
-          <div style={{ fontSize: 18, fontWeight: 700, color: '#F7FAFC', marginTop: 4 }}>{client.roas.toFixed(2)}x</div>
+          <div style={{ fontSize: 11, color: '#718096' }}>
+            ${client.spendMTD.toLocaleString()} / ${client.monthlyBudget.toLocaleString()}
+          </div>
         </div>
-        <div>
-          <div style={{ fontSize: 10, color: '#4A5568', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            CPA
-          </div>
-          <div style={{ fontSize: 18, fontWeight: 700, color: '#F7FAFC', marginTop: 4 }}>${client.cpa}</div>
+        <div
+          style={{
+            width: '100%',
+            height: 8,
+            background: '#1A1A1A',
+            borderRadius: 4,
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              width: `${Math.min((client.spendMTD / client.monthlyBudget) * 100, 100)}%`,
+              height: '100%',
+              background: client.spendMTD / client.monthlyBudget > 0.85 ? '#E53E3E' : client.spendMTD / client.monthlyBudget > 0.5 ? '#ECC94B' : '#48BB78',
+              borderRadius: 4,
+              transition: 'width 0.3s ease',
+            }}
+          />
         </div>
-        <div>
-          <div style={{ fontSize: 10, color: '#4A5568', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Leads
-          </div>
-          <div style={{ fontSize: 18, fontWeight: 700, color: '#F7FAFC', marginTop: 4 }}>{client.leads}</div>
+        <div style={{ fontSize: 11, color: '#718096', marginTop: 6, textAlign: 'right' }}>
+          {((client.spendMTD / client.monthlyBudget) * 100).toFixed(0)}% spent
         </div>
       </div>
 
