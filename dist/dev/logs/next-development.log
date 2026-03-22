@@ -1,5 +1,0 @@
-[00:30:41.957] Server  ERROR   ⨯ Error: ENOENT: no such file or directory, open '/Users/poseidon/.openclaw/workspace/builds/mission-control/dist/dev/server/app/clients/page/build-manifest.json'
-[00:30:44.667] Server  ERROR   ⨯ Error: ENOENT: no such file or directory, open '/Users/poseidon/.openclaw/workspace/builds/mission-control/dist/dev/server/app/calendar/page/build-manifest.json'
-[00:30:44.959] Server  LOG     ○ Compiling /_error ...
-[00:30:45.878] Server  ERROR   ⨯ Error: ENOENT: no such file or directory, open '/Users/poseidon/.openclaw/workspace/builds/mission-control/dist/dev/server/pages-manifest.json'
-[00:30:46.122] Server  ERROR   ⨯ Error: ENOENT: no such file or directory, open '/Users/poseidon/.openclaw/workspace/builds/mission-control/dist/dev/server/app/dashboard/meta-ads/page/build-manifest.json'

@@ -1,2 +1,2 @@
-:HL["/mission-control/_next/static/chunks/ffe25880b1557fff.css","style"]
-0:{"buildId":"s79Jkul18dlfGa1EWm35M","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"tasks","paramType":null,"paramKey":"tasks","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
+:HL["/_next/static/chunks/4f74bce7096bd37d.css","style"]
+0:{"buildId":"yMRrq7XeJPToc31qkHlMJ","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"tasks","paramType":null,"paramKey":"tasks","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
