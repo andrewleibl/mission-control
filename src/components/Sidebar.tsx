@@ -7,6 +7,7 @@ const navItems = [
   { href: '/calendar', label: 'Calendar', icon: '📅' },
   { href: '/docs', label: 'Docs', icon: '📄' },
   { href: '/clients', label: 'Clients', icon: '👥' },
+  { href: '/dashboard/meta-ads', label: 'Meta Ads', icon: '🎯' },
   { href: '/chat', label: 'Chat', icon: '💬' },
   { href: '/usage', label: 'Usage & Cost', icon: '📊' },
 ]
