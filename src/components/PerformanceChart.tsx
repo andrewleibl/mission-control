@@ -1,8 +1,6 @@
 'use client'
 
 import {
-  Bar,
-  BarChart,
   CartesianGrid,
   Legend,
   Line,
@@ -17,7 +15,7 @@ import type { PerformancePoint } from '@/data/metaAds'
 type PerformanceChartProps = {
   title: string
   data: PerformancePoint[]
-  variant: 'revenue' | 'efficiency'
+  variant: 'leads' | 'efficiency'
 }
 
 export default function PerformanceChart({ title, data, variant }: PerformanceChartProps) {
@@ -34,19 +32,18 @@ export default function PerformanceChart({ title, data, variant }: PerformanceCh
     <div className="card">
       <div style={{ fontSize: 14, fontWeight: 700, color: '#F7FAFC', marginBottom: 16 }}>{title}</div>
       <ResponsiveContainer width="100%" height={260}>
-        {variant === 'revenue' ? (
-          <BarChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+        {variant === 'leads' ? (
+          <LineChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
             <CartesianGrid stroke="#1A1A1A" vertical={false} />
             <XAxis dataKey="date" tick={{ fill: '#718096', fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: '#718096', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(value) => `$${value}`} />
+            <YAxis tick={{ fill: '#718096', fontSize: 11 }} axisLine={false} tickLine={false} />
             <Tooltip
               contentStyle={tooltipStyle}
-              formatter={(value, name) => [`$${asNumber(value).toLocaleString()}`, name === 'revenue' ? 'Revenue' : 'Spend']}
+              formatter={(value) => [asNumber(value), 'Leads']}
             />
-            <Legend formatter={(value) => <span style={{ color: '#A0AEC0', fontSize: 12 }}>{value === 'revenue' ? 'Revenue' : 'Spend'}</span>} />
-            <Bar dataKey="spend" name="spend" fill="#742A2A" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="revenue" name="revenue" fill="#E53E3E" radius={[4, 4, 0, 0]} />
-          </BarChart>
+            <Legend formatter={() => <span style={{ color: '#A0AEC0', fontSize: 12 }}>Leads</span>} />
+            <Line type="monotone" dataKey="leads" name="leads" stroke="#E53E3E" strokeWidth={3} dot={{ r: 4, fill: '#E53E3E' }} />
+          </LineChart>
         ) : (
           <LineChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
             <CartesianGrid stroke="#1A1A1A" vertical={false} />

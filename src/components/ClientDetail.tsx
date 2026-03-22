@@ -173,7 +173,7 @@ export default function ClientDetail({ clientId }: { clientId: string }) {
       </div>
 
       <div className="meta-chart-grid" style={{ marginBottom: 24 }}>
-        <PerformanceChart title="Spend vs Revenue Trend" data={client.performance} variant="revenue" />
+        <PerformanceChart title="Leads Over Time" data={client.performance} variant="leads" />
         <BudgetProgressCard spend={client.spendMTD} budget={client.monthlyBudget} />
       </div>
 
@@ -223,7 +223,7 @@ export default function ClientDetail({ clientId }: { clientId: string }) {
         </div>
       </div>
 
-      <CreativeTable creatives={client.creatives} />
+      <CreativeTable creatives={client.creatives} totalLeads={client.leads} />
     </div>
   )
 }
