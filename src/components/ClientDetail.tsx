@@ -6,6 +6,70 @@ import type { MetaAdsClientDetail } from '@/data/metaAds'
 import CreativeTable from '@/components/CreativeTable'
 import PerformanceChart from '@/components/PerformanceChart'
 
+function BudgetProgressCard({ spend, budget }: { spend: number; budget: number }) {
+  const percentage = Math.min((spend / budget) * 100, 100)
+  const radius = 60
+  const stroke = 10
+  const normalizedRadius = radius - stroke / 2
+  const circumference = normalizedRadius * 2 * Math.PI
+  const strokeDashoffset = circumference - (percentage / 100) * circumference
+
+  const statusColor = percentage < 50 ? '#48BB78' : percentage < 85 ? '#ECC94B' : '#E53E3E'
+
+  return (
+    <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div style={{ fontSize: 12, color: '#4A5568', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>
+        Campaign Progress
+      </div>
+      <div style={{ position: 'relative', width: radius * 2, height: radius * 2 }}>
+        <svg width={radius * 2} height={radius * 2} viewBox={`0 0 ${radius * 2} ${radius * 2}`}>
+          <circle
+            cx={radius}
+            cy={radius}
+            r={normalizedRadius}
+            fill="transparent"
+            stroke="#2A2A2A"
+            strokeWidth={stroke}
+          />
+          <circle
+            cx={radius}
+            cy={radius}
+            r={normalizedRadius}
+            fill="transparent"
+            stroke={statusColor}
+            strokeWidth={stroke}
+            strokeDasharray={`${circumference} ${circumference}`}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            transform={`rotate(-90 ${radius} ${radius})`}
+            style={{ transition: 'stroke-dashoffset 0.5s ease' }}
+          />
+        </svg>
+        <div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            textAlign: 'center',
+          }}
+        >
+          <div style={{ fontSize: 28, fontWeight: 800, color: '#F7FAFC' }}>{percentage.toFixed(0)}%</div>
+          <div style={{ fontSize: 10, color: '#718096', marginTop: 2 }}>spent</div>
+        </div>
+      </div>
+      <div style={{ marginTop: 16, textAlign: 'center' }}>
+        <div style={{ fontSize: 18, fontWeight: 700, color: '#F7FAFC' }}>
+          ${spend.toLocaleString()} <span style={{ color: '#718096', fontWeight: 400 }}>/ ${budget.toLocaleString()}</span>
+        </div>
+        <div style={{ fontSize: 11, color: '#718096', marginTop: 4 }}>
+          ${(budget - spend).toLocaleString()} remaining
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function statTile(label: string, value: string, accent?: string) {
   return (
     <div className="card" style={{ padding: '18px 20px' }}>
@@ -108,7 +172,7 @@ export default function ClientDetail({ clientId }: { clientId: string }) {
 
       <div className="meta-chart-grid" style={{ marginBottom: 24 }}>
         <PerformanceChart title="Spend vs Revenue Trend" data={client.performance} variant="revenue" />
-        <PerformanceChart title="Lead Volume vs CTR" data={client.performance} variant="efficiency" />
+        <BudgetProgressCard spend={client.spendMTD} budget={client.monthlyBudget} />
       </div>
 
       <div className="card" style={{ marginBottom: 24 }}>

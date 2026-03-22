@@ -16,6 +16,7 @@ export type PerformancePoint = {
   date: string
   spend: number
   revenue: number
+  cpl?: number // Cost Per Lead (optional for mock data)
   leads: number
   ctr: number
 }
@@ -181,6 +182,34 @@ export const metaAdsClients: MetaAdsClientDetail[] = [
 ]
 
 export function getMetaAdsOverview(): MetaAdsOverview[] {
+  // Try to read live data from Apollo
+  try {
+    const fs = require('fs')
+    const path = require('path')
+    // Absolute path to live data
+    const livePath = '/Users/poseidon/.openclaw/workspace/meta-ads/data/live-clients.json'
+    if (fs.existsSync(livePath)) {
+      const data = JSON.parse(fs.readFileSync(livePath, 'utf8'))
+      if (data.clients && data.clients.length > 0) {
+        return data.clients.map((c: any) => ({
+          id: c.id || 'unknown',
+          name: c.name,
+          brand: c.brand,
+          accountStatus: c.accountStatus,
+          monthlyBudget: c.monthlyBudget,
+          spendMTD: c.spendMTD,
+          revenueMTD: c.revenueMTD,
+          roas: c.roas,
+          cpa: c.cpa,
+          leads: c.leads,
+          primaryObjective: c.primaryObjective
+        }))
+      }
+    }
+  } catch (e) {
+    console.error('Live data error:', e)
+  }
+  // Fallback to mock
   return metaAdsClients.map((client) => ({
     id: client.id,
     name: client.name,
@@ -197,5 +226,20 @@ export function getMetaAdsOverview(): MetaAdsOverview[] {
 }
 
 export function getMetaAdsClient(clientId: string): MetaAdsClientDetail | undefined {
+  // Try to read live data first
+  try {
+    const fs = require('fs')
+    const path = require('path')
+    // Absolute path to live data
+    const livePath = '/Users/poseidon/.openclaw/workspace/meta-ads/data/live-clients.json'
+    if (fs.existsSync(livePath)) {
+      const data = JSON.parse(fs.readFileSync(livePath, 'utf8'))
+      const client = data.clients?.find((c: any) => c.id === clientId || c.name.toLowerCase().includes(clientId.replace('-', ' ')))
+      if (client) return client
+    }
+  } catch (e) {
+    console.error('Live data error for client:', clientId, e)
+  }
+  // Fallback to mock
   return metaAdsClients.find((client) => client.id === clientId)
 }

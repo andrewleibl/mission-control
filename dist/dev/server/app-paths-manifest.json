@@ -1,0 +1,11 @@
+{
+  "/api/meta/[clientId]/route": "app/api/meta/[clientId]/route.js",
+  "/api/meta/campaigns/route": "app/api/meta/campaigns/route.js",
+  "/calendar/page": "app/calendar/page.js",
+  "/chat/page": "app/chat/page.js",
+  "/clients/page": "app/clients/page.js",
+  "/dashboard/meta-ads/[clientId]/page": "app/dashboard/meta-ads/[clientId]/page.js",
+  "/dashboard/meta-ads/page": "app/dashboard/meta-ads/page.js",
+  "/docs/page": "app/docs/page.js",
+  "/tasks/page": "app/tasks/page.js"
+}

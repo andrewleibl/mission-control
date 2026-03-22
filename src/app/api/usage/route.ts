@@ -4,6 +4,8 @@ import { promisify } from 'util'
 
 const execAsync = promisify(exec)
 
+export const dynamic = 'force-static'
+
 export async function GET() {
   try {
     const { stdout } = await execAsync('openclaw gateway usage-cost --json --days 30', {

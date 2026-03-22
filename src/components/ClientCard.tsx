@@ -54,10 +54,10 @@ export default function ClientCard({ client }: { client: MetaAdsOverview }) {
         </div>
         <div>
           <div style={{ fontSize: 11, color: '#4A5568', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Revenue MTD
+            Leads
           </div>
           <div style={{ fontSize: 28, fontWeight: 800, color: '#E53E3E', marginTop: 6 }}>
-            ${client.revenueMTD.toLocaleString()}
+            {client.leads}
           </div>
         </div>
       </div>

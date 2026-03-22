@@ -1,0 +1,1 @@
+self.__SSG_MANIFEST=new Set(["\u002Fapi\u002Fmeta\u002F[clientId]","\u002Fdashboard\u002Fmeta-ads\u002F[clientId]"]);self.__SSG_MANIFEST_CB&&self.__SSG_MANIFEST_CB()
