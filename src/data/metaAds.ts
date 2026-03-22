@@ -181,38 +181,29 @@ export const metaAdsClients: MetaAdsClientDetail[] = [
   },
 ]
 
+import liveClientsData from './meta/live-clients.json'
+
 export function getMetaAdsOverview(): MetaAdsOverview[] {
-  // Try to read live data from file
+  // Use imported JSON data (embedded at build time)
   try {
-    const fs = require('fs')
-    const path = require('path')
-    // Try local file first (for Vercel deployment)
-    const localPath = path.join(__dirname, 'meta', 'live-clients.json')
-    // Fallback to absolute path (for local dev)
-    const absolutePath = '/Users/poseidon/.openclaw/workspace/meta-ads/data/live-clients.json'
-    
-    let livePath = fs.existsSync(localPath) ? localPath : absolutePath
-    
-    if (fs.existsSync(livePath)) {
-      const data = JSON.parse(fs.readFileSync(livePath, 'utf8'))
-      if (data.clients && data.clients.length > 0) {
-        return data.clients.map((c: any) => ({
-          id: c.id || 'unknown',
-          name: c.name,
-          brand: c.brand,
-          accountStatus: c.accountStatus,
-          monthlyBudget: c.monthlyBudget,
-          spendMTD: c.spendMTD,
-          revenueMTD: c.revenueMTD,
-          roas: c.roas,
-          cpa: c.cpa,
-          leads: c.leads,
-          primaryObjective: c.primaryObjective
-        }))
-      }
+    const data = liveClientsData as any
+    if (data.clients && data.clients.length > 0) {
+      return data.clients.map((c: any) => ({
+        id: c.id || 'unknown',
+        name: c.name,
+        brand: c.brand,
+        accountStatus: c.accountStatus,
+        monthlyBudget: c.monthlyBudget,
+        spendMTD: c.spendMTD,
+        revenueMTD: c.revenueMTD,
+        roas: c.roas,
+        cpa: c.cpa,
+        leads: c.leads,
+        primaryObjective: c.primaryObjective
+      }))
     }
   } catch (e) {
-    console.error('Live data error:', e)
+    console.error('Live data import error:', e)
   }
   // Fallback to mock
   return metaAdsClients.map((client) => ({
