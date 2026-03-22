@@ -182,12 +182,17 @@ export const metaAdsClients: MetaAdsClientDetail[] = [
 ]
 
 export function getMetaAdsOverview(): MetaAdsOverview[] {
-  // Try to read live data from Apollo
+  // Try to read live data from file
   try {
     const fs = require('fs')
     const path = require('path')
-    // Absolute path to live data
-    const livePath = '/Users/poseidon/.openclaw/workspace/meta-ads/data/live-clients.json'
+    // Try local file first (for Vercel deployment)
+    const localPath = path.join(__dirname, 'meta', 'live-clients.json')
+    // Fallback to absolute path (for local dev)
+    const absolutePath = '/Users/poseidon/.openclaw/workspace/meta-ads/data/live-clients.json'
+    
+    let livePath = fs.existsSync(localPath) ? localPath : absolutePath
+    
     if (fs.existsSync(livePath)) {
       const data = JSON.parse(fs.readFileSync(livePath, 'utf8'))
       if (data.clients && data.clients.length > 0) {
