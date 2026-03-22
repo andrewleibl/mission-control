@@ -149,8 +149,10 @@ export default function ClientDetail({ clientId }: { clientId: string }) {
             <p style={{ fontSize: 14, color: '#718096', marginTop: 8, marginBottom: 0 }}>{client.brand} • {client.description}</p>
           </div>
           <div className="card" style={{ minWidth: 220, padding: '16px 18px', background: 'linear-gradient(180deg, #141414, #101010)' }}>
-            <div style={{ fontSize: 11, color: '#4A5568', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Account pulse</div>
-            <div style={{ fontSize: 26, fontWeight: 800, color: '#E53E3E', marginTop: 8 }}>{client.roas.toFixed(2)}x ROAS</div>
+            <div style={{ fontSize: 11, color: '#4A5568', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Account Pulse</div>
+            <div style={{ fontSize: 26, fontWeight: 800, color: '#E53E3E', marginTop: 8 }}>
+              ${client.leads > 0 ? (client.spendMTD / client.leads).toFixed(2) : '0.00'} CPL
+            </div>
             <div style={{ fontSize: 13, color: '#A0AEC0', marginTop: 8 }}>{client.audienceNote}</div>
           </div>
         </div>
@@ -159,14 +161,14 @@ export default function ClientDetail({ clientId }: { clientId: string }) {
       <div className="meta-stat-grid" style={{ gap: 16, marginBottom: 24 }}>
         {statTile('Monthly Budget', `$${client.monthlyBudget.toLocaleString()}`)}
         {statTile('Spend MTD', `$${client.spendMTD.toLocaleString()}`, '#E53E3E')}
-        {statTile('Revenue MTD', `$${client.revenueMTD.toLocaleString()}`)}
-        {statTile('Cost Per Acquisition', `$${client.cpa}`)}
+        {statTile('Leads', `${client.leads}`)}
+        {statTile('Cost Per Lead', `$${client.leads > 0 ? (client.spendMTD / client.leads).toFixed(2) : '0.00'}`)}
       </div>
 
       <div className="meta-stat-grid" style={{ gap: 16, marginBottom: 24 }}>
         {statTile('Impressions', client.topLine.impressions.toLocaleString())}
         {statTile('Clicks', client.topLine.clicks.toLocaleString())}
-        {statTile('Conversions', String(client.topLine.purchases))}
+        {statTile('CTR', `${client.performance[client.performance.length - 1]?.ctr.toFixed(2) || '0.00'}%`)}
         {statTile('Frequency', `${client.topLine.frequency.toFixed(1)}x`)}
       </div>
 
@@ -181,7 +183,7 @@ export default function ClientDetail({ clientId }: { clientId: string }) {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #2A2A2A' }}>
-                {['Campaign', 'Objective', 'Status', 'Spend', 'Revenue', 'ROAS', 'CPL'].map((label) => (
+                {['Campaign', 'Objective', 'Status', 'Spend', 'CPL'].map((label) => (
                   <th
                     key={label}
                     style={{
@@ -212,8 +214,6 @@ export default function ClientDetail({ clientId }: { clientId: string }) {
                       </span>
                     </td>
                     <td style={{ padding: '16px 12px 16px 0', fontSize: 13, color: '#F7FAFC' }}>${campaign.spend.toLocaleString()}</td>
-                    <td style={{ padding: '16px 12px 16px 0', fontSize: 13, color: '#F7FAFC' }}>${campaign.revenue.toLocaleString()}</td>
-                    <td style={{ padding: '16px 12px 16px 0', fontSize: 13, color: '#E53E3E', fontWeight: 700 }}>{campaign.roas.toFixed(2)}x</td>
                     <td style={{ padding: '16px 0', fontSize: 13, color: '#F7FAFC' }}>${campaign.cpl}</td>
                   </tr>
                 )

@@ -222,19 +222,13 @@ export function getMetaAdsOverview(): MetaAdsOverview[] {
 }
 
 export function getMetaAdsClient(clientId: string): MetaAdsClientDetail | undefined {
-  // Try to read live data first
+  // Use imported JSON data (embedded at build time)
   try {
-    const fs = require('fs')
-    const path = require('path')
-    // Absolute path to live data
-    const livePath = '/Users/poseidon/.openclaw/workspace/meta-ads/data/live-clients.json'
-    if (fs.existsSync(livePath)) {
-      const data = JSON.parse(fs.readFileSync(livePath, 'utf8'))
-      const client = data.clients?.find((c: any) => c.id === clientId || c.name.toLowerCase().includes(clientId.replace('-', ' ')))
-      if (client) return client
-    }
+    const data = liveClientsData as any
+    const client = data.clients?.find((c: any) => c.id === clientId || c.name.toLowerCase().includes(clientId.replace('-', ' ')))
+    if (client) return client
   } catch (e) {
-    console.error('Live data error for client:', clientId, e)
+    console.error('Live data import error for client:', clientId, e)
   }
   // Fallback to mock
   return metaAdsClients.find((client) => client.id === clientId)
