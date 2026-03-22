@@ -1,28 +1,12 @@
 import { NextResponse } from 'next/server'
+import { getMetaAdsOverview } from '@/data/metaAds'
 
-// Live data from Apollo (via file system for now)
-const getMetaAdsOverview = async () => {
-  try {
-    // Read from Apollo's data store
-    const fs = require('fs')
-    const path = require('path')
-    const dataPath = path.join(process.env.HOME || '', '.openclaw', 'workspace', 'meta-ads', 'data', 'live-clients.json')
-    
-    if (fs.existsSync(dataPath)) {
-      const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'))
-      return data.clients || []
-    }
-  } catch (e) {
-    console.log('Live data not available, using mock')
-  }
-  
-  // Fallback to mock data
-  const { getMetaAdsOverview: mock } = await import('@/data/metaAds')
-  return mock()
-}
+// Static export for dashboard data (read from file system)
+export const dynamic = 'force-static'
+export const revalidate = 60 // Revalidate every 60 seconds
 
 export async function GET() {
-  const clients = await getMetaAdsOverview()
+  const clients = getMetaAdsOverview()
   return NextResponse.json({
     clients,
     updatedAt: new Date().toISOString(),

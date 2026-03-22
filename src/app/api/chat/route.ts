@@ -4,6 +4,10 @@ import { promisify } from 'util'
 
 const execAsync = promisify(exec)
 
+// This route requires dynamic execution (shell commands)
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export async function GET() {
   // Health check — verify gateway is reachable
   try {
