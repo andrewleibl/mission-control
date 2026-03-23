@@ -160,8 +160,8 @@ const MONTH_NAMES = [
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
 
-const TODAY = new Date(2026, 2, 17); // March 17, 2026 (local time)
-const TODAY_STR = "2026-03-17";
+const TODAY = new Date();
+const TODAY_STR = TODAY.toISOString().split('T')[0];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
