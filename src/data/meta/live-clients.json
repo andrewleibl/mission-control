@@ -98,52 +98,106 @@
       "id": "pj-sparks",
       "name": "PJ Sparks",
       "brand": "We Do Hardscape",
-      "accountStatus": "Stable",
-      "monthlyBudget": 5000,
-      "spendMTD": 0,
+      "accountStatus": "Needs Attention",
+      "monthlyBudget": 500,
+      "spendMTD": 437.21,
       "revenueMTD": 0,
       "roas": 0,
-      "cpa": 0,
-      "leads": 0,
-      "primaryObjective": "Pending Meta connection",
-      "description": "Meta Ads connection pending",
-      "lastUpdated": "2026-03-22T20:11:40.960Z",
-      "audienceNote": "Awaiting API token",
+      "cpa": 218.61,
+      "leads": 2,
+      "primaryObjective": "Lead Generation",
+      "description": "Meta Ads campaign for We Do Hardscape",
+      "lastUpdated": "2026-03-23T20:10:00.000Z",
+      "audienceNote": "CPL critically high — creative refresh needed",
       "topLine": {
-        "impressions": 0,
-        "clicks": 0,
-        "purchases": 0,
-        "frequency": 0
+        "impressions": 11575,
+        "clicks": 121,
+        "purchases": 2,
+        "frequency": 1.94
       },
-      "performance": [],
-      "campaigns": [],
-      "creatives": []
+      "performance": [
+        { "date": "Mar 9", "spend": 89, "revenue": 0, "leads": 1, "ctr": 1.12 },
+        { "date": "Mar 13", "spend": 112, "revenue": 0, "leads": 0, "ctr": 0.98 },
+        { "date": "Mar 17", "spend": 124, "revenue": 0, "leads": 0, "ctr": 1.05 },
+        { "date": "Mar 21", "spend": 112, "revenue": 0, "leads": 1, "ctr": 1.08 }
+      ],
+      "campaigns": [
+        {
+          "id": "pj-1",
+          "name": "We Do Hardscape | 03/09/26 | Lead Gen Campaign - Copy",
+          "objective": "OUTCOME LEADS",
+          "status": "Active",
+          "spend": 437.21,
+          "revenue": 0,
+          "roas": 0,
+          "cpl": 218.61
+        }
+      ],
+      "creatives": [
+        {
+          "id": "pj-c1",
+          "name": "Hardscape Lead Gen Creative",
+          "format": "Image",
+          "hook": "Transform your outdoor space",
+          "spend": 437.21,
+          "ctr": 1.05,
+          "cpa": 218.61,
+          "thumb": "HDSC"
+        }
+      ]
     },
     {
       "id": "ricardo-madera",
       "name": "Ricardo Madera",
       "brand": "Madera Landscape",
-      "accountStatus": "Needs Attention",
-      "monthlyBudget": 5000,
-      "spendMTD": 0,
+      "accountStatus": "Paused",
+      "monthlyBudget": 500,
+      "spendMTD": 98.05,
       "revenueMTD": 0,
       "roas": 0,
-      "cpa": 0,
-      "leads": 0,
-      "primaryObjective": "Pending Meta connection",
-      "description": "Meta Ads connection pending",
-      "lastUpdated": "2026-03-22T20:11:40.960Z",
-      "audienceNote": "Awaiting API token",
+      "cpa": 32.68,
+      "leads": 3,
+      "primaryObjective": "Lead Generation",
+      "description": "Meta Ads campaign for Madera Landscape",
+      "lastUpdated": "2026-03-23T20:10:00.000Z",
+      "audienceNote": "Campaigns paused — strong CPL when running ($32.68)",
       "topLine": {
-        "impressions": 0,
-        "clicks": 0,
-        "purchases": 0,
-        "frequency": 0
+        "impressions": 3563,
+        "clicks": 48,
+        "purchases": 3,
+        "frequency": 1.43
       },
-      "performance": [],
-      "campaigns": [],
-      "creatives": []
+      "performance": [
+        { "date": "Mar 9", "spend": 45, "revenue": 0, "leads": 2, "ctr": 1.42 },
+        { "date": "Mar 13", "spend": 28, "revenue": 0, "leads": 1, "ctr": 1.38 },
+        { "date": "Mar 17", "spend": 15, "revenue": 0, "leads": 0, "ctr": 1.28 },
+        { "date": "Mar 21", "spend": 10, "revenue": 0, "leads": 0, "ctr": 1.32 }
+      ],
+      "campaigns": [
+        {
+          "id": "rm-1",
+          "name": "03/09/26 Lead Gen Ad Set",
+          "objective": "OUTCOME LEADS",
+          "status": "Paused",
+          "spend": 98.05,
+          "revenue": 0,
+          "roas": 0,
+          "cpl": 32.68
+        }
+      ],
+      "creatives": [
+        {
+          "id": "rm-c1",
+          "name": "Landscape Lead Gen Creative",
+          "format": "Image",
+          "hook": "Professional landscaping services",
+          "spend": 98.05,
+          "ctr": 1.35,
+          "cpa": 32.68,
+          "thumb": "LAND"
+        }
+      ]
     }
   ],
-  "updatedAt": "2026-03-22T21:40:00.000Z"
+  "updatedAt": "2026-03-23T20:10:00.000Z"
 }
