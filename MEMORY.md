@@ -46,8 +46,22 @@ Always pull history from BOTH sessions before responding:
 
 ---
 
+## Agent Hierarchy
+
+| Rank | Name | Role | Model | Status |
+|------|------|------|-------|--------|
+| 1 | **Poseidon** | Chief strategist, coordination, memory | `venice/kimi-k2-5` | **LIVE** |
+| 2 | **Hephaestus** | Coding, websites, technical builds | `venice/openai-gpt-53-codex` | **LIVE** |
+| 3 | **Apollo** | Meta Ads, campaign optimization | `venice/kimi-k2-5` | **LIVE** |
+| 4 | **Hermes** | Speed-to-lead, messaging, alerts | `venice/kimi-k2-5` | Planned |
+
+**Spawn Commands:**
+- Hephaestus: `sessions_spawn with agentId="hephaestus"`
+- Apollo: `sessions_spawn with agentId="apollo"`
+
 ## Key Dates
 
 - 2026-03-14: First boot. Named Poseidon. Telegram + WhatsApp connected.
 - 2026-03-15: Full onboarding complete. New offer designed. Nightly builds scheduled.
 - 2026-03-16: pmset fix applied — displaysleep 0, networkoversleep 1. Mac stays connected with monitor off.
+- 2026-03-22: **Apollo deployed** — Meta Ads specialist agent live.

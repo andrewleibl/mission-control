@@ -19,6 +19,31 @@ Skills define _how_ tools work. This file is for _your_ specifics — the stuff 
 - **Research / web search** → `venice/gemini-3-flash-preview` (Gemini 3 Flash, anonymized)
 - Provider configured: Venice AI (`vapi_...` key in openclaw.json)
 
+## Tool Gotchas
+
+### Meta Marketing API
+**Lead counting**: ONLY use `action_type === 'lead'` for actual form submissions.  
+DO NOT use `.includes('lead')` — Meta returns multiple lead-related action types:
+- `lead` ✅ actual form fill
+- `offsite_complete_registration_add_meta_leads` ❌
+- `offsite_search_add_meta_leads` ❌
+- `onsite_conversion.lead_grouped` ❌
+
+Using `.includes('lead')` overcounts by 5x+. Always exact match.
+
+### Meta Ads Dashboard Patterns
+**For Lead Gen campaigns, focus on CPL not ROAS:**
+- Cards: Spend MTD + Leads + CPL (add below leads number)
+- Budget: Progress bar showing % spent (color: green/yellow/red)
+- Campaigns: Remove Revenue/ROAS columns, keep Spend + CPL
+- Charts: "Leads Over Time" line chart (not Spend vs Revenue)
+- Creatives: Estimate leads by spend proportion (Meta doesn't attribute)
+
+**Data loading on Vercel:**
+- Can't use `fs.readFileSync` with absolute paths
+- Import JSON: `import data from './data/file.json'`
+- Data gets bundled at build time, rebuild to update
+
 ## Agent Hierarchy (Greek Pantheon)
 
 | Rank | Name | Role | Model | Status |
