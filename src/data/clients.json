@@ -112,49 +112,44 @@
     "company": "Madera Landscape",
     "niche": "Landscaping / Lawn Care",
     "status": "active",
-    "health": "yellow",
+    "health": "green",
     "avatar": "RM",
     "service": "Facebook Appt Booking",
     "signed": "2026-02-27",
-    "adsLive": "2026-03-09",
-    "renewal": "2026-04-09",
+    "adsLive": "2026-03-24",
+    "renewal": "2026-04-24",
     "upfront": 285,
     "totalCollected": 285,
     "remaining": 0,
     "monthlyRate": 285,
-    "lastContact": "2026-02-28",
+    "lastContact": "2026-03-24",
     "phone": "(520) 555-0789",
     "email": "ricardo@maderalandscape.com",
     "location": "Tucson, AZ",
-    "notes": "Wants to compare $500 ad spend results to what he did last month — needs clear data. No check-in in 16 days.",
-    "atRisk": true,
-    "openTasks": 3,
+    "notes": "CAMPAIGN ACTIVATED TODAY (Mar 24). Ads now live. Total budget: $900. 3 creative variants running. Tracking daily spend vs his previous $300 self-run campaign. Target: beat his previous results.",
+    "atRisk": false,
+    "openTasks": 2,
     "adPerformance": {
-      "spend": 290,
-      "leads": 11,
-      "appointments": 4,
-      "cpl": 26,
-      "cpa": 72,
-      "roas": 3.9,
-      "weeklyData": [
-        { "week": "Mar 1", "spend": 50, "leads": 2, "appointments": 1 },
-        { "week": "Mar 8", "spend": 90, "leads": 4, "appointments": 1 },
-        { "week": "Mar 15", "spend": 90, "leads": 3, "appointments": 1 },
-        { "week": "Mar 22", "spend": 60, "leads": 2, "appointments": 1 }
-      ]
+      "spend": 0,
+      "leads": 0,
+      "appointments": 0,
+      "cpl": 0,
+      "cpa": 0,
+      "roas": 0,
+      "weeklyData": []
     },
     "adjustmentLog": [
-      { "date": "2026-03-09", "note": "Ads live. Targeting Tucson + surrounding areas. 3 creative angles: lawn transformation, seasonal promo, reliability angle." },
-      { "date": "2026-03-07", "note": "Finalized ad copy. Budget: $500/mo test period." }
+      { "date": "2026-03-24", "note": "✅ CAMPAIGN ACTIVATED — Ads now live. 3 creative variants: lawn transformation, seasonal promo, reliability angle. Budget: $900 total campaign spend. Targeting Tucson metro." },
+      { "date": "2026-03-07", "note": "Finalized ad copy. Budget confirmed: $900 total campaign." }
     ],
     "contactLog": [
+      { "date": "2026-03-24", "type": "call", "note": "Campaign activation call. Ricardo excited to see results. Will check in Friday with first 48hr data." },
       { "date": "2026-02-28", "type": "call", "note": "Onboarding. Ricardo mentioned he spent ~$300 last month on his own ads. Wants to beat that." },
       { "date": "2026-02-27", "type": "call", "note": "Closed. $285 collected." }
     ],
     "tasks": [
-      { "id": "t1", "text": "URGENT: Call Ricardo — 16 days no contact", "done": false, "due": "2026-03-16" },
-      { "id": "t2", "text": "Send comparison report: our $500 vs his old ads", "done": false, "due": "2026-03-17" },
-      { "id": "t3", "text": "Highlight CPL $26 vs industry avg $45-60", "done": false, "due": "2026-03-17" }
+      { "id": "t1", "text": "48-hour performance check — text Ricardo first lead", "done": false, "due": "2026-03-26" },
+      { "id": "t2", "text": "Week 1 comparison report vs his old $300 spend", "done": false, "due": "2026-03-31" }
     ],
     "mondayScript": "Hey Ricardo, it's Andrew with Straight Point — good morning! Quick Monday update. Your campaigns have been live for about a week and a half. So far: [X] leads at $[X] cost per lead, [X] appointments booked. You mentioned you wanted to compare to what you were spending before — we're tracking better than the industry average right now. Cost per lead is $[X], industry average for landscaping is typically $45-60. I'll send you a full breakdown with the comparison you asked for. Anything from your end — how are the leads converting when you talk to them?"
   },
