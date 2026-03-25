@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop All Products — Clutch Barber Supply</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --clutch-bg: #05070c;
+      --clutch-bg-light: #091018;
+      --clutch-bg-lighter: #0d1822;
+      --clutch-text: #f5efe3;
+      --clutch-text-muted: #d1c7b3;
+      --clutch-text-dim: #9ca3af;
+      --clutch-border: #253242;
+      --clutch-accent: #c9894b;
+      --clutch-accent-hover: #d89a5c;
+    }
+    
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--clutch-bg);
+      color: var(--clutch-text);
+      line-height: 1.5;
+    }
+    
+    a { color: inherit; text-decoration: none; }
+    
+    /* Header */
+    .clutch-header {
+      background: var(--clutch-bg-light);
+      border-bottom: 1px solid var(--clutch-border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .clutch-header__inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+    }
+    
+    .clutch-header__left, .clutch-header__right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex: 1;
+    }
+    
+    .clutch-header__right { justify-content: flex-end; }
+    
+    .clutch-header__logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    
+    .clutch-header__search input {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--clutch-border);
+      border-radius: 8px;
+      padding: 0.625rem 1rem;
+      color: var(--clutch-text);
+      font-size: 0.875rem;
+      width: 240px;
+    }
+    
+    .clutch-header__nav {
+      display: flex;
+      gap: 1.5rem;
+    }
+    
+    .clutch-header__nav a {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--clutch-text-muted);
+      transition: color 0.2s;
+    }
+    
+    .clutch-header__nav a:hover, .clutch-header__nav a.active {
+      color: var(--clutch-accent);
+    }
+    
+    .clutch-header__cart {
+      position: relative;
+      width: 2.5rem;
+      height: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--clutch-border);
+      border-radius: 8px;
+    }
+    
+    .clutch-header__badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      width: 18px;
+      height: 18px;
+      background: var(--clutch-accent);
+      color: var(--clutch-bg);
+      font-size: 0.6875rem;
+      font-weight: 700;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* Page Header */
+    .page-header {
+      padding: 3rem 1.5rem;
+      text-align: center;
+      background: linear-gradient(180deg, var(--clutch-bg-light) 0%, var(--clutch-bg) 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .page-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -20%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(201, 137, 75, 0.2) 0%, transparent 60%);
+      filter: blur(80px);
+      pointer-events: none;
+    }
+    
+    .page-header h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.5rem;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .breadcrumbs {
+      font-size: 0.875rem;
+      color: var(--clutch-text-muted);
+      position: relative;
+      z-index: 1;
+    }
+    
+    .breadcrumbs a { color: var(--clutch-accent); }
+    .breadcrumbs a:hover { text-decoration: underline; }
+    
+    /* Main Layout */
+    .collection-layout {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 2rem;
+    }
+    
+    @media (max-width: 900px) {
+      .collection-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    /* Sidebar Filters */
+    .filters-sidebar {
+      position: sticky;
+      top: 100px;
+      height: fit-content;
+    }
+    
+    .filters-sidebar h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .filter-group {
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--clutch-border);
+    }
+    
+    .filter-group:last-child {
+      border-bottom: none;
+    }
+    
+    .filter-group h4 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: var(--clutch-text);
+    }
+    
+    .filter-option {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.375rem 0;
+      font-size: 0.875rem;
+      color: var(--clutch-text-muted);
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    
+    .filter-option:hover { color: var(--clutch-text); }
+    
+    .filter-option input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--clutch-accent);
+    }
+    
+    .price-range {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    
+    .price-range input {
+      width: 80px;
+      padding: 0.5rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--clutch-border);
+      border-radius: 6px;
+      color: var(--clutch-text);
+      font-size: 0.875rem;
+    }
+    
+    .clear-filters {
+      width: 100%;
+      padding: 0.75rem;
+      background: transparent;
+      border: 1px solid var(--clutch-border);
+      border-radius: 8px;
+      color: var(--clutch-text-muted);
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .clear-filters:hover {
+      border-color: var(--clutch-accent);
+      color: var(--clutch-accent);
+    }
+    
+    /* Active Filters */
+    .active-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .filter-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.375rem 0.75rem;
+      background: rgba(201, 137, 75, 0.15);
+      border: 1px solid rgba(201, 137, 75, 0.3);
+      border-radius: 50px;
+      font-size: 0.8125rem;
+      color: var(--clutch-accent);
+    }
+    
+    .filter-pill button {
+      background: none;
+      border: none;
+      color: var(--clutch-accent);
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+    }
+    
+    /* Sort Bar */
+    .sort-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--clutch-border);
+    }
+    
+    .results-count {
+      font-size: 0.875rem;
+      color: var(--clutch-text-muted);
+    }
+    
+    .sort-select {
+      padding: 0.5rem 1rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--clutch-border);
+      border-radius: 8px;
+      color: var(--clutch-text);
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    
+    /* Product Grid */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+    
+    @media (min-width: 600px) {
+      .products-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    
+    @media (min-width: 1200px) {
+      .products-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    
+    .product-card {
+      background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+      border: 1px solid var(--clutch-border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .product-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(201, 137, 75, 0.4);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(201, 137, 75, 0.2);
+    }
+    
+    .product-card__image {
+      aspect-ratio: 1;
+      background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .product-card__image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+    
+    .product-card:hover .product-card__image img {
+      transform: scale(1.05);
+    }
+    
+    .product-card__badge {
+      position: absolute;
+      top: 0.75rem;
+      left: 0.75rem;
+      padding: 0.25rem 0.625rem;
+      background: var(--clutch-accent);
+      color: var(--clutch-bg);
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      border-radius: 4px;
+    }
+    
+    .product-card__quick-add {
+      position: absolute;
+      bottom: 0.75rem;
+      left: 0.75rem;
+      right: 0.75rem;
+      padding: 0.625rem;
+      background: var(--clutch-accent);
+      color: var(--clutch-bg);
+      border: none;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .product-card:hover .product-card__quick-add {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .product-card__info {
+      padding: 1rem;
+    }
+    
+    .product-card__brand {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--clutch-accent);
+      margin-bottom: 0.25rem;
+    }
+    
+    .product-card__name {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      line-height: 1.3;
+    }
+    
+    .product-card__name a:hover {
+      color: var(--clutch-accent);
+    }
+    
+    .product-card__price {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .product-card__price-current {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+    
+    .product-card__price-compare {
+      font-size: 0.875rem;
+      color: var(--clutch-text-dim);
+      text-decoration: line-through;
+    }
+    
+    /* Pagination */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--clutch-border);
+    }
+    
+    .pagination a, .pagination span {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    
+    .pagination a {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--clutch-border);
+      color: var(--clutch-text-muted);
+      transition: all 0.2s;
+    }
+    
+    .pagination a:hover {
+      border-color: var(--clutch-accent);
+      color: var(--clutch-accent);
+    }
+    
+    .pagination span {
+      background: var(--clutch-accent);
+      color: var(--clutch-bg);
+    }
+    
+    /* Footer */
+    .clutch-footer {
+      background: var(--clutch-bg);
+      border-top: 1px solid var(--clutch-border);
+      padding: 3rem 0 2rem;
+      margin-top: 4rem;
+    }
+    
+    .clutch-footer__inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    
+    .clutch-footer__grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem;
+      margin-bottom: 2.5rem;
+    }
+    
+    @media (min-width: 768px) {
+      .clutch-footer__grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    
+    .clutch-footer__column h4 {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .clutch-footer__links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .clutch-footer__links a {
+      font-size: 0.875rem;
+      color: var(--clutch-text-dim);
+      transition: color 0.2s;
+    }
+    
+    .clutch-footer__links a:hover { color: var(--clutch-accent); }
+    
+    .clutch-footer__bottom {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--clutch-border);
+    }
+    
+    @media (min-width: 640px) {
+      .clutch-footer__bottom { flex-direction: row; justify-content: space-between; }
+    }
+    
+    .clutch-footer__copyright {
+      font-size: 0.8125rem;
+      color: var(--clutch-text-dim);
+    }
+    
+    /* Mobile Filter Toggle */
+    .mobile-filter-toggle {
+      display: none;
+      width: 100%;
+      padding: 0.75rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--clutch-border);
+      border-radius: 8px;
+      color: var(--clutch-text);
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+      cursor: pointer;
+    }
+    
+    @media (max-width: 900px) {
+      .mobile-filter-toggle { display: block; }
+      .filters-sidebar {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 280px;
+        height: 100vh;
+        background: var(--clutch-bg);
+        z-index: 200;
+        padding: 1.5rem;
+        overflow-y: auto;
+        transition: left 0.3s ease;
+      }
+      .filters-sidebar.open { left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="clutch-header">
+    <div class="clutch-header__inner">
+      <div class="clutch-header__left">
+        <a href="http://localhost:8765/preview-homepage-complete.html" class="clutch-header__logo">CLUTCH</a>
+      </div>
+      <div class="clutch-header__right">
+        <nav class="clutch-header__nav">
+          <a href="http://localhost:8765/preview-collections.html" class="active">Shop</a>
+          <a href="http://localhost:8765/preview-brands.html">Brands</a>
+          <a href="http://localhost:8765/preview-about.html">About</a>
+          <a href="http://localhost:8765/preview-contact.html">Contact</a>
+          <a href="http://localhost:8765/preview-faq.html">FAQ</a>
+        </nav>
+        <a href="http://localhost:8765/preview-cart.html" class="clutch-header__cart">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 5h2l2.1 9.2a1 1 0 0 0 1 .8H18a1 1 0 0 0 1-.8L21 8H7"/>
+            <circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/>
+          </svg>
+          <span class="clutch-header__badge">2</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1>All Products</h1>
+    <div class="breadcrumbs">
+      <a href="preview-homepage-complete.html">Home</a> / <span>Shop All</span>
+    </div>
+  </div>
+
+  <!-- Collection Layout -->
+  <div class="collection-layout">
+    <!-- Sidebar Filters -->
+    <aside class="filters-sidebar">
+      <h3>Filters</h3>
+      
+      <div class="filter-group">
+        <h4>Category</h4>
+        <label class="filter-option">
+          <input type="checkbox"> Clippers & Trimmers
+        </label>
+        <label class="filter-option">
+          <input type="checkbox"> Replacement Parts
+        </label>
+        <label class="filter-option">
+          <input type="checkbox"> Shears & Razors
+        </label>
+        <label class="filter-option">
+          <input type="checkbox"> Grooming Products
+        </label>
+        <label class="filter-option">
+          <input type="checkbox"> Barber Tools
+        </label>
+        <label class="filter-option">
+          <input type="checkbox"> Accessories
+        </label>
+      </div>
+      
+      <div class="filter-group">
+        <h4>Brand</h4>
+        <label class="filter-option">
+          <input type="checkbox"> Gamma
+        </label>
+        <label class="filter-option">
+          <input type="checkbox"> JRL
+        </label>
+        <label class="filter-option">
+          <input type="checkbox"> Wahl
+        </label>
+        <label class="filter-option">
+          <input type="checkbox"> Babyliss Pro
+        </label>
+        <label class="filter-option">
+          <input type="checkbox"> Andis
+        </label>
+      </div>
+      
+      <div class="filter-group">
+        <h4>Price</h4>
+        <div class="price-range">
+          <input type="number" placeholder="$0" min="0">
+          <span>—</span>
+          <input type="number" placeholder="$500" max="500">
+        </div>
+      </div>
+      
+      <div class="filter-group">
+        <h4>Availability</h4>
+        <label class="filter-option">
+          <input type="checkbox"> In Stock
+        </label>
+        <label class="filter-option">
+          <input type="checkbox"> Out of Stock
+        </label>
+      </div>
+      
+      <button class="clear-filters">Clear All Filters</button>
+    </aside>
+
+    <!-- Products Area -->
+    <div class="products-area">
+      <button class="mobile-filter-toggle">☰ Filters</button>
+      
+      <!-- Active Filters -->
+      <div class="active-filters">
+        <span class="filter-pill">Clippers <button>×</button></span>
+        <span class="filter-pill">In Stock <button>×</button></span>
+      </div>
+      
+      <!-- Sort Bar -->
+      <div class="sort-bar">
+        <span class="results-count">Showing 24 of 156 products</span>
+        <select class="sort-select">
+          <option>Sort by: Featured</option>
+          <option>Price: Low to High</option>
+          <option>Price: High to Low</option>
+          <option>Newest First</option>
+          <option>Best Selling</option>
+        </select>
+      </div>
+      
+      <!-- Products Grid -->
+      <div class="products-grid">
+        <div class="product-card">
+          <div class="product-card__image">
+            <span style="color: var(--clutch-text-dim); font-size: 0.875rem;">Andis Master</span>
+            <button class="product-card__quick-add">Quick Add</button>
+          </div>
+          <div class="product-card__info">
+            <div class="product-card__brand">Andis</div>
+            <div class="product-card__name"><a href="preview-product.html">Andis Master Clipper</a></div>
+            <div class="product-card__price">
+              <span class="product-card__price-current">$189.99</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div class="product-card__image">
+            <span class="product-card__badge">Sale</span>
+            <span style="color: var(--clutch-text-dim); font-size: 0.875rem;">Wahl Senior</span>
+            <button class="product-card__quick-add">Quick Add</button>
+          </div>
+          <div class="product-card__info">
+            <div class="product-card__brand">Wahl</div>
+            <div class="product-card__name"><a href="preview-product.html">Wahl Senior Clipper</a></div>
+            <div class="product-card__price">
+              <span class="product-card__price-current">$149.99</span>
+              <span class="product-card__price-compare">$169.99</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div class="product-card__image">
+            <span style="color: var(--clutch-text-dim); font-size: 0.875rem;">Gamma+ X-Ergo</span>
+            <button class="product-card__quick-add">Quick Add</button>
+          </div>
+          <div class="product-card__info">
+            <div class="product-card__brand">Gamma+</div>
+            <div class="product-card__name"><a href="preview-product.html">Gamma+ X-Ergo Clipper</a></div>
+            <div class="product-card__price">
+              <span class="product-card__price-current">$209.99</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div class="product-card__image">
+            <span style="color: var(--clutch-text-dim); font-size: 0.875rem;">JRL Fresh Fade</span>
+            <button class="product-card__quick-add">Quick Add</button>
+          </div>
+          <div class="product-card__info">
+            <div class="product-card__brand">JRL</div>
+            <div class="product-card__name"><a href="preview-product.html">JRL Fresh Fade 2020C</a></div>
+            <div class="product-card__price">
+              <span class="product-card__price-current">$199.99</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div class="product-card__image">
+            <span style="color: var(--clutch-text-dim); font-size: 0.875rem;">Babyliss Gold FX</span>
+            <button class="product-card__quick-add">Quick Add</button>
+          </div>
+          <div class="product-card__info">
+            <div class="product-card__brand">Babyliss Pro</div>
+            <div class="product-card__name"><a href="preview-product.html">GoldFX Clipper</a></div>
+            <div class="product-card__price">
+              <span class="product-card__price-current">$229.99</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div class="product-card__image">
+            <span style="color: var(--clutch-text-dim); font-size: 0.875rem;">Andis T-Outliner</span>
+            <button class="product-card__quick-add">Quick Add</button>
+          </div>
+          <div class="product-card__info">
+            <div class="product-card__brand">Andis</div>
+            <div class="product-card__name"><a href="preview-product.html">T-Outliner Trimmer</a></div>
+            <div class="product-card__price">
+              <span class="product-card__price-current">$79.99</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div class="product-card__image">
+            <span style="color: var(--clutch-text-dim); font-size: 0.875rem;">Wahl Magic Clip</span>
+            <button class="product-card__quick-add">Quick Add</button>
+          </div>
+          <div class="product-card__info">
+            <div class="product-card__brand">Wahl</div>
+            <div class="product-card__name"><a href="preview-product.html">Magic Clip Cordless</a></div>
+            <div class="product-card__price">
+              <span class="product-card__price-current">$129.99</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div class="product-card__image">
+            <span class="product-card__badge">New</span>
+            <span style="color: var(--clutch-text-dim); font-size: 0.875rem;">Gamma+ Evo</span>
+            <button class="product-card__quick-add">Quick Add</button>
+          </div>
+          <div class="product-card__info">
+            <div class="product-card__brand">Gamma+</div>
+            <div class="product-card__name"><a href="preview-product.html">Evo Trimmer</a></div>
+            <div class="product-card__price">
+              <span class="product-card__price-current">$179.99</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Pagination -->
+      <div class="pagination">
+        <a href="#">←</a>
+        <span>1</span>
+        <a href="#">2</a>
+        <a href="#">3</a>
+        <a href="#">...</a>
+        <a href="#">8</a>
+        <a href="#">→</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="clutch-footer">
+    <div class="clutch-footer__inner">
+      <div class="clutch-footer__grid">
+        <div class="clutch-footer__column">
+          <h4>Shop</h4>
+          <div class="clutch-footer__links">
+            <a href="preview-collections.html">All Products</a>
+            <a href="preview-collections.html">Clippers</a>
+            <a href="preview-collections.html">Trimmers</a>
+            <a href="preview-collections.html">Shears</a>
+          </div>
+        </div>
+        <div class="clutch-footer__column">
+          <h4>Brands</h4>
+          <div class="clutch-footer__links">
+            <a href="preview-brands.html">Gamma</a>
+            <a href="preview-brands.html">Wahl</a>
+            <a href="preview-brands.html">Andis</a>
+            <a href="preview-brands.html">JRL</a>
+          </div>
+        </div>
+        <div class="clutch-footer__column">
+          <h4>Support</h4>
+          <div class="clutch-footer__links">
+            <a href="preview-contact.html">Contact</a>
+            <a href="preview-faq.html">FAQ</a>
+            <a href="#">Shipping</a>
+            <a href="#">Returns</a>
+          </div>
+        </div>
+        <div class="clutch-footer__column">
+          <h4>Company</h4>
+          <div class="clutch-footer__links">
+            <a href="preview-about.html">About Us</a>
+            <a href="#">Store Location</a>
+            <a href="#">Wholesale</a>
+          </div>
+        </div>
+      </div>
+      <div class="clutch-footer__bottom">
+        <p class="clutch-footer__copyright">© 2026 Clutch Barber Supply. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

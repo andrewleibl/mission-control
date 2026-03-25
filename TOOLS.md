@@ -62,6 +62,22 @@ Using `.includes('lead')` overcounts by 5x+. Always exact match.
 
 **Activation:** When Andrew gives a coding task, I spawn a dedicated session with GPT-5.3-Codex optimized for technical work. Hephaestus executes, then reports back to Poseidon with results.
 
+## Website Build Workflow
+
+**For Shopify/e-commerce sites:**
+
+1. **Structure First** — Get user to define sections and layout before any code
+2. **User-Provided Copy** — Don't draft headlines/CTAs; get exact text from user
+3. **Section Batches** — Build 2-3 sections → preview → adjust → approve → save memory
+4. **Local Preview** — `python3 -m http.server 8765` for immediate browser feedback
+5. **Hephaestus Pattern** — Spawn for implementation, you handle direction and review
+
+**Build Directory:** `/builds/<project-name>/`
+- `preview-sections-X-Y.html` for preview files
+- `shopify-redesign/theme/sections/` for Shopify-compatible Liquid files
+
+**March 24, 2026 — Proven on Clutch Barber Supply build**
+
 ## What Goes Here
 
 Things like:

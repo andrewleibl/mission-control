@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shopping Cart — Clutch Barber Supply</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --clutch-bg: #05070c; --clutch-bg-light: #091018; --clutch-bg-lighter: #0d1822;
+      --clutch-text: #f5efe3; --clutch-text-muted: #d1c7b3; --clutch-text-dim: #9ca3af;
+      --clutch-border: #253242; --clutch-accent: #c9894b;
+    }
+    body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--clutch-bg); color: var(--clutch-text); line-height: 1.5; }
+    a { color: inherit; text-decoration: none; }
+
+    .clutch-header { background: var(--clutch-bg-light); border-bottom: 1px solid var(--clutch-border); position: sticky; top: 0; z-index: 100; }
+    .clutch-header__inner { max-width: 1400px; margin: 0 auto; padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+    .clutch-header__logo { font-size: 1.5rem; font-weight: 700; }
+    .clutch-header__nav { display: flex; gap: 1.5rem; }
+    .clutch-header__nav a { font-size: 0.875rem; font-weight: 500; color: var(--clutch-text-muted); transition: color 0.2s; }
+    .clutch-header__nav a:hover { color: var(--clutch-accent); }
+    .clutch-header__cart { position: relative; width: 2.5rem; height: 2.5rem; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid var(--clutch-border); border-radius: 8px; }
+    .clutch-header__badge { position: absolute; top: -4px; right: -4px; width: 18px; height: 18px; background: var(--clutch-accent); color: var(--clutch-bg); font-size: 0.6875rem; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+
+    .page-header { padding: 2rem 1.5rem; max-width: 1200px; margin: 0 auto; }
+    .page-header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .breadcrumbs { font-size: 0.875rem; color: var(--clutch-text-muted); }
+    .breadcrumbs a { color: var(--clutch-accent); }
+    .breadcrumbs a:hover { text-decoration: underline; }
+
+    .cart-layout { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem 4rem; display: grid; grid-template-columns: 1fr 380px; gap: 3rem; }
+    @media (max-width: 900px) { .cart-layout { grid-template-columns: 1fr; } }
+
+    .cart-items { background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%); border: 1px solid var(--clutch-border); border-radius: 20px; padding: 1.5rem; }
+    .cart-item { display: grid; grid-template-columns: 100px 1fr auto; gap: 1.5rem; padding: 1.5rem 0; border-bottom: 1px solid var(--clutch-border); }
+    .cart-item:last-child { border-bottom: none; }
+    .cart-item__image { width: 100px; height: 100px; background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--clutch-text-dim); }
+    .cart-item__details h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; }
+    .cart-item__details .brand { font-size: 0.75rem; color: var(--clutch-accent); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+    .cart-item__details .variant { font-size: 0.875rem; color: var(--clutch-text-muted); }
+    .cart-item__actions { display: flex; flex-direction: column; align-items: flex-end; gap: 1rem; }
+    .cart-item__price { font-size: 1.125rem; font-weight: 700; }
+    .quantity-control { display: flex; align-items: center; border: 1px solid var(--clutch-border); border-radius: 8px; }
+    .quantity-control button { width: 36px; height: 36px; background: transparent; border: none; color: var(--clutch-text); cursor: pointer; }
+    .quantity-control input { width: 50px; text-align: center; background: transparent; border: none; border-left: 1px solid var(--clutch-border); border-right: 1px solid var(--clutch-border); color: var(--clutch-text); }
+    .remove-btn { font-size: 0.875rem; color: var(--clutch-text-dim); background: none; border: none; cursor: pointer; transition: color 0.2s; }
+    .remove-btn:hover { color: #ef4444; }
+
+    .cart-summary { background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%); border: 1px solid var(--clutch-border); border-radius: 20px; padding: 1.5rem; height: fit-content; position: sticky; top: 100px; }
+    .cart-summary h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--clutch-border); }
+    .summary-row { display: flex; justify-content: space-between; margin-bottom: 1rem; font-size: 0.9375rem; }
+    .summary-row.discount { color: #22c55e; }
+    .summary-row.total { font-size: 1.125rem; font-weight: 700; padding-top: 1rem; border-top: 1px solid var(--clutch-border); margin-top: 1rem; }
+    .checkout-btn { width: 100%; padding: 1rem; background: linear-gradient(135deg, var(--clutch-accent) 0%, #b87a3e 100%); color: var(--clutch-bg); border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-top: 1rem; }
+    .checkout-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(201, 137, 75, 0.4); }
+    .payment-icons { display: flex; justify-content: center; gap: 0.75rem; margin-top: 1rem; opacity: 0.6; }
+    .payment-icon { padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.05); border-radius: 4px; font-size: 0.625rem; }
+
+    .promo-code { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--clutch-border); }
+    .promo-code label { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .promo-input { display: flex; gap: 0.5rem; }
+    .promo-input input { flex: 1; padding: 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid var(--clutch-border); border-radius: 8px; color: var(--clutch-text); }
+    .promo-input button { padding: 0.75rem 1rem; background: transparent; border: 1px solid var(--clutch-border); border-radius: 8px; color: var(--clutch-text); cursor: pointer; transition: all 0.2s; }
+    .promo-input button:hover { border-color: var(--clutch-accent); color: var(--clutch-accent); }
+
+    .empty-cart { text-align: center; padding: 4rem 1.5rem; }
+    .empty-cart h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; }
+    .empty-cart p { color: var(--clutch-text-muted); margin-bottom: 1.5rem; }
+    .continue-shopping { display: inline-block; padding: 1rem 2rem; background: var(--clutch-accent); color: var(--clutch-bg); border-radius: 12px; font-weight: 600; transition: all 0.3s; }
+    .continue-shopping:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(201, 137, 75, 0.4); }
+
+    .clutch-footer { background: var(--clutch-bg); border-top: 1px solid var(--clutch-border); padding: 3rem 0 2rem; margin-top: 4rem; }
+    .clutch-footer__inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+    .clutch-footer__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; margin-bottom: 2.5rem; }
+    @media (max-width: 768px) { .clutch-footer__grid { grid-template-columns: repeat(2, 1fr); } }
+    .clutch-footer__column h4 { font-size: 0.9375rem; font-weight: 600; margin-bottom: 1rem; text-transform: uppercase; }
+    .clutch-footer__links { display: flex; flex-direction: column; gap: 0.5rem; }
+    .clutch-footer__links a { font-size: 0.875rem; color: var(--clutch-text-dim); transition: color 0.2s; }
+    .clutch-footer__links a:hover { color: var(--clutch-accent); }
+    .clutch-footer__bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 2rem; border-top: 1px solid var(--clutch-border); }
+    .clutch-footer__copyright { font-size: 0.8125rem; color: var(--clutch-text-dim); }
+  </style>
+</head>
+<body>
+  <header class="clutch-header">
+    <div class="clutch-header__inner">
+      <a href="http://localhost:8765/preview-homepage-complete.html" class="clutch-header__logo">CLUTCH</a>
+      <nav class="clutch-header__nav">
+        <a href="http://localhost:8765/preview-collections.html">Shop</a>
+        <a href="http://localhost:8765/preview-brands.html">Brands</a>
+        <a href="http://localhost:8765/preview-about.html">About</a>
+        <a href="http://localhost:8765/preview-contact.html">Contact</a>
+        <a href="http://localhost:8765/preview-faq.html">FAQ</a>
+      </nav>
+      <a href="http://localhost:8765/preview-cart.html" class="clutch-header__cart">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h2l2.1 9.2a1 1 0 0 0 1 .8H18a1 1 0 0 0 1-.8L21 8H7"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg>
+        <span class="clutch-header__badge">2</span>
+      </a>
+    </div>
+  </header>
+
+  <div class="page-header">
+    <h1>Shopping Cart</h1>
+    <div class="breadcrumbs">
+      <a href="preview-homepage-complete.html">Home</a> / Cart
+    </div>
+  </div>
+
+  <div class="cart-layout">
+    <div class="cart-items">
+      <div class="cart-item">
+        <div class="cart-item__image">Image</div>
+        <div class="cart-item__details">
+          <div class="brand">Andis</div>
+          <h3><a href="preview-product.html">Andis Master Clipper</a></h3>
+          <div class="variant">Color: Silver</div>
+        </div>
+        <div class="cart-item__actions">
+          <div class="cart-item__price">$189.99</div>
+          <div class="quantity-control">
+            <button>−</button>
+            <input type="number" value="1" min="1">
+            <button>+</button>
+          </div>
+          <button class="remove-btn">Remove</button>
+        </div>
+      </div>
+
+      <div class="cart-item">
+        <div class="cart-item__image">Image</div>
+        <div class="cart-item__details">
+          <div class="brand">Wahl</div>
+          <h3><a href="preview-product.html">Wahl Senior Clipper</a></h3>
+          <div class="variant">Color: Black</div>
+        </div>
+        <div class="cart-item__actions">
+          <div class="cart-item__price">$149.99</div>
+          <div class="quantity-control">
+            <button>−</button>
+            <input type="number" value="1" min="1">
+            <button>+</button>
+          </div>
+          <button class="remove-btn">Remove</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cart-summary">
+      <h2>Order Summary</h2>
+      <div class="summary-row">
+        <span>Subtotal</span>
+        <span>$339.98</span>
+      </div>
+      <div class="summary-row">
+        <span>Shipping</span>
+        <span>Free</span>
+      </div>
+      <div class="summary-row discount">
+        <span>Discount (WELCOME10)</span>
+        <span>−$34.00</span>
+      </div>
+      <div class="summary-row total">
+        <span>Total</span>
+        <span>$305.98</span>
+      </div>
+      <button class="checkout-btn">Proceed to Checkout</button>
+      <div class="payment-icons">
+        <span class="payment-icon">VISA</span>
+        <span class="payment-icon">MC</span>
+        <span class="payment-icon">AMEX</span>
+        <span class="payment-icon">PayPal</span>
+      </div>
+
+      <div class="promo-code">
+        <label>Promo Code</label>
+        <div class="promo-input">
+          <input type="text" placeholder="Enter code">
+          <button>Apply</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="clutch-footer">
+    <div class="clutch-footer__inner">
+      <div class="clutch-footer__grid">
+        <div class="clutch-footer__column">
+          <h4>Shop</h4>
+          <div class="clutch-footer__links">
+            <a href="preview-collections.html">All Products</a>
+            <a href="preview-collections.html">Clippers</a>
+            <a href="preview-collections.html">Trimmers</a>
+          </div>
+        </div>
+        <div class="clutch-footer__column">
+          <h4>Brands</h4>
+          <div class="clutch-footer__links">
+            <a href="preview-brands.html">Gamma</a>
+            <a href="preview-brands.html">Wahl</a>
+            <a href="preview-brands.html">Andis</a>
+          </div>
+        </div>
+        <div class="clutch-footer__column">
+          <h4>Support</h4>
+          <div class="clutch-footer__links">
+            <a href="preview-contact.html">Contact</a>
+            <a href="preview-faq.html">FAQ</a>
+          </div>
+        </div>
+        <div class="clutch-footer__column">
+          <h4>Company</h4>
+          <div class="clutch-footer__links">
+            <a href="preview-about.html">About Us</a>
+          </div>
+        </div>
+      </div>
+      <div class="clutch-footer__bottom">
+        <p class="clutch-footer__copyright">© 2026 Clutch Barber Supply. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Andis Master Clipper — Clutch Barber Supply</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --clutch-bg: #05070c; --clutch-bg-light: #091018; --clutch-bg-lighter: #0d1822;
+      --clutch-text: #f5efe3; --clutch-text-muted: #d1c7b3; --clutch-text-dim: #9ca3af;
+      --clutch-border: #253242; --clutch-accent: #c9894b;
+    }
+    body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--clutch-bg); color: var(--clutch-text); line-height: 1.5; }
+    a { color: inherit; text-decoration: none; }
+    
+    .clutch-header { background: var(--clutch-bg-light); border-bottom: 1px solid var(--clutch-border); position: sticky; top: 0; z-index: 100; }
+    .clutch-header__inner { max-width: 1400px; margin: 0 auto; padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
+    .clutch-header__logo { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    .clutch-header__nav { display: flex; gap: 1.5rem; }
+    .clutch-header__nav a { font-size: 0.875rem; font-weight: 500; color: var(--clutch-text-muted); transition: color 0.2s; }
+    .clutch-header__nav a:hover { color: var(--clutch-accent); }
+    .clutch-header__cart { position: relative; width: 2.5rem; height: 2.5rem; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid var(--clutch-border); border-radius: 8px; }
+    .clutch-header__badge { position: absolute; top: -4px; right: -4px; width: 18px; height: 18px; background: var(--clutch-accent); color: var(--clutch-bg); font-size: 0.6875rem; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    
+    .breadcrumbs { padding: 1.5rem; max-width: 1400px; margin: 0 auto; font-size: 0.875rem; color: var(--clutch-text-muted); }
+    .breadcrumbs a { color: var(--clutch-accent); }
+    .breadcrumbs a:hover { text-decoration: underline; }
+    
+    .product-page { max-width: 1400px; margin: 0 auto; padding: 0 1.5rem 4rem; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; }
+    @media (max-width: 900px) { .product-page { grid-template-columns: 1fr; gap: 2rem; } }
+    
+    .product-gallery { position: sticky; top: 100px; height: fit-content; }
+    .product-gallery__main { aspect-ratio: 1; background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%); border: 1px solid var(--clutch-border); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; }
+    .product-gallery__thumbs { display: flex; gap: 0.75rem; }
+    .product-gallery__thumb { width: 80px; height: 80px; background: rgba(255,255,255,0.05); border: 1px solid var(--clutch-border); border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+    .product-gallery__thumb:hover, .product-gallery__thumb.active { border-color: var(--clutch-accent); }
+    
+    .product-info { position: relative; }
+    .product-info::before { content: ''; position: absolute; top: -20%; right: -20%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(201, 137, 75, 0.15) 0%, transparent 60%); filter: blur(60px); pointer-events: none; }
+    
+    .product-info__brand { font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--clutch-accent); margin-bottom: 0.5rem; }
+    .product-info__title { font-size: clamp(1.75rem, 3vw, 2.5rem); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 1rem; line-height: 1.2; }
+    .product-info__rating { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; color: var(--clutch-text-muted); font-size: 0.875rem; }
+    .product-info__rating-stars { color: var(--clutch-accent); }
+    
+    .product-info__price { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1.5rem; }
+    .product-info__price-current { font-size: 2rem; font-weight: 700; }
+    .product-info__price-compare { font-size: 1.25rem; color: var(--clutch-text-dim); text-decoration: line-through; }
+    
+    .product-info__description { color: var(--clutch-text-muted); margin-bottom: 2rem; line-height: 1.7; }
+    
+    .product-options { margin-bottom: 1.5rem; }
+    .product-options__label { font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; display: block; }
+    .product-options__values { display: flex; gap: 0.5rem; }
+    .product-option { padding: 0.625rem 1rem; border: 1px solid var(--clutch-border); border-radius: 8px; font-size: 0.875rem; cursor: pointer; transition: all 0.2s; }
+    .product-option:hover, .product-option.selected { border-color: var(--clutch-accent); background: rgba(201, 137, 75, 0.1); }
+    
+    .quantity-selector { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+    .quantity-selector__label { font-size: 0.875rem; font-weight: 600; }
+    .quantity-selector__control { display: flex; align-items: center; border: 1px solid var(--clutch-border); border-radius: 8px; }
+    .quantity-selector__control button { width: 40px; height: 40px; background: transparent; border: none; color: var(--clutch-text); font-size: 1.25rem; cursor: pointer; }
+    .quantity-selector__control input { width: 60px; height: 40px; text-align: center; background: transparent; border: none; border-left: 1px solid var(--clutch-border); border-right: 1px solid var(--clutch-border); color: var(--clutch-text); font-size: 1rem; }
+    
+    .add-to-cart { width: 100%; padding: 1rem; background: linear-gradient(135deg, var(--clutch-accent) 0%, #b87a3e 100%); color: var(--clutch-bg); border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+    .add-to-cart:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(201, 137, 75, 0.4); }
+    
+    .product-meta { padding-top: 2rem; margin-top: 2rem; border-top: 1px solid var(--clutch-border); }
+    .product-meta__item { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.875rem; }
+    .product-meta__label { color: var(--clutch-text-dim); }
+    .product-meta__value { color: var(--clutch-text); }
+    
+    .related-products { max-width: 1400px; margin: 0 auto; padding: 4rem 1.5rem; border-top: 1px solid var(--clutch-border); }
+    .related-products__title { font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; }
+    
+    .products-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+    @media (max-width: 900px) { .products-row { grid-template-columns: repeat(2, 1fr); } }
+    
+    .product-card { background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%); border: 1px solid var(--clutch-border); border-radius: 16px; overflow: hidden; transition: all 0.35s; }
+    .product-card:hover { transform: translateY(-6px); border-color: rgba(201, 137, 75, 0.4); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+    .product-card__image { aspect-ratio: 1; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; }
+    .product-card__info { padding: 1rem; }
+    .product-card__brand { font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--clutch-accent); margin-bottom: 0.25rem; }
+    .product-card__name { font-size: 0.9375rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .product-card__price { font-size: 1rem; font-weight: 700; }
+    
+    .clutch-footer { background: var(--clutch-bg); border-top: 1px solid var(--clutch-border); padding: 3rem 0 2rem; }
+    .clutch-footer__inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+    .clutch-footer__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; margin-bottom: 2.5rem; }
+    @media (max-width: 768px) { .clutch-footer__grid { grid-template-columns: repeat(2, 1fr); } }
+    .clutch-footer__column h4 { font-size: 0.9375rem; font-weight: 600; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .clutch-footer__links { display: flex; flex-direction: column; gap: 0.5rem; }
+    .clutch-footer__links a { font-size: 0.875rem; color: var(--clutch-text-dim); transition: color 0.2s; }
+    .clutch-footer__links a:hover { color: var(--clutch-accent); }
+    .clutch-footer__bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 2rem; border-top: 1px solid var(--clutch-border); }
+    .clutch-footer__copyright { font-size: 0.8125rem; color: var(--clutch-text-dim); }
+  </style>
+</head>
+<body>
+  <header class="clutch-header">
+    <div class="clutch-header__inner">
+      <a href="http://localhost:8765/preview-homepage-complete.html" class="clutch-header__logo">CLUTCH</a>
+      <nav class="clutch-header__nav">
+        <a href="http://localhost:8765/preview-collections.html">Shop</a>
+        <a href="http://localhost:8765/preview-brands.html">Brands</a>
+        <a href="http://localhost:8765/preview-about.html">About</a>
+        <a href="http://localhost:8765/preview-contact.html">Contact</a>
+        <a href="http://localhost:8765/preview-faq.html">FAQ</a>
+      </nav>
+      <a href="http://localhost:8765/preview-cart.html" class="clutch-header__cart">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h2l2.1 9.2a1 1 0 0 0 1 .8H18a1 1 0 0 0 1-.8L21 8H7"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg>
+        <span class="clutch-header__badge">2</span>
+      </a>
+    </div>
+  </header>
+
+  <div class="breadcrumbs">
+    <a href="preview-homepage-complete.html">Home</a> / <a href="preview-collections.html">Clippers</a> / Andis Master Clipper
+  </div>
+
+  <div class="product-page">
+    <div class="product-gallery">
+      <div class="product-gallery__main">
+        <span style="color: var(--clutch-text-dim);">Product Image</span>
+      </div>
+      <div class="product-gallery__thumbs">
+        <div class="product-gallery__thumb active"></div>
+        <div class="product-gallery__thumb"></div>
+        <div class="product-gallery__thumb"></div>
+        <div class="product-gallery__thumb"></div>
+      </div>
+    </div>
+    
+    <div class="product-info">
+      <div class="product-info__brand">Andis</div>
+      <h1 class="product-info__title">Andis Master Clipper</h1>
+      <div class="product-info__rating">
+        <span class="product-info__rating-stars">★★★★★</span>
+        <span>4.8 (127 reviews)</span>
+      </div>
+      <div class="product-info__price">
+        <span class="product-info__price-current">$189.99</span>
+      </div>
+      <p class="product-info__description">
+        The Andis Master is a professional-grade clipper trusted by barbers worldwide. 
+        Features a powerful magnetic motor, adjustable blade, and durable aluminum housing. 
+        Perfect for fades, tapers, and all clipper-over-comb work.
+      </p>
+      
+      <div class="product-options">
+        <span class="product-options__label">Color</span>
+        <div class="product-options__values">
+          <span class="product-option selected">Silver</span>
+          <span class="product-option">Black</span>
+        </div>
+      </div>
+      
+      <div class="quantity-selector">
+        <span class="quantity-selector__label">Quantity</span>
+        <div class="quantity-selector__control">
+          <button>-</button>
+          <input type="number" value="1" min="1">
+          <button>+</button>
+        </div>
+      </div>
+      
+      <button class="add-to-cart">Add to Cart — $189.99</button>
+      
+      <div class="product-meta">
+        <div class="product-meta__item">
+          <span class="product-meta__label">Availability:</span>
+          <span class="product-meta__value">In Stock</span>
+        </div>
+        <div class="product-meta__item">
+          <span class="product-meta__label">SKU:</span>
+          <span class="product-meta__value">AND-MASTER-001</span>
+        </div>
+        <div class="product-meta__item">
+          <span class="product-meta__label">Category:</span>
+          <span class="product-meta__value"><a href="preview-collections.html" style="color: var(--clutch-accent);">Clippers</a></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="related-products">
+    <h2 class="related-products__title">You May Also Like</h2>
+    <div class="products-row">
+      <div class="product-card">
+        <div class="product-card__image"></div>
+        <div class="product-card__info">
+          <div class="product-card__brand">Wahl</div>
+          <div class="product-card__name"><a href="preview-product.html">Wahl Senior</a></div>
+          <div class="product-card__price">$159.99</div>
+        </div>
+      </div>
+      <div class="product-card">
+        <div class="product-card__image"></div>
+        <div class="product-card__info">
+          <div class="product-card__brand">Andis</div>
+          <div class="product-card__name"><a href="preview-product.html">T-Outliner</a></div>
+          <div class="product-card__price">$79.99</div>
+        </div>
+      </div>
+      <div class="product-card">
+        <div class="product-card__image"></div>
+        <div class="product-card__info">
+          <div class="product-card__brand">Gamma+</div>
+          <div class="product-card__name"><a href="preview-product.html">X-Ergo</a></div>
+          <div class="product-card__price">$209.99</div>
+        </div>
+      </div>
+      <div class="product-card">
+        <div class="product-card__image"></div>
+        <div class="product-card__info">
+          <div class="product-card__brand">JRL</div>
+          <div class="product-card__name"><a href="preview-product.html">Fresh Fade 2020C</a></div>
+          <div class="product-card__price">$199.99</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="clutch-footer">
+    <div class="clutch-footer__inner">
+      <div class="clutch-footer__grid">
+        <div class="clutch-footer__column">
+          <h4>Shop</h4>
+          <div class="clutch-footer__links">
+            <a href="preview-collections.html">All Products</a>
+            <a href="preview-collections.html">Clippers</a>
+            <a href="preview-collections.html">Trimmers</a>
+          </div>
+        </div>
+        <div class="clutch-footer__column">
+          <h4>Brands</h4>
+          <div class="clutch-footer__links">
+            <a href="preview-brands.html">Gamma</a>
+            <a href="preview-brands.html">Wahl</a>
+            <a href="preview-brands.html">Andis</a>
+          </div>
+        </div>
+        <div class="clutch-footer__column">
+          <h4>Support</h4>
+          <div class="clutch-footer__links">
+            <a href="preview-contact.html">Contact</a>
+            <a href="preview-faq.html">FAQ</a>
+          </div>
+        </div>
+        <div class="clutch-footer__column">
+          <h4>Company</h4>
+          <div class="clutch-footer__links">
+            <a href="preview-about.html">About Us</a>
+          </div>
+        </div>
+      </div>
+      <div class="clutch-footer__bottom">
+        <p class="clutch-footer__copyright">© 2026 Clutch Barber Supply. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
