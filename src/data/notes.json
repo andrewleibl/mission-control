@@ -1,0 +1,14 @@
+[
+  {
+    "id": "n1",
+    "title": "Retain Vicelia — Weekly Touchpoints",
+    "content": "Vicelia needs to be a client that's retained. It's the easiest thing to just keep her happy. Spend 30 minutes a week sending her a quick update on any website changes or performance indicators.",
+    "category": "Client Retention",
+    "client": "Vicelia Tinde",
+    "priority": "high",
+    "createdAt": "2026-03-25T18:56:00Z",
+    "dueBy": "2026-03-25T24:00:00Z",
+    "status": "active",
+    "tags": ["clutch", "retention", "weekly-task"]
+  }
+]
