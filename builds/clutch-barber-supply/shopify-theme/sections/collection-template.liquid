@@ -1,0 +1,305 @@
+{% paginate collection.products by section.settings.products_per_page %}
+
+<div class="page-header">
+  <h1>{{ collection.title }}</h1>
+  <div class="breadcrumbs">
+    <a href="{{ routes.root_url }}">Home</a>
+    {%- if request.query_string contains 'vendor=' -%}
+      {% assign active_vendor = request.query_string | split: 'vendor=' | last | split: '&' | first | url_decode %}
+      <span>/</span>
+      <span>{{ active_vendor }}</span>
+    {%- elsif request.query_string contains 'category=' -%}
+      {% assign active_category = request.query_string | split: 'category=' | last | split: '&' | first | replace: '-', ' ' | capitalize %}
+      <span>/</span>
+      <span>{{ active_category }}</span>
+    {%- endif -%}
+  </div>
+</div>
+
+<div class="collection-layout">
+  <!-- Sidebar Filters -->
+  <aside class="filters-sidebar">
+    <h3>Filters</h3>
+    
+    {% if collection.all_tags.size > 0 %}
+      <div class="filter-group" id="categoryFilters">
+        <h4>Category</h4>
+        {% for tag in collection.all_tags %}
+          {% if tag contains 'category:' %}
+            {% assign category_name = tag | remove: 'category:' %}
+            <label class="filter-option">
+              <input type="checkbox" name="category" value="{{ category_name | handleize }}" data-tag="{{ category_name }}"> {{ category_name }}
+            </label>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endif %}
+    
+    {% if collection.all_vendors.size > 0 %}
+      <div class="filter-group" id="brandFilters">
+        <h4>Brand</h4>
+        {% for vendor in collection.all_vendors %}
+          <label class="filter-option">
+            <input type="checkbox" name="brand" value="{{ vendor | url_encode }}" data-vendor="{{ vendor }}"> {{ vendor }}
+          </label>
+        {% endfor %}
+      </div>
+    {% endif %}
+    
+    <div class="filter-group">
+      <h4>Price</h4>
+      <div class="price-range">
+        <input type="number" name="price_min" placeholder="$0" min="0">
+        <span>—</span>
+        <input type="number" name="price_max" placeholder="$500" max="500">
+      </div>
+    </div>
+    
+    <div class="filter-group">
+      <h4>Availability</h4>
+      <label class="filter-option">
+        <input type="checkbox" name="availability" value="in_stock"> In Stock
+      </label>
+    </div>
+    
+    <button class="clear-filters" onclick="clearAllFilters()">Clear All Filters</button>
+  </aside>
+
+  <!-- Products Area -->
+  <div class="products-area">
+    <button class="mobile-filter-toggle" onclick="toggleMobileFilters()">☰ Filters</button>
+    
+    <!-- Active Filters -->
+    <div class="active-filters" id="activeFilters"></div>
+    
+    <!-- Sort Bar -->
+    <div class="sort-bar">
+      <span class="results-count">Showing {{ collection.products_count }} of {{ collection.all_products_count }} products</span>
+      <select class="sort-select" name="sort_by" onchange="window.location.href = this.value ? '?sort_by=' + this.value : window.location.pathname;">
+        {% assign sort_options = "manual,price-ascending,price-descending,created-descending,best-selling" | split: "," %}
+        {% assign sort_labels = "Featured,Price: Low to High,Price: High to Low,Newest First,Best Selling" | split: "," %}
+        {% for option in sort_options %}
+          <option value="{{ option }}" {% if collection.sort_by == option %}selected{% endif %}>{{ sort_labels[forloop.index0] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    
+    <!-- Products Grid -->
+    <div class="products-grid" id="productsGrid">
+      {% for product in collection.products %}
+        <div class="product-card" data-vendor="{{ product.vendor | handle }}" data-price="{{ product.price }}" data-available="{{ product.available }}">
+          <div class="product-card__image">
+            {% if product.featured_image %}
+              <img src="{{ product.featured_image | image_url: width: 400 }}" alt="{{ product.featured_image.alt | escape }}" loading="lazy">
+            {% else %}
+              <span style="color: var(--clutch-text-dim); font-size: 0.875rem;">{{ product.title }}</span>
+            {% endif %}
+            <button class="product-card__quick-add" onclick="addToCart('{{ product.selected_or_first_available_variant.id }}')">Quick Add</button>
+          </div>
+          <div class="product-card__info">
+            <div class="product-card__brand">{{ product.vendor }}</div>
+            <div class="product-card__name"><a href="{{ product.url }}">{{ product.title }}</a></div>
+            <div class="product-card__price">
+              <span class="product-card__price-current">{{ product.price | money }}</span>
+              {% if product.compare_at_price > product.price %}
+                <span class="product-card__price-compare">{{ product.compare_at_price | money }}</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    
+    {% if paginate.pages > 1 %}
+      <div class="pagination">
+        {{ paginate | default_pagination }}
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endpaginate %}
+
+<script>
+// Auto-apply filters from URL parameters
+(function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const vendorParam = urlParams.get('vendor');
+  const categoryParam = urlParams.get('category');
+  
+  // Auto-check vendor filter if in URL
+  if (vendorParam) {
+    const vendorCheckbox = document.querySelector(`input[name="brand"][value="${vendorParam}"]`);
+    if (vendorCheckbox) {
+      vendorCheckbox.checked = true;
+      vendorCheckbox.parentElement.classList.add('active');
+    }
+  }
+  
+  // Auto-check category filter if in URL
+  if (categoryParam) {
+    const categoryCheckbox = document.querySelector(`input[name="category"][value="${categoryParam}"]`);
+    if (categoryCheckbox) {
+      categoryCheckbox.checked = true;
+      categoryCheckbox.parentElement.classList.add('active');
+    }
+  }
+})();
+
+// Filter functionality
+(function() {
+  const filterCheckboxes = document.querySelectorAll('.filter-option input[type="checkbox"]');
+  const priceInputs = document.querySelectorAll('.price-range input');
+  const activeFiltersContainer = document.getElementById('activeFilters');
+  const productCards = document.querySelectorAll('.product-card');
+  
+  function updateActiveFilters() {
+    activeFiltersContainer.innerHTML = '';
+    
+    filterCheckboxes.forEach(checkbox => {
+      if (checkbox.checked) {
+        const label = checkbox.parentElement.textContent.trim();
+        const pill = document.createElement('span');
+        pill.className = 'filter-pill';
+        pill.innerHTML = `${label} <button type="button">×</button>`;
+        
+        pill.querySelector('button').addEventListener('click', function() {
+          checkbox.checked = false;
+          checkbox.parentElement.classList.remove('active');
+          applyFilters();
+          // Update URL to remove filter
+          updateUrl();
+        });
+        
+        activeFiltersContainer.appendChild(pill);
+      }
+    });
+  }
+  
+  function applyFilters() {
+    const activeVendors = Array.from(document.querySelectorAll('input[name="brand"]:checked')).map(cb => decodeURIComponent(cb.value));
+    const activeCategories = Array.from(document.querySelectorAll('input[name="category"]:checked')).map(cb => cb.dataset.tag);
+    const inStockOnly = document.querySelector('input[name="availability"]:checked');
+    const priceMin = parseFloat(document.querySelector('input[name="price_min"]').value) || 0;
+    const priceMax = parseFloat(document.querySelector('input[name="price_max"]').value) || Infinity;
+    
+    productCards.forEach(card => {
+      const vendor = decodeURIComponent(card.dataset.vendor);
+      const price = parseFloat(card.dataset.price);
+      const available = card.dataset.available === 'true';
+      
+      let visible = true;
+      
+      if (activeVendors.length > 0 && !activeVendors.some(v => vendor.includes(v) || v.includes(vendor))) visible = false;
+      if (activeCategories.length > 0) {
+        // Check if product has matching category tag
+        const productTags = card.dataset.tags ? card.dataset.tags.split(',') : [];
+        const hasCategory = activeCategories.some(cat => productTags.some(tag => tag.toLowerCase().includes(cat.toLowerCase())));
+        if (!hasCategory) visible = false;
+      }
+      if (inStockOnly && !available) visible = false;
+      if (price < priceMin || price > priceMax) visible = false;
+      
+      card.style.display = visible ? '' : 'none';
+    });
+    
+    updateActiveFilters();
+  }
+  
+  function updateUrl() {
+    const url = new URL(window.location);
+    const activeVendors = Array.from(document.querySelectorAll('input[name="brand"]:checked')).map(cb => cb.value);
+    const activeCategories = Array.from(document.querySelectorAll('input[name="category"]:checked')).map(cb => cb.value);
+    
+    if (activeVendors.length > 0) {
+      url.searchParams.set('vendor', activeVendors[0]);
+    } else {
+      url.searchParams.delete('vendor');
+    }
+    
+    if (activeCategories.length > 0) {
+      url.searchParams.set('category', activeCategories[0]);
+    } else {
+      url.searchParams.delete('category');
+    }
+    
+    window.history.replaceState({}, '', url);
+  }
+  
+  filterCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+      if (this.checked) {
+        this.parentElement.classList.add('active');
+      } else {
+        this.parentElement.classList.remove('active');
+      }
+      applyFilters();
+      updateUrl();
+    });
+  });
+  
+  priceInputs.forEach(input => {
+    input.addEventListener('change', applyFilters);
+  });
+  
+  window.clearAllFilters = function() {
+    filterCheckboxes.forEach(cb => {
+      cb.checked = false;
+      cb.parentElement.classList.remove('active');
+    });
+    priceInputs.forEach(input => input.value = '');
+    applyFilters();
+    // Clear URL params
+    const url = new URL(window.location);
+    url.search = '';
+    window.history.replaceState({}, '', url);
+  };
+  
+  window.toggleMobileFilters = function() {
+    document.querySelector('.filters-sidebar').classList.toggle('mobile-visible');
+  };
+  
+  // Run filters on load (for URL params)
+  applyFilters();
+})();
+
+// Add to cart functionality
+async function addToCart(variantId) {
+  try {
+    const response = await fetch('/cart/add.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: [{ id: variantId, quantity: 1 }] })
+    });
+    
+    if (response.ok) {
+      // Update cart count
+      const cart = await fetch('/cart.js').then(r => r.json());
+      const badge = document.querySelector('.clutch-header__badge');
+      if (badge) badge.textContent = cart.item_count;
+      
+      // Optional: Show success message
+      alert('Added to cart!');
+    }
+  } catch (error) {
+    console.error('Error adding to cart:', error);
+  }
+}
+</script>
+
+{% schema %}
+{
+  "name": "Collection Template",
+  "settings": [
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "min": 8,
+      "max": 48,
+      "step": 4,
+      "default": 12,
+      "label": "Products per page"
+    }
+  ]
+}
+{% endschema %}

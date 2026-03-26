@@ -65,3 +65,41 @@ Always pull history from BOTH sessions before responding:
 - 2026-03-15: Full onboarding complete. New offer designed. Nightly builds scheduled.
 - 2026-03-16: pmset fix applied — displaysleep 0, networkoversleep 1. Mac stays connected with monitor off.
 - 2026-03-22: **Apollo deployed** — Meta Ads specialist agent live.
+- 2026-03-25: Clutch Barber Supply homepage — "Shop the Big Brands" section complete with 6 brand logos (Gamma, JRL, WAHL, Level 3, BaByliss Pro, Andis)
+
+## Active Builds — Clutch Barber Supply
+
+**Status:** Homepage in progress, section-by-section builds
+**Location:** `/builds/clutch-barber-supply/`
+**Preview:** `preview-homepage-complete.html` (local server :8765)
+
+### Completed Sections
+- **Header** — Clutch logo image (80px), all 8 pages updated
+- **Hero section** — Headline, subhead, CTAs, trust badges
+- **Brands section** — 8 brand logo cards (4x2 grid), copper hover effects, "Shop Now" reveal
+- **Reviews section** — 6 real Google Reviews with clickable links, hint text below
+
+### Brand Logos (All Live)
+| Brand | File | Size |
+|-------|------|------|
+| Gamma+ | `gamma-logo.png` | 65px |
+| JRL | `jrl-logo.png` | 65px |
+| WAHL | `wahl-logo.png` | 65px |
+| Level 3 | `level3-logo.png` | 165px (larger) |
+| BaByliss Pro | `brand-logo.png` | 50px (smaller) |
+| Andis | `andis-logo.png` | 135px (larger) |
+| Cocco | `cocco-logo.png` | 65px |
+| Oster | `oster-logo.png` | 65px |
+
+### Reviews (Real Google Reviews)
+1. Erik Deleon — "this shop a 10/10"
+2. Scarlett Salas — "like walking in to Target"
+3. dtx.outlaws — "best barber supply store I've been to"
+4. Fernando Perez — "they will come in clutch"
+5. derrick dumas — "The name is official"
+6. Sabrina Reina — "Best barber supply hands down"
+
+### Next Up
+- Featured Products section
+- CTA / Newsletter section
+- Footer

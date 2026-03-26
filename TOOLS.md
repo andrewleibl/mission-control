@@ -78,6 +78,37 @@ Using `.includes('lead')` overcounts by 5x+. Always exact match.
 
 **March 24, 2026 — Proven on Clutch Barber Supply build**
 
+### Image Asset Handling (Refined Mar 25, 2026)
+
+**Receiving Images from User:**
+- User provides via `file:///Users/poseidon/Downloads/image-name.png` URLs
+- Copy to project: `cp "/Users/poseidon/Downloads/image-name.png" /Users/poseidon/.openclaw/workspace/builds/<project>/assets/logos/`
+- Verify: `file <path>` should show "PNG image data" or valid format
+- Reference in HTML: `<img src="assets/logos/brand.png">` (relative path)
+
+**Iterative Sizing Pattern:**
+- Start: 65px max-height (default)
+- "Bigger": 85px → 100px → 110px → 120px → 135px
+- "Tiny bit bigger": +10-15px increments
+- Some logos need custom sizes (wide logos: smaller height, tall logos: larger height)
+- CSS structure: `.brand-logo { max-height: 65px; }` + `.brand-logo--large { max-height: 165px; }`
+
+**Grid Layout Rules:**
+- 6 items: `repeat(3, 1fr)` = 3x2 grid
+- 8 items: `repeat(4, 1fr)` = 4x2 grid
+- Maintain uniform card sizes across all items
+
+**Debugging:**
+- Image not showing? Check for **duplicate CSS rules** (last one wins)
+- Changes not appearing? **Hard refresh** Cmd+Shift+R (browser caching)
+- Still cached? Rename file or add `?v=2` query param
+
+**Cross-Page Updates:**
+- Shared elements (header, footer) require updating **EVERY HTML file**
+- Use `grep -l "pattern" *.html` to find all files needing changes
+- Risk: User navigates to another page and sees old version
+- Fix: Batch update all files before declaring "done"
+
 ## What Goes Here
 
 Things like:

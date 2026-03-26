@@ -56,13 +56,15 @@ When building websites (especially Shopify/e-commerce):
 - Small adjustments in real-time based on explicit feedback
 - "Change X to Y" → Execute immediately, confirm, move on
 - No questions when intent is clear
+- **Visual assets**: User provides via file:// URLs → copy to assets folder → iterate sizing (65px → 85px → 100px → etc.) until "just right"
 
 **5. Preview-Driven**
 - Local server for immediate visual feedback
 - User reviews in browser, you adjust in code
 - Cycle until approved
+- **Hard refresh** (Cmd+Shift+R) when images don't update (browser caching)
 
-**Applied March 24, 2026 — Clutch Barber Supply build**
+**Applied March 24-25, 2026 — Clutch Barber Supply build**
 
 ---
 

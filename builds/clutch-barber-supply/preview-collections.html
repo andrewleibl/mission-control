@@ -57,11 +57,8 @@
     
     .clutch-header__right { justify-content: flex-end; }
     
-    .clutch-header__logo {
-      font-size: 1.5rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
+    .clutch-header__logo { flex-shrink: 0; }
+    .clutch-header__logo img { height: 80px; width: auto; }
     
     .clutch-header__search input {
       background: rgba(255,255,255,0.05);
@@ -100,6 +97,132 @@
       border: 1px solid var(--clutch-border);
       border-radius: 8px;
     }
+
+    /* Dropdown Menu */
+    .clutch-header__dropdown { position: relative; }
+    .clutch-header__dropdown-menu { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 0.75rem; background: var(--clutch-bg-light); border: 1px solid var(--clutch-border); border-radius: 12px; padding: 0.75rem 0; min-width: 200px; opacity: 0; visibility: hidden; transition: all 0.2s ease; z-index: 1000; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+    .clutch-header__dropdown-menu::before { content: ''; position: absolute; top: -6px; left: 50%; transform: translateX(-50%); border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 6px solid var(--clutch-border); }
+    .clutch-header__dropdown-menu::after { content: ''; position: absolute; top: -5px; left: 50%; transform: translateX(-50%); border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 5px solid var(--clutch-bg-light); }
+    .clutch-header__dropdown:hover .clutch-header__dropdown-menu { opacity: 1; visibility: visible; }
+    .clutch-header__dropdown-item { display: block; padding: 0.625rem 1.25rem; font-size: 0.875rem; color: var(--clutch-text-muted); transition: all 0.2s; white-space: nowrap; }
+    .clutch-header__dropdown-item:hover { color: var(--clutch-accent); background: rgba(201, 137, 75, 0.1); }
+
+    /* Mobile menu toggle */
+    .clutch-header__menu {
+      display: none;
+      width: 2.5rem;
+      height: 2.5rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--clutch-border);
+      border-radius: 8px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+    .clutch-header__menu span {
+      display: block;
+      width: 18px;
+      height: 2px;
+      background: var(--clutch-text);
+      border-radius: 2px;
+    }
+    @media (max-width: 900px) {
+      .clutch-header__menu { display: flex; }
+      .clutch-header__nav { display: none; }
+      .clutch-header__search { display: none; }
+    }
+
+    /* Mobile Navigation Drawer */
+    .clutch-mobile-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 280px;
+      height: 100vh;
+      background: var(--clutch-bg-light);
+      border-right: 1px solid var(--clutch-border);
+      z-index: 200;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .clutch-mobile-nav.active { transform: translateX(0); }
+    .clutch-mobile-nav__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--clutch-border);
+    }
+    .clutch-mobile-nav__title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--clutch-text);
+    }
+    .clutch-mobile-nav__close {
+      width: 2.5rem;
+      height: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--clutch-border);
+      border-radius: 8px;
+      color: var(--clutch-text);
+      cursor: pointer;
+    }
+    .clutch-mobile-nav__links {
+      flex: 1;
+      padding: 1rem 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .clutch-mobile-nav__links a {
+      padding: 1rem 1.25rem;
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--clutch-text);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      transition: background 0.2s;
+    }
+    .clutch-mobile-nav__links a:hover {
+      background: rgba(201,137,75,0.1);
+      color: var(--clutch-accent);
+    }
+    .clutch-mobile-nav__footer {
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--clutch-border);
+    }
+    .clutch-mobile-nav__cart {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.875rem 1rem;
+      background: rgba(201,137,75,0.1);
+      border: 1px solid var(--clutch-accent);
+      border-radius: 8px;
+      color: var(--clutch-accent);
+      font-weight: 600;
+    }
+    .clutch-mobile-nav__overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.5);
+      z-index: 150;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    .clutch-mobile-nav__overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
     
     .clutch-header__badge {
       position: absolute;
@@ -119,7 +242,7 @@
     
     /* Page Header */
     .page-header {
-      padding: 3rem 1.5rem;
+      padding: 2rem 1.5rem 1rem;
       text-align: center;
       background: linear-gradient(180deg, var(--clutch-bg-light) 0%, var(--clutch-bg) 100%);
       position: relative;
@@ -161,7 +284,7 @@
     .collection-layout {
       max-width: 1400px;
       margin: 0 auto;
-      padding: 2rem 1.5rem;
+      padding: 1rem 1.5rem 2rem;
       display: grid;
       grid-template-columns: 260px 1fr;
       gap: 2rem;
@@ -579,32 +702,92 @@
   <header class="clutch-header">
     <div class="clutch-header__inner">
       <div class="clutch-header__left">
-        <a href="http://localhost:8765/preview-homepage-complete.html" class="clutch-header__logo">CLUTCH</a>
+        <a href="http://localhost:8765/preview-homepage-complete.html" class="clutch-header__logo"><img src="assets/clutch-logo.png?v=2" alt="Clutch Barber Supply" width="200" height="80"></a>
       </div>
       <div class="clutch-header__right">
         <nav class="clutch-header__nav">
           <a href="http://localhost:8765/preview-collections.html" class="active">Shop</a>
-          <a href="http://localhost:8765/preview-brands.html">Brands</a>
-          <a href="http://localhost:8765/preview-about.html">About</a>
+          <div class="clutch-header__dropdown">
+            <a href="http://localhost:8765/preview-brands.html">Brands</a>
+            <div class="clutch-header__dropdown-menu">
+              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Andis</a>
+              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Babyliss Pro</a>
+              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">JRL</a>
+              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Wahl</a>
+              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Gamma | Style Craft</a>
+              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Supreme Trimmers</a>
+              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Level 3</a>
+              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Cocco Hair Pro</a>
+              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Oster</a>
+              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Tomb45</a>
+              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Vincent</a>
+              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">OG Walker</a>
+              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Smash</a>
+              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Rolda</a>
+            </div>
+          </div>
+          <div class="clutch-header__dropdown">
+            <a href="http://localhost:8765/preview-supplies.html">Supplies</a>
+            <div class="clutch-header__dropdown-menu">
+              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Clippers</a>
+              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Trimmers</a>
+              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Shavers</a>
+              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Barber Bags | Cases</a>
+              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Lights</a>
+              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Accessories</a>
+              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Capes</a>
+              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Barber Chairs</a>
+              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Barber Clothing</a>
+              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Barber Poles</a>
+            </div>
+          </div>
+          <a href="http://localhost:8765/preview-classes.html">Classes</a>
           <a href="http://localhost:8765/preview-contact.html">Contact</a>
           <a href="http://localhost:8765/preview-faq.html">FAQ</a>
         </nav>
+        <button class="clutch-header__menu" aria-label="Open menu">
+          <span></span><span></span><span></span>
+        </button>
         <a href="http://localhost:8765/preview-cart.html" class="clutch-header__cart">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M3 5h2l2.1 9.2a1 1 0 0 0 1 .8H18a1 1 0 0 0 1-.8L21 8H7"/>
             <circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/>
           </svg>
-          <span class="clutch-header__badge">2</span>
         </a>
       </div>
     </div>
   </header>
 
+<!-- MOBILE NAVIGATION DRAWER -->
+<div class="clutch-mobile-nav" id="mobileNav">
+  <div class="clutch-mobile-nav__header">
+    <span class="clutch-mobile-nav__title">Menu</span>
+    <button class="clutch-mobile-nav__close" id="closeMobileNav" aria-label="Close menu">
+      <svg viewBox="0 0 24 24" width="24" height="24"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+    </button>
+  </div>
+  <nav class="clutch-mobile-nav__links">
+    <a href="preview-collections.html">Shop</a>
+    <a href="preview-brands.html">Brands</a>
+    <a href="preview-supplies.html">Supplies</a>
+    <a href="preview-classes.html">Classes</a>
+    <a href="preview-contact.html">Contact</a>
+    <a href="preview-faq.html">FAQ</a>
+  </nav>
+  <div class="clutch-mobile-nav__footer">
+    <a href="preview-cart.html" class="clutch-mobile-nav__cart">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 5h2l2.1 9.2a1 1 0 0 0 1 .8H18a1 1 0 0 0 1-.8L21 8H7"></path><circle cx="9" cy="19" r="1.5"></circle><circle cx="17" cy="19" r="1.5"></circle></svg>
+      Cart
+    </a>
+  </div>
+</div>
+<div class="clutch-mobile-nav__overlay" id="mobileNavOverlay"></div>
+
   <!-- Page Header -->
   <div class="page-header">
     <h1>All Products</h1>
     <div class="breadcrumbs">
-      <a href="preview-homepage-complete.html">Home</a> / <span>Shop All</span>
+      <a href="preview-homepage-complete.html">Home</a>
     </div>
   </div>
 
@@ -617,29 +800,44 @@
       <div class="filter-group">
         <h4>Category</h4>
         <label class="filter-option">
-          <input type="checkbox"> Clippers & Trimmers
+          <input type="checkbox"> Clippers
         </label>
         <label class="filter-option">
-          <input type="checkbox"> Replacement Parts
+          <input type="checkbox"> Trimmers
         </label>
         <label class="filter-option">
-          <input type="checkbox"> Shears & Razors
+          <input type="checkbox"> Shavers
         </label>
         <label class="filter-option">
-          <input type="checkbox"> Grooming Products
+          <input type="checkbox"> Barber Bags | Cases
         </label>
         <label class="filter-option">
-          <input type="checkbox"> Barber Tools
+          <input type="checkbox"> Lights
         </label>
         <label class="filter-option">
           <input type="checkbox"> Accessories
+        </label>
+        <label class="filter-option">
+          <input type="checkbox"> Capes
+        </label>
+        <label class="filter-option">
+          <input type="checkbox"> Barber Chairs
+        </label>
+        <label class="filter-option">
+          <input type="checkbox"> Barber Clothing
+        </label>
+        <label class="filter-option">
+          <input type="checkbox"> Barber Poles
         </label>
       </div>
       
       <div class="filter-group">
         <h4>Brand</h4>
         <label class="filter-option">
-          <input type="checkbox"> Gamma
+          <input type="checkbox"> Andis
+        </label>
+        <label class="filter-option">
+          <input type="checkbox"> Babyliss Pro
         </label>
         <label class="filter-option">
           <input type="checkbox"> JRL
@@ -648,10 +846,34 @@
           <input type="checkbox"> Wahl
         </label>
         <label class="filter-option">
-          <input type="checkbox"> Babyliss Pro
+          <input type="checkbox"> Gamma | Style Craft
         </label>
         <label class="filter-option">
-          <input type="checkbox"> Andis
+          <input type="checkbox"> Supreme Trimmers
+        </label>
+        <label class="filter-option">
+          <input type="checkbox"> Level 3
+        </label>
+        <label class="filter-option">
+          <input type="checkbox"> Cocco Hair Pro
+        </label>
+        <label class="filter-option">
+          <input type="checkbox"> Oster
+        </label>
+        <label class="filter-option">
+          <input type="checkbox"> Tomb45
+        </label>
+        <label class="filter-option">
+          <input type="checkbox"> Vincent
+        </label>
+        <label class="filter-option">
+          <input type="checkbox"> OG Walker
+        </label>
+        <label class="filter-option">
+          <input type="checkbox"> Smash
+        </label>
+        <label class="filter-option">
+          <input type="checkbox"> Rolda
         </label>
       </div>
       
@@ -682,14 +904,13 @@
       <button class="mobile-filter-toggle">☰ Filters</button>
       
       <!-- Active Filters -->
-      <div class="active-filters">
-        <span class="filter-pill">Clippers <button>×</button></span>
-        <span class="filter-pill">In Stock <button>×</button></span>
+      <div class="active-filters" id="activeFilters">
+        <!-- Filters will appear here when selected -->
       </div>
       
       <!-- Sort Bar -->
       <div class="sort-bar">
-        <span class="results-count">Showing 24 of 156 products</span>
+        <span class="results-count">Showing 12 of 156 products</span>
         <select class="sort-select">
           <option>Sort by: Featured</option>
           <option>Price: Low to High</option>
@@ -815,6 +1036,64 @@
             </div>
           </div>
         </div>
+        
+        <div class="product-card">
+          <div class="product-card__image">
+            <span style="color: var(--clutch-text-dim); font-size: 0.875rem;">Oster Fast Feed</span>
+            <button class="product-card__quick-add">Quick Add</button>
+          </div>
+          <div class="product-card__info">
+            <div class="product-card__brand">Oster</div>
+            <div class="product-card__name"><a href="preview-product.html">Fast Feed Clipper</a></div>
+            <div class="product-card__price">
+              <span class="product-card__price-current">$109.99</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div class="product-card__image">
+            <span style="color: var(--clutch-text-dim); font-size: 0.875rem;">JRL Onyx</span>
+            <button class="product-card__quick-add">Quick Add</button>
+          </div>
+          <div class="product-card__info">
+            <div class="product-card__brand">JRL</div>
+            <div class="product-card__name"><a href="preview-product.html">Onyx Trimmer</a></div>
+            <div class="product-card__price">
+              <span class="product-card__price-current">$159.99</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div class="product-card__image">
+            <span class="product-card__badge">Sale</span>
+            <span style="color: var(--clutch-text-dim); font-size: 0.875rem;">Wahl Detailer</span>
+            <button class="product-card__quick-add">Quick Add</button>
+          </div>
+          <div class="product-card__info">
+            <div class="product-card__brand">Wahl</div>
+            <div class="product-card__name"><a href="preview-product.html">Detailer Li Trimmer</a></div>
+            <div class="product-card__price">
+              <span class="product-card__price-current">$89.99</span>
+              <span class="product-card__price-compare">$109.99</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-card">
+          <div class="product-card__image">
+            <span style="color: var(--clutch-text-dim); font-size: 0.875rem;">Level 3 Clipper</span>
+            <button class="product-card__quick-add">Quick Add</button>
+          </div>
+          <div class="product-card__info">
+            <div class="product-card__brand">Level 3</div>
+            <div class="product-card__name"><a href="preview-product.html">L3 Pro Clipper</a></div>
+            <div class="product-card__price">
+              <span class="product-card__price-current">$139.99</span>
+            </div>
+          </div>
+        </div>
       </div>
       
       <!-- Pagination -->
@@ -876,5 +1155,183 @@
     </div>
   </footer>
 
+<script>
+(function() {
+  const menuBtn = document.querySelector('.clutch-home-header__menu, .clutch-header__menu');
+  const mobileNav = document.getElementById('mobileNav');
+  const closeBtn = document.getElementById('closeMobileNav');
+  const overlay = document.getElementById('mobileNavOverlay');
+  if (!menuBtn || !mobileNav) return;
+
+  function openNav() {
+    mobileNav.classList.add('active');
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeNav() {
+    mobileNav.classList.remove('active');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  menuBtn.addEventListener('click', openNav);
+  closeBtn.addEventListener('click', closeNav);
+  overlay.addEventListener('click', closeNav);
+})();
+
+// Auto-apply filters from URL parameters
+(function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const vendorParam = urlParams.get('vendor');
+  const categoryParam = urlParams.get('category');
+  
+  // Update breadcrumb to show active filter
+  const breadcrumbs = document.querySelector('.breadcrumbs');
+  if (breadcrumbs) {
+    if (vendorParam) {
+      breadcrumbs.innerHTML += ` <span>/</span> <span>${decodeURIComponent(vendorParam)}</span>`;
+    } else if (categoryParam) {
+      breadcrumbs.innerHTML += ` <span>/</span> <span>${categoryParam.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>`;
+    }
+  }
+  
+  // Auto-check brand filter if in URL
+  if (vendorParam) {
+    const checkboxes = document.querySelectorAll('input[name="brand"]');
+    checkboxes.forEach(cb => {
+      const cbValue = decodeURIComponent(cb.value).toLowerCase().trim();
+      const vendorValue = decodeURIComponent(vendorParam).toLowerCase().trim();
+      if (cbValue === vendorValue || cbValue.includes(vendorValue) || vendorValue.includes(cbValue)) {
+        cb.checked = true;
+        cb.parentElement.classList.add('active');
+      }
+    });
+  }
+  
+  // Auto-check category filter if in URL
+  if (categoryParam) {
+    const checkboxes = document.querySelectorAll('input[name="category"]');
+    checkboxes.forEach(cb => {
+      const cbValue = cb.value.toLowerCase().trim();
+      const catValue = categoryParam.toLowerCase().trim();
+      if (cbValue === catValue) {
+        cb.checked = true;
+        cb.parentElement.classList.add('active');
+      }
+    });
+  }
+})();
+
+// Filter Functionality
+(function() {
+  const filterCheckboxes = document.querySelectorAll('.filter-option input[type="checkbox"]');
+  const priceInputs = document.querySelectorAll('.price-range input');
+  const activeFiltersContainer = document.getElementById('activeFilters');
+  const productCards = document.querySelectorAll('.product-card');
+  const clearFiltersBtn = document.querySelector('.clear-filters');
+  
+  if (!activeFiltersContainer) return;
+  
+  function updateActiveFilters() {
+    activeFiltersContainer.innerHTML = '';
+    
+    filterCheckboxes.forEach(checkbox => {
+      if (checkbox.checked) {
+        const label = checkbox.parentElement.textContent.trim();
+        const pill = document.createElement('span');
+        pill.className = 'filter-pill';
+        pill.innerHTML = `${label} <button data-filter="${label}">×</button>`;
+        
+        pill.querySelector('button').addEventListener('click', function() {
+          checkbox.checked = false;
+          checkbox.parentElement.classList.remove('active');
+          applyFilters();
+          updateUrl();
+        });
+        
+        activeFiltersContainer.appendChild(pill);
+      }
+    });
+  }
+  
+  function applyFilters() {
+    const activeBrands = Array.from(document.querySelectorAll('input[name="brand"]:checked')).map(cb => cb.value.toLowerCase().trim());
+    const activeCategories = Array.from(document.querySelectorAll('input[name="category"]:checked')).map(cb => cb.value.toLowerCase().trim());
+    
+    productCards.forEach(card => {
+      const brand = card.dataset.brand ? card.dataset.brand.toLowerCase().trim() : '';
+      const category = card.dataset.category ? card.dataset.category.toLowerCase().trim() : '';
+      
+      let visible = true;
+      
+      // Filter by brand
+      if (activeBrands.length > 0) {
+        const brandMatch = activeBrands.some(activeBrand => brand.includes(activeBrand) || activeBrand.includes(brand));
+        if (!brandMatch) visible = false;
+      }
+      
+      // Filter by category
+      if (activeCategories.length > 0) {
+        if (!activeCategories.includes(category)) visible = false;
+      }
+      
+      card.style.display = visible ? '' : 'none';
+    });
+    
+    updateActiveFilters();
+  }
+  
+  function updateUrl() {
+    const url = new URL(window.location);
+    const activeBrands = Array.from(document.querySelectorAll('input[name="brand"]:checked')).map(cb => cb.value);
+    const activeCategories = Array.from(document.querySelectorAll('input[name="category"]:checked')).map(cb => cb.value);
+    
+    if (activeBrands.length > 0) {
+      url.searchParams.set('vendor', activeBrands[0]);
+    } else {
+      url.searchParams.delete('vendor');
+    }
+    
+    if (activeCategories.length > 0) {
+      url.searchParams.set('category', activeCategories[0]);
+    } else {
+      url.searchParams.delete('category');
+    }
+    
+    window.history.replaceState({}, '', url);
+  }
+  
+  filterCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+      if (this.checked) {
+        this.parentElement.classList.add('active');
+      } else {
+        this.parentElement.classList.remove('active');
+      }
+      applyFilters();
+      updateUrl();
+    });
+  });
+  
+  if (clearFiltersBtn) {
+    clearFiltersBtn.addEventListener('click', function() {
+      filterCheckboxes.forEach(cb => {
+        cb.checked = false;
+        cb.parentElement.classList.remove('active');
+      });
+      priceInputs.forEach(input => input.value = '');
+      applyFilters();
+      // Clear URL params
+      const url = new URL(window.location);
+      url.search = '';
+      window.history.replaceState({}, '', url);
+    });
+  }
+  
+  // Run on load
+  applyFilters();
+})();
+</script>
 </body>
 </html>

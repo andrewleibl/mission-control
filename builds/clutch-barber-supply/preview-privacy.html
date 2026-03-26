@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — Clutch Barber Supply</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --clutch-bg: #05070c; --clutch-bg-light: #091018; --clutch-bg-lighter: #0d1822;
+      --clutch-text: #f5efe3; --clutch-text-muted: #d1c7b3; --clutch-text-dim: #9ca3af;
+      --clutch-border: #253242; --clutch-accent: #c9894b;
+    }
+    body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--clutch-bg); color: var(--clutch-text); line-height: 1.6; }
+    a { color: var(--clutch-accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Header */
+    .clutch-header { background: var(--clutch-bg-light); border-bottom: 1px solid var(--clutch-border); position: sticky; top: 0; z-index: 100; }
+    .clutch-header__inner { max-width: 1400px; margin: 0 auto; padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+    .clutch-header__logo { flex-shrink: 0; }
+    .clutch-header__logo img { height: 80px; width: auto; }
+    .clutch-header__nav { display: flex; gap: 1.5rem; }
+    .clutch-header__nav a { font-size: 0.875rem; font-weight: 500; color: var(--clutch-text-muted); transition: color 0.2s; }
+    .clutch-header__nav a:hover, .clutch-header__nav a.active { color: var(--clutch-accent); }
+    .clutch-header__cart { position: relative; width: 2.5rem; height: 2.5rem; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid var(--clutch-border); border-radius: 8px; }
+
+    /* Page Header */
+    .page-header { padding: 4rem 1.5rem; text-align: center; background: linear-gradient(180deg, var(--clutch-bg-light) 0%, var(--clutch-bg) 100%); }
+    .page-header h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 700; letter-spacing: -0.03em; margin-bottom: 0.5rem; }
+    .page-header p { color: var(--clutch-text-muted); }
+
+    /* Privacy Content */
+    .privacy-section { padding: 3rem 0 5rem; }
+    .privacy-container { max-width: 900px; margin: 0 auto; padding: 0 1.5rem; }
+    
+    .privacy-content h2 { font-size: 1.25rem; font-weight: 700; margin: 2.5rem 0 1rem; color: var(--clutch-accent); text-transform: uppercase; letter-spacing: 0.05em; }
+    .privacy-content h2:first-child { margin-top: 0; }
+    .privacy-content h3 { font-size: 1rem; font-weight: 600; margin: 1.5rem 0 0.75rem; color: var(--clutch-text); }
+    .privacy-content p { color: var(--clutch-text-muted); margin-bottom: 1rem; }
+    .privacy-content ul { margin: 1rem 0; padding-left: 1.5rem; color: var(--clutch-text-muted); }
+    .privacy-content li { margin-bottom: 0.5rem; }
+    .privacy-content strong { color: var(--clutch-text); }
+
+    /* Table Styles */
+    .privacy-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
+    .privacy-table th, .privacy-table td { padding: 0.75rem; text-align: left; border: 1px solid var(--clutch-border); }
+    .privacy-table th { background: rgba(255,255,255,0.05); color: var(--clutch-text); font-weight: 600; }
+    .privacy-table td { color: var(--clutch-text-muted); }
+
+    /* Footer */
+    .clutch-footer { background: var(--clutch-bg); border-top: 1px solid var(--clutch-border); padding: 3rem 0 2rem; }
+    .clutch-footer__inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+    .clutch-footer__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 2.5rem; }
+    @media (min-width: 768px) { .clutch-footer__grid { grid-template-columns: repeat(4, 1fr); gap: 2rem; } }
+    .clutch-footer__column--wide { grid-column: span 1; }
+    @media (min-width: 768px) { .clutch-footer__column--wide { grid-column: span 2; } }
+    .clutch-footer__column h4 { font-size: 0.9375rem; font-weight: 600; margin-bottom: 1rem; text-transform: uppercase; }
+    .clutch-footer__sublinks { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+    .clutch-footer__links { display: flex; flex-direction: column; gap: 0.5rem; }
+    .clutch-footer__links a { font-size: 0.875rem; color: var(--clutch-text-dim); transition: color 0.2s; }
+    .clutch-footer__links a:hover { color: var(--clutch-accent); }
+    .clutch-footer__contact-info { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--clutch-border); }
+    .clutch-footer__contact-info p { font-size: 0.8125rem; color: var(--clutch-text-muted); margin-bottom: 0.375rem; line-height: 1.5; }
+    .clutch-footer__bottom { display: flex; flex-direction: column; gap: 1.5rem; padding-top: 2rem; border-top: 1px solid var(--clutch-border); align-items: center; text-align: center; }
+    @media (min-width: 768px) { .clutch-footer__bottom { flex-direction: row; justify-content: space-between; } }
+    .clutch-footer__social { display: flex; gap: 0.875rem; }
+    .clutch-footer__social a { width: 2.25rem; height: 2.25rem; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid var(--clutch-border); border-radius: 8px; transition: all 0.2s; color: var(--clutch-text-dim); }
+    .clutch-footer__social a:hover { border-color: var(--clutch-accent); background: rgba(201, 137, 75, 0.1); color: var(--clutch-accent); }
+    .clutch-footer__copyright { font-size: 0.8125rem; color: var(--clutch-text-dim); }
+    .clutch-footer__payment { display: flex; flex-direction: column; gap: 0.5rem; }
+    .clutch-footer__payment-row { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
+    .clutch-footer__payment-icon { font-size: 0.625rem; font-weight: 700; letter-spacing: 0.05em; color: var(--clutch-text-dim); padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.05); border: 1px solid var(--clutch-border); border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="clutch-header">
+    <div class="clutch-header__inner">
+      <a href="http://localhost:8765/preview-homepage-complete.html" class="clutch-header__logo"><img src="assets/clutch-logo.png" alt="Clutch Barber Supply" width="200" height="80"></a>
+      <div style="display: flex; align-items: center; gap: 1.5rem;">
+        <nav class="clutch-header__nav">
+          <a href="http://localhost:8765/preview-collections.html">Shop</a>
+          <a href="http://localhost:8765/preview-brands.html">Brands</a>
+          <a href="http://localhost:8765/preview-supplies.html">Supplies</a>
+          <a href="http://localhost:8765/preview-classes.html">Classes</a>
+          <a href="http://localhost:8765/preview-contact.html">Contact</a>
+          <a href="http://localhost:8765/preview-faq.html">FAQ</a>
+        </nav>
+        <a href="http://localhost:8765/preview-cart.html" class="clutch-header__cart">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h2l2.1 9.2a1 1 0 0 0 1 .8H18a1 1 0 0 0 1-.8L21 8H7"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1>Privacy Policy</h1>
+    <p>How we collect, use, and protect your personal information.</p>
+  </div>
+
+  <!-- Privacy Content -->
+  <section class="privacy-section">
+    <div class="privacy-container">
+      <div class="privacy-content">
+        <p>This Privacy Policy describes how clutchbarbersupply.com (the "Site" or "we") collects, uses, and discloses your Personal Information when you visit or make a purchase from the Site.</p>
+
+        <h2>Collecting Personal Information</h2>
+        <p>When you visit the Site, we collect certain information about your device, your interaction with the Site, and information necessary to process your purchases. We may also collect additional information if you contact us for customer support. In this Privacy Policy, we refer to any information that can uniquely identify an individual (including the information below) as "Personal Information". See the list below for more information about what Personal Information we collect and why.</p>
+
+        <h3>Device Information</h3>
+        <ul>
+          <li><strong>Examples of Personal Information collected:</strong> version of web browser, IP address, time zone, cookie information, what sites or products you view, search terms, and how you interact with the Site.</li>
+          <li><strong>Purpose of collection:</strong> to load the Site accurately for you, and to perform analytics on Site usage to optimize our Site.</li>
+          <li><strong>Source of collection:</strong> Collected automatically when you access our Site using cookies, log files, web beacons, tags, or pixels.</li>
+          <li><strong>Disclosure for a business purpose:</strong> shared with our processor Shopify.</li>
+        </ul>
+
+        <h3>Order Information</h3>
+        <ul>
+          <li><strong>Examples of Personal Information collected:</strong> name, billing address, shipping address, payment information (including credit card numbers, Apple Pay, Google Pay, PayPal), email address, and phone number.</li>
+          <li><strong>Purpose of collection:</strong> to provide products or services to you to fulfill our contract, to process your payment information, arrange for shipping, and provide you with invoices and/or order confirmations, communicate with you, screen our orders for potential risk or fraud, and when in line with the preferences you have shared with us, provide you with information or advertising relating to our products or services.</li>
+          <li><strong>Source of collection:</strong> collected from you.</li>
+          <li><strong>Disclosure for a business purpose:</strong> shared with our processor Shopify, payment gateways, shipping and fulfillment services.</li>
+        </ul>
+
+        <h3>Customer Support Information</h3>
+        <ul>
+          <li><strong>Examples of Personal Information collected:</strong> name, email address, phone number, order details, and any information you provide regarding your inquiry.</li>
+          <li><strong>Purpose of collection:</strong> to provide customer support.</li>
+          <li><strong>Source of collection:</strong> collected from you.</li>
+          <li><strong>Disclosure for a business purpose:</strong> shared with our customer support platform and email service provider.</li>
+        </ul>
+
+        <h2>Minors</h2>
+        <p>The Site is not intended for individuals under the age of 18. We do not intentionally collect Personal Information from children. If you are the parent or guardian and believe your child has provided us with Personal Information, please contact us at the address below to request deletion.</p>
+
+        <h2>Sharing Personal Information</h2>
+        <p>We share your Personal Information with service providers to help us provide our services and fulfill our contracts with you, as described above. For example:</p>
+        <ul>
+          <li>We use Shopify to power our online store. You can read more about how Shopify uses your Personal Information here: <a href="https://www.shopify.com/legal/privacy" target="_blank">https://www.shopify.com/legal/privacy</a>.</li>
+          <li>We may share your Personal Information to comply with applicable laws and regulations, to respond to a subpoena, search warrant or other lawful request for information we receive, or to otherwise protect our rights.</li>
+        </ul>
+
+        <h2>Behavioural Advertising</h2>
+        <p>As described above, we use your Personal Information to provide you with targeted advertisements or marketing communications we believe may be of interest to you. For example:</p>
+        <ul>
+          <li>We use Google Analytics to help us understand how our customers use the Site. You can read more about how Google uses your Personal Information here: <a href="https://policies.google.com/privacy?hl=en" target="_blank">https://policies.google.com/privacy</a>. You can also opt-out of Google Analytics here: <a href="https://tools.google.com/dlpage/gaoptout" target="_blank">https://tools.google.com/dlpage/gaoptout</a>.</li>
+          <li>We share information about your use of the Site, your purchases, and your interaction with our ads on other websites with our advertising partners. We collect and share some of this information directly with our advertising partners, and in some cases through the use of cookies or other similar technologies.</li>
+        </ul>
+        <p>For more information about how targeted advertising works, you can visit the Network Advertising Initiative's ("NAI") educational page at <a href="http://www.networkadvertising.org/understanding-online-advertising/how-does-it-work" target="_blank">http://www.networkadvertising.org/understanding-online-advertising/how-does-it-work</a>.</p>
+
+        <h3>You can opt out of targeted advertising by:</h3>
+        <ul>
+          <li><strong>Facebook:</strong> <a href="https://www.facebook.com/settings/?tab=ads" target="_blank">https://www.facebook.com/settings/?tab=ads</a></li>
+          <li><strong>Google:</strong> <a href="https://www.google.com/settings/ads/anonymous" target="_blank">https://www.google.com/settings/ads/anonymous</a></li>
+          <li><strong>Bing:</strong> <a href="https://advertise.bingads.microsoft.com/en-us/resources/policies/personalized-ads" target="_blank">https://advertise.bingads.microsoft.com/en-us/resources/policies/personalized-ads</a></li>
+        </ul>
+        <p>Additionally, you can opt out of some of these services by visiting the Digital Advertising Alliance's opt-out portal at: <a href="http://optout.aboutads.info/" target="_blank">http://optout.aboutads.info/</a>.</p>
+
+        <h2>Using Personal Information</h2>
+        <p>We use your personal Information to provide our services to you, which includes: offering products for sale, processing payments, shipping and fulfillment of your order, and keeping you up to date on new products, services, and offers.</p>
+
+        <h2>Lawful Basis</h2>
+        <p>Pursuant to the General Data Protection Regulation ("GDPR"), if you are a resident of the European Economic Area ("EEA"), we process your personal information under the following lawful bases:</p>
+        <ul>
+          <li>Your consent;</li>
+          <li>The performance of the contract between you and the Site;</li>
+          <li>Compliance with our legal obligations;</li>
+          <li>To protect your vital interests;</li>
+          <li>To perform a task carried out in the public interest;</li>
+          <li>For our legitimate interests, which do not override your fundamental rights and freedoms.</li>
+        </ul>
+
+        <h2>Retention</h2>
+        <p>When you place an order through the Site, we will retain your Personal Information for our records unless and until you ask us to erase this information. For more information on your right of erasure, please see the 'Your rights' section below.</p>
+
+        <h2>Automatic Decision-Making</h2>
+        <p>We do not engage in fully automated decision-making that has a legal or otherwise significant effect using customer data.</p>
+        <p>Our processor Shopify uses limited automated decision-making to prevent fraud that does not have a legal or otherwise significant effect on you.</p>
+        <p>Services that include elements of automated decision-making include:</p>
+        <ul>
+          <li>Temporary denylist of IP addresses associated with repeated failed transactions. This denylist persists for a small number of hours.</li>
+          <li>Temporary denylist of credit cards associated with denylisted IP addresses. This denylist persists for a small number of days.</li>
+        </ul>
+
+        <h2>Your Rights</h2>
+        <h3>GDPR</h3>
+        <p>If you are a resident of the EEA, you have the right to access the Personal Information we hold about you, to port it to a new service, and to ask that your Personal Information be corrected, updated, or erased. If you would like to exercise these rights, please contact us through the contact information below.</p>
+        <p>Your Personal Information will be initially processed in Ireland and then will be transferred outside of Europe for storage and further processing, including to Canada and the United States. For more information on how data transfers comply with the GDPR, see Shopify's GDPR Whitepaper: <a href="https://help.shopify.com/en/manual/your-account/privacy/GDPR" target="_blank">https://help.shopify.com/en/manual/your-account/privacy/GDPR</a>.</p>
+
+        <h3>CCPA</h3>
+        <p>If you are a resident of California, you have the right to access the Personal Information we hold about you (also known as the 'Right to Know'), to port it to a new service, and to ask that your Personal Information be corrected, updated, or erased. If you would like to exercise these rights, please contact us through the contact information below.</p>
+        <p>If you would like to designate an authorized agent to submit these requests on your behalf, please contact us at the address below.</p>
+
+        <h2>Cookies</h2>
+        <p>A cookie is a small amount of information that's downloaded to your computer or device when you visit our Site. We use a number of different cookies, including functional, performance, advertising, and social media or content cookies. Cookies make your browsing experience better by allowing the website to remember your actions and preferences (such as login and region selection). This means you don't have to re-enter this information each time you return to the site or browse from one page to another. Cookies also provide information on how people use the website, for instance whether it's their first time visiting or if they are a frequent visitor.</p>
+
+        <h3>Cookies Necessary for the Functioning of the Store</h3>
+        <table class="privacy-table">
+          <tr>
+            <th>Name</th>
+            <th>Function</th>
+          </tr>
+          <tr>
+            <td>_ab</td>
+            <td>Used in connection with access to admin.</td>
+          </tr>
+          <tr>
+            <td>_secure_session_id</td>
+            <td>Used in connection with navigation through a storefront.</td>
+          </tr>
+          <tr>
+            <td>cart</td>
+            <td>Used in connection with shopping cart.</td>
+          </tr>
+          <tr>
+            <td>cart_sig</td>
+            <td>Used in connection with checkout.</td>
+          </tr>
+          <tr>
+            <td>cart_ts</td>
+            <td>Used in connection with checkout.</td>
+          </tr>
+          <tr>
+            <td>checkout_token</td>
+            <td>Used in connection with checkout.</td>
+          </tr>
+          <tr>
+            <td>secret</td>
+            <td>Used in connection with checkout.</td>
+          </tr>
+          <tr>
+            <td>secure_customer_sig</td>
+            <td>Used in connection with customer login.</td>
+          </tr>
+          <tr>
+            <td>storefront_digest</td>
+            <td>Used in connection with customer login.</td>
+          </tr>
+          <tr>
+            <td>_shopify_u</td>
+            <td>Used to facilitate updating customer account information.</td>
+          </tr>
+        </table>
+
+        <h3>Reporting and Analytics</h3>
+        <table class="privacy-table">
+          <tr>
+            <th>Name</th>
+            <th>Function</th>
+          </tr>
+          <tr>
+            <td>_tracking_consent</td>
+            <td>Tracking preferences.</td>
+          </tr>
+          <tr>
+            <td>_landing_page</td>
+            <td>Track landing pages.</td>
+          </tr>
+          <tr>
+            <td>_orig_referrer</td>
+            <td>Track landing pages.</td>
+          </tr>
+          <tr>
+            <td>_s</td>
+            <td>Shopify analytics.</td>
+          </tr>
+          <tr>
+            <td>_shopify_s</td>
+            <td>Shopify analytics.</td>
+          </tr>
+          <tr>
+            <td>_shopify_sa_p</td>
+            <td>Shopify analytics relating to marketing & referrals.</td>
+          </tr>
+          <tr>
+            <td>_shopify_sa_t</td>
+            <td>Shopify analytics relating to marketing & referrals.</td>
+          </tr>
+          <tr>
+            <td>_shopify_y</td>
+            <td>Shopify analytics.</td>
+          </tr>
+          <tr>
+            <td>_y</td>
+            <td>Shopify analytics.</td>
+          </tr>
+        </table>
+
+        <p>The length of time that a cookie remains on your computer or mobile device depends on whether it is a "persistent" or "session" cookie. Session cookies last until you stop browsing and persistent cookies last until they expire or are deleted. Most of the cookies we use are persistent and will expire between 30 minutes and two years from the date they are downloaded to your device.</p>
+        <p>You can control and manage cookies in various ways. Please keep in mind that removing or blocking cookies can negatively impact your user experience and parts of our website may no longer be fully accessible.</p>
+        <p>Most browsers automatically accept cookies, but you can choose whether or not to accept cookies through your browser controls, often found in your browser's "Tools" or "Preferences" menu. For more information on how to modify your browser settings or how to block, manage or filter cookies can be found in your browser's help file or through such sites as <a href="www.allaboutcookies.org" target="_blank">www.allaboutcookies.org</a>.</p>
+        <p>Additionally, please note that blocking cookies may not completely prevent how we share information with third parties such as our advertising partners. To exercise your rights or opt-out of certain uses of your information by these parties, please follow the instructions in the "Behavioural Advertising" section above.</p>
+
+        <h2>Do Not Track</h2>
+        <p>Please note that because there is no consistent industry understanding of how to respond to "Do Not Track" signals, we do not alter our data collection and usage practices when we detect such a signal from your browser.</p>
+
+        <h2>Changes</h2>
+        <p>We may update this Privacy Policy from time to time in order to reflect, for example, changes to our practices or for other operational, legal, or regulatory reasons.</p>
+
+        <h2>Contact</h2>
+        <p>For more information about our privacy practices, if you have questions, or if you would like to make a complaint, please contact us by e-mail at <a href="mailto:viceliatinde20@gmail.com">viceliatinde20@gmail.com</a> or by mail using the details provided below:</p>
+        <p>113 South Center<br>Grand Prairie, TX 75050<br>United States</p>
+        <p>Phone: <a href="tel:+12146771059">+1 (214) 677-1059</a></p>
+
+        <p>Last updated: March 25, 2026</p>
+        <p>If you are not satisfied with our response to your complaint, you have the right to lodge your complaint with the relevant data protection authority.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+    <footer class="clutch-footer">
+    <div class="clutch-footer__inner">
+      <div class="clutch-footer__grid">
+        <div class="clutch-footer__column clutch-footer__column--wide">
+          <h4>Shop by Brand</h4>
+          <div class="clutch-footer__sublinks">
+            <nav class="clutch-footer__links">
+              <a href="preview-collections.html?vendor=Andis">Andis</a>
+              <a href="preview-collections.html?vendor=Babyliss%20Pro">Babyliss Pro</a>
+              <a href="preview-collections.html?vendor=JRL">JRL</a>
+              <a href="preview-collections.html?vendor=Wahl">Wahl</a>
+              <a href="preview-collections.html?vendor=Gamma%20%7C%20Style%20Craft">Gamma | Style Craft</a>
+              <a href="preview-collections.html?vendor=Supreme%20Trimmers">Supreme Trimmers</a>
+              <a href="preview-collections.html?vendor=Level%203">Level 3</a>
+            </nav>
+            <nav class="clutch-footer__links">
+              <a href="preview-collections.html?vendor=Cocco%20Hair%20Pro">Cocco Hair Pro</a>
+              <a href="preview-collections.html?vendor=Oster">Oster</a>
+              <a href="preview-collections.html?vendor=Tomb45">Tomb45</a>
+              <a href="preview-collections.html?vendor=Vincent">Vincent</a>
+              <a href="preview-collections.html?vendor=OG%20Walker">OG Walker</a>
+              <a href="preview-collections.html?vendor=Smash">Smash</a>
+              <a href="preview-collections.html?vendor=Rolda">Rolda</a>
+            </nav>
+          </div>
+        </div>
+        
+        <div class="clutch-footer__column clutch-footer__column--wide">
+          <h4>Shop by Supplies</h4>
+          <div class="clutch-footer__sublinks">
+            <nav class="clutch-footer__links">
+              <a href="preview-collections.html?category=clippers">Clippers</a>
+              <a href="preview-collections.html?category=trimmers">Trimmers</a>
+              <a href="preview-collections.html?category=shavers">Shavers</a>
+              <a href="preview-collections.html?category=barber-bags-cases">Barber Bags | Cases</a>
+              <a href="preview-collections.html?category=lights">Lights</a>
+            </nav>
+            <nav class="clutch-footer__links">
+              <a href="preview-collections.html?category=accessories">Accessories</a>
+              <a href="preview-collections.html?category=capes">Capes</a>
+              <a href="preview-collections.html?category=barber-chairs">Barber Chairs</a>
+              <a href="preview-collections.html?category=barber-clothing">Barber Clothing</a>
+              <a href="preview-collections.html?category=barber-poles">Barber Poles</a>
+            </nav>
+          </div>
+        </div>
+        
+        <div class="clutch-footer__column">
+          <h4>Support</h4>
+          <nav class="clutch-footer__links">
+            <a href="preview-classes.html">View All Classes</a>
+            <a href="preview-faq.html">FAQ</a>
+            <a href="preview-shipping.html">Shipping</a>
+            <a href="preview-returns.html">Return Policy</a>
+            <a href="preview-terms.html">Terms & Conditions</a>
+            <a href="preview-privacy.html">Privacy Policy</a>
+          </nav>
+        </div>
+        
+        <div class="clutch-footer__column">
+          <h4>Contact</h4>
+          <nav class="clutch-footer__links">
+            <a href="preview-contact.html">Reach Out</a>
+          </nav>
+          <div class="clutch-footer__contact-info">
+            <p>+1 (214) 677-1059</p>
+            <p>viceliatinde20@gmail.com</p>
+            <p>113 South Center. Grand Prairie, TX 75050</p>
+            <p>Mon - Fri 9am - 6pm.</p>
+            <p>Sat. 9am-12pm CST</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="clutch-footer__bottom">
+        <div class="clutch-footer__social">
+          <a href="https://www.instagram.com/clutchbarbersupply?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+            <svg viewBox="0 0 24 24" width="20" height="20"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="currentColor" fill="none" stroke-width="2"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" stroke="currentColor" fill="none" stroke-width="2"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke="currentColor" stroke-width="2"/></svg>
+          </a>
+          <a href="https://www.facebook.com/clutchbarbersupply" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+            <svg viewBox="0 0 24 24" width="20" height="20"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" stroke="currentColor" fill="none" stroke-width="2"/></svg>
+          </a>
+          <a href="https://share.google/OtN5piiXnWaImxX0e" target="_blank" rel="noopener noreferrer" aria-label="Google">
+            <svg viewBox="0 0 24 24" width="20" height="20"><text x="12" y="20" text-anchor="middle" font-family="DM Sans, sans-serif" font-size="22" font-weight="700" fill="currentColor">G</text></svg>
+          </a>
+        </div>
+        
+        <p class="clutch-footer__copyright">© 2026 Clutch Barber Supply. All rights reserved. Website Powered By Straight Point Marketing</p>
+        
+        <div class="clutch-footer__payment">
+          <div class="clutch-footer__payment-row">
+            <span class="clutch-footer__payment-icon">AMEX</span>
+            <span class="clutch-footer__payment-icon">Apple Pay</span>
+            <span class="clutch-footer__payment-icon">Diners</span>
+            <span class="clutch-footer__payment-icon">Discover</span>
+            <span class="clutch-footer__payment-icon">G Pay</span>
+          </div>
+          <div class="clutch-footer__payment-row">
+            <span class="clutch-footer__payment-icon">MC</span>
+            <span class="clutch-footer__payment-icon">PayPal</span>
+            <span class="clutch-footer__payment-icon">Shop Pay</span>
+            <span class="clutch-footer__payment-icon">UnionPay</span>
+            <span class="clutch-footer__payment-icon">VISA</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

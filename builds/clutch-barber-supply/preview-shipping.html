@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shipping Policy — Clutch Barber Supply</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --clutch-bg: #05070c; --clutch-bg-light: #091018; --clutch-bg-lighter: #0d1822;
+      --clutch-text: #f5efe3; --clutch-text-muted: #d1c7b3; --clutch-text-dim: #9ca3af;
+      --clutch-border: #253242; --clutch-accent: #c9894b;
+    }
+    body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--clutch-bg); color: var(--clutch-text); line-height: 1.6; }
+    a { color: var(--clutch-accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Header */
+    .clutch-header { background: var(--clutch-bg-light); border-bottom: 1px solid var(--clutch-border); position: sticky; top: 0; z-index: 100; }
+    .clutch-header__inner { max-width: 1400px; margin: 0 auto; padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+    .clutch-header__logo { flex-shrink: 0; }
+    .clutch-header__logo img { height: 80px; width: auto; }
+    .clutch-header__nav { display: flex; gap: 1.5rem; }
+    .clutch-header__nav a { font-size: 0.875rem; font-weight: 500; color: var(--clutch-text-muted); transition: color 0.2s; }
+    .clutch-header__nav a:hover, .clutch-header__nav a.active { color: var(--clutch-accent); }
+    .clutch-header__cart { position: relative; width: 2.5rem; height: 2.5rem; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid var(--clutch-border); border-radius: 8px; }
+
+    /* Page Header */
+    .page-header { padding: 4rem 1.5rem; text-align: center; background: linear-gradient(180deg, var(--clutch-bg-light) 0%, var(--clutch-bg) 100%); }
+    .page-header h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 700; letter-spacing: -0.03em; margin-bottom: 0.5rem; }
+    .page-header p { color: var(--clutch-text-muted); }
+
+    /* Shipping Content */
+    .shipping-section { padding: 3rem 0 5rem; }
+    .shipping-container { max-width: 900px; margin: 0 auto; padding: 0 1.5rem; }
+
+    .shipping-content h2 { font-size: 1.25rem; font-weight: 700; margin: 2.5rem 0 1rem; color: var(--clutch-accent); text-transform: uppercase; letter-spacing: 0.05em; }
+    .shipping-content h2:first-child { margin-top: 0; }
+    .shipping-content p { color: var(--clutch-text-muted); margin-bottom: 1rem; }
+    .shipping-content ul { margin: 1rem 0; padding-left: 1.5rem; color: var(--clutch-text-muted); }
+    .shipping-content li { margin-bottom: 0.5rem; }
+    .shipping-content strong { color: var(--clutch-text); }
+
+    /* Footer */
+    .clutch-footer { background: var(--clutch-bg); border-top: 1px solid var(--clutch-border); padding: 3rem 0 2rem; }
+    .clutch-footer__inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+    .clutch-footer__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 2.5rem; }
+    @media (min-width: 768px) { .clutch-footer__grid { grid-template-columns: repeat(4, 1fr); gap: 2rem; } }
+    .clutch-footer__column--wide { grid-column: span 1; }
+    @media (min-width: 768px) { .clutch-footer__column--wide { grid-column: span 2; } }
+    .clutch-footer__column h4 { font-size: 0.9375rem; font-weight: 600; margin-bottom: 1rem; text-transform: uppercase; }
+    .clutch-footer__sublinks { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+    .clutch-footer__links { display: flex; flex-direction: column; gap: 0.5rem; }
+    .clutch-footer__links a { font-size: 0.875rem; color: var(--clutch-text-dim); transition: color 0.2s; }
+    .clutch-footer__links a:hover { color: var(--clutch-accent); }
+    .clutch-footer__contact-info { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--clutch-border); }
+    .clutch-footer__contact-info p { font-size: 0.8125rem; color: var(--clutch-text-muted); margin-bottom: 0.375rem; line-height: 1.5; }
+    .clutch-footer__bottom { display: flex; flex-direction: column; gap: 1.5rem; padding-top: 2rem; border-top: 1px solid var(--clutch-border); align-items: center; text-align: center; }
+    @media (min-width: 768px) { .clutch-footer__bottom { flex-direction: row; justify-content: space-between; } }
+    .clutch-footer__social { display: flex; gap: 0.875rem; }
+    .clutch-footer__social a { width: 2.25rem; height: 2.25rem; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid var(--clutch-border); border-radius: 8px; transition: all 0.2s; color: var(--clutch-text-dim); }
+    .clutch-footer__social a:hover { border-color: var(--clutch-accent); background: rgba(201, 137, 75, 0.1); color: var(--clutch-accent); }
+    .clutch-footer__copyright { font-size: 0.8125rem; color: var(--clutch-text-dim); }
+    .clutch-footer__payment { display: flex; flex-direction: column; gap: 0.5rem; }
+    .clutch-footer__payment-row { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
+    .clutch-footer__payment-icon { font-size: 0.625rem; font-weight: 700; letter-spacing: 0.05em; color: var(--clutch-text-dim); padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.05); border: 1px solid var(--clutch-border); border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="clutch-header">
+    <div class="clutch-header__inner">
+      <a href="http://localhost:8765/preview-homepage-complete.html" class="clutch-header__logo"><img src="assets/clutch-logo.png" alt="Clutch Barber Supply" width="200" height="80"></a>
+      <div style="display: flex; align-items: center; gap: 1.5rem;">
+        <nav class="clutch-header__nav">
+          <a href="http://localhost:8765/preview-collections.html">Shop</a>
+          <a href="http://localhost:8765/preview-brands.html">Brands</a>
+          <a href="http://localhost:8765/preview-supplies.html">Supplies</a>
+          <a href="http://localhost:8765/preview-classes.html">Classes</a>
+          <a href="http://localhost:8765/preview-contact.html">Contact</a>
+          <a href="http://localhost:8765/preview-faq.html">FAQ</a>
+        </nav>
+        <a href="http://localhost:8765/preview-cart.html" class="clutch-header__cart">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h2l2.1 9.2a1 1 0 0 0 1 .8H18a1 1 0 0 0 1-.8L21 8H7"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1>Shipping Policy</h1>
+    <p>Fast, reliable shipping for working professionals.</p>
+  </div>
+
+  <!-- Shipping Content -->
+  <section class="shipping-section">
+    <div class="shipping-container">
+      <div class="shipping-content">
+        <p>At Clutch Barber Supply, we make sure you get your tools fast and reliably.</p>
+
+        <h2>Order Processing</h2>
+        <ul>
+          <li>Orders placed before <strong>2:00 PM (CST)</strong> ship same day</li>
+          <li>Orders placed after 2:00 PM will ship the next business day</li>
+          <li>Orders are processed Monday through Friday (excluding holidays)</li>
+        </ul>
+
+        <h2>Shipping Times</h2>
+        <ul>
+          <li>Standard delivery time is <strong>3–7 business days</strong></li>
+          <li>All orders ship directly from <strong>Texas, USA</strong></li>
+          <li>Delivery times may vary depending on location or carrier delays</li>
+        </ul>
+
+        <h2>Free Shipping</h2>
+        <p>Free shipping is available on all orders over <strong>$300</strong>.</p>
+
+        <h2>Tracking Information</h2>
+        <ul>
+          <li>Once your order ships, you will receive a tracking number via email</li>
+          <li>Please allow up to 24 hours for tracking updates to appear</li>
+        </ul>
+
+        <h2>Delays & Issues</h2>
+        <p>While we work to meet delivery estimates, we are not responsible for delays caused by shipping carriers. If your package is lost, delayed, or arrives damaged, <a href="mailto:viceliatinde20@gmail.com">contact us</a> and we will help resolve it as quickly as possible.</p>
+
+        <h2>Incorrect Shipping Information</h2>
+        <p>Please confirm your shipping address at checkout. We are not responsible for orders shipped to incorrectly entered addresses.</p>
+
+        <h2>Why Barbers Choose Clutch</h2>
+        <ul>
+          <li>Fast fulfillment for barbers who need equipment without delays</li>
+          <li>Reliable shipping directly from Texas</li>
+          <li>Built for working professionals</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+    <footer class="clutch-footer">
+    <div class="clutch-footer__inner">
+      <div class="clutch-footer__grid">
+        <div class="clutch-footer__column clutch-footer__column--wide">
+          <h4>Shop by Brand</h4>
+          <div class="clutch-footer__sublinks">
+            <nav class="clutch-footer__links">
+              <a href="preview-collections.html?vendor=Andis">Andis</a>
+              <a href="preview-collections.html?vendor=Babyliss%20Pro">Babyliss Pro</a>
+              <a href="preview-collections.html?vendor=JRL">JRL</a>
+              <a href="preview-collections.html?vendor=Wahl">Wahl</a>
+              <a href="preview-collections.html?vendor=Gamma%20%7C%20Style%20Craft">Gamma | Style Craft</a>
+              <a href="preview-collections.html?vendor=Supreme%20Trimmers">Supreme Trimmers</a>
+              <a href="preview-collections.html?vendor=Level%203">Level 3</a>
+            </nav>
+            <nav class="clutch-footer__links">
+              <a href="preview-collections.html?vendor=Cocco%20Hair%20Pro">Cocco Hair Pro</a>
+              <a href="preview-collections.html?vendor=Oster">Oster</a>
+              <a href="preview-collections.html?vendor=Tomb45">Tomb45</a>
+              <a href="preview-collections.html?vendor=Vincent">Vincent</a>
+              <a href="preview-collections.html?vendor=OG%20Walker">OG Walker</a>
+              <a href="preview-collections.html?vendor=Smash">Smash</a>
+              <a href="preview-collections.html?vendor=Rolda">Rolda</a>
+            </nav>
+          </div>
+        </div>
+        
+        <div class="clutch-footer__column clutch-footer__column--wide">
+          <h4>Shop by Supplies</h4>
+          <div class="clutch-footer__sublinks">
+            <nav class="clutch-footer__links">
+              <a href="preview-collections.html?category=clippers">Clippers</a>
+              <a href="preview-collections.html?category=trimmers">Trimmers</a>
+              <a href="preview-collections.html?category=shavers">Shavers</a>
+              <a href="preview-collections.html?category=barber-bags-cases">Barber Bags | Cases</a>
+              <a href="preview-collections.html?category=lights">Lights</a>
+            </nav>
+            <nav class="clutch-footer__links">
+              <a href="preview-collections.html?category=accessories">Accessories</a>
+              <a href="preview-collections.html?category=capes">Capes</a>
+              <a href="preview-collections.html?category=barber-chairs">Barber Chairs</a>
+              <a href="preview-collections.html?category=barber-clothing">Barber Clothing</a>
+              <a href="preview-collections.html?category=barber-poles">Barber Poles</a>
+            </nav>
+          </div>
+        </div>
+        
+        <div class="clutch-footer__column">
+          <h4>Support</h4>
+          <nav class="clutch-footer__links">
+            <a href="preview-classes.html">View All Classes</a>
+            <a href="preview-faq.html">FAQ</a>
+            <a href="preview-shipping.html">Shipping</a>
+            <a href="preview-returns.html">Return Policy</a>
+            <a href="preview-terms.html">Terms & Conditions</a>
+            <a href="preview-privacy.html">Privacy Policy</a>
+          </nav>
+        </div>
+        
+        <div class="clutch-footer__column">
+          <h4>Contact</h4>
+          <nav class="clutch-footer__links">
+            <a href="preview-contact.html">Reach Out</a>
+          </nav>
+          <div class="clutch-footer__contact-info">
+            <p>+1 (214) 677-1059</p>
+            <p>viceliatinde20@gmail.com</p>
+            <p>113 South Center. Grand Prairie, TX 75050</p>
+            <p>Mon - Fri 9am - 6pm.</p>
+            <p>Sat. 9am-12pm CST</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="clutch-footer__bottom">
+        <div class="clutch-footer__social">
+          <a href="https://www.instagram.com/clutchbarbersupply?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+            <svg viewBox="0 0 24 24" width="20" height="20"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="currentColor" fill="none" stroke-width="2"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" stroke="currentColor" fill="none" stroke-width="2"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke="currentColor" stroke-width="2"/></svg>
+          </a>
+          <a href="https://www.facebook.com/clutchbarbersupply" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+            <svg viewBox="0 0 24 24" width="20" height="20"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" stroke="currentColor" fill="none" stroke-width="2"/></svg>
+          </a>
+          <a href="https://share.google/OtN5piiXnWaImxX0e" target="_blank" rel="noopener noreferrer" aria-label="Google">
+            <svg viewBox="0 0 24 24" width="20" height="20"><text x="12" y="20" text-anchor="middle" font-family="DM Sans, sans-serif" font-size="22" font-weight="700" fill="currentColor">G</text></svg>
+          </a>
+        </div>
+        
+        <p class="clutch-footer__copyright">© 2026 Clutch Barber Supply. All rights reserved. Website Powered By Straight Point Marketing</p>
+        
+        <div class="clutch-footer__payment">
+          <div class="clutch-footer__payment-row">
+            <span class="clutch-footer__payment-icon">AMEX</span>
+            <span class="clutch-footer__payment-icon">Apple Pay</span>
+            <span class="clutch-footer__payment-icon">Diners</span>
+            <span class="clutch-footer__payment-icon">Discover</span>
+            <span class="clutch-footer__payment-icon">G Pay</span>
+          </div>
+          <div class="clutch-footer__payment-row">
+            <span class="clutch-footer__payment-icon">MC</span>
+            <span class="clutch-footer__payment-icon">PayPal</span>
+            <span class="clutch-footer__payment-icon">Shop Pay</span>
+            <span class="clutch-footer__payment-icon">UnionPay</span>
+            <span class="clutch-footer__payment-icon">VISA</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

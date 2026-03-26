@@ -1,0 +1,235 @@
+{
+  "clients": [
+    {
+      "id": "hector-huizar",
+      "name": "Hector Huizar",
+      "brand": "Valley of the Sun Landscape",
+      "accountStatus": "Scaling",
+      "monthlyBudget": 900,
+      "spendMTD": 351.17,
+      "revenueMTD": 1053.51,
+      "roas": 3,
+      "cpa": 59,
+      "leads": 7,
+      "primaryObjective": "Lead Generation",
+      "description": "Meta Ads campaign for Valley of the Sun Landscape",
+      "lastUpdated": "2026-03-22T21:40:00.000Z",
+      "audienceNote": "Performance stable — continue current strategy",
+      "topLine": {
+        "impressions": 11373,
+        "clicks": 148,
+        "purchases": 7,
+        "frequency": 1.925995
+      },
+      "performance": [
+        { "date": "Mar 2", "spend": 44, "revenue": 132, "leads": 1, "ctr": 1.427693348949658 },
+        { "date": "Mar 6", "spend": 47, "revenue": 140, "leads": 1, "ctr": 1.2587568846050294 },
+        { "date": "Mar 10", "spend": 50, "revenue": 149, "leads": 1, "ctr": 1.351858686173639 },
+        { "date": "Mar 14", "spend": 53, "revenue": 158, "leads": 2, "ctr": 1.4243265124684756 },
+        { "date": "Mar 18", "spend": 56, "revenue": 167, "leads": 1, "ctr": 1.307344974018495 },
+        { "date": "Mar 22", "spend": 59, "revenue": 176, "leads": 1, "ctr": 1.3434030786294564 }
+      ],
+      "campaigns": [
+        {
+          "id": "120242557805690468",
+          "name": "03/10/26 Lead Gen Campaign - Copy",
+          "objective": "OUTCOME LEADS",
+          "status": "Active",
+          "spend": 351.17,
+          "revenue": 1053.51,
+          "roas": 3,
+          "cpl": 52.81
+        }
+      ],
+      "creatives": [
+        {
+          "id": "120242560346680468",
+          "name": "Basic Tree Removal",
+          "format": "Image",
+          "hook": "Basic Tree Removal",
+          "spend": 192.77,
+          "ctr": 1.1719308274974989,
+          "cpa": 19.277,
+          "thumb": "BAS"
+        },
+        {
+          "id": "120242560433660468",
+          "name": "Basic Tree Trimming",
+          "format": "Image",
+          "hook": "Basic Tree Trimming",
+          "spend": 46.17,
+          "ctr": 1.3761467889908259,
+          "cpa": 9.234,
+          "thumb": "BAS"
+        },
+        {
+          "id": "120242560907000468",
+          "name": "Got Junk",
+          "format": "Image",
+          "hook": "Got Junk",
+          "spend": 29.44,
+          "ctr": 0.544959128065395,
+          "cpa": 5.888,
+          "thumb": "GOT"
+        },
+        {
+          "id": "120242558019570468",
+          "name": "Canva Tree Removal",
+          "format": "Image",
+          "hook": "Canva Tree Removal",
+          "spend": 0.55,
+          "ctr": 0,
+          "cpa": 0,
+          "thumb": "CAN"
+        },
+        {
+          "id": "120242560375480468",
+          "name": "Basic Hardscape",
+          "format": "Image",
+          "hook": "Basic Hardscape",
+          "spend": 58.35,
+          "ctr": 2.6881720430107525,
+          "cpa": 5.835,
+          "thumb": "BAS"
+        }
+      ]
+    },
+    {
+      "id": "pj-sparks",
+      "name": "PJ Sparks",
+      "brand": "We Do Hardscape",
+      "accountStatus": "Needs Attention",
+      "monthlyBudget": 900,
+      "spendMTD": 421.31,
+      "revenueMTD": 0,
+      "roas": 0,
+      "cpa": 210.66,
+      "leads": 2,
+      "primaryObjective": "Lead Generation",
+      "description": "Meta Ads campaign for We Do Hardscape",
+      "lastUpdated": "2026-03-22T22:28:00.000Z",
+      "audienceNote": "CRITICAL: CPL at $211 — 4x above benchmark. CTR declining. Creative fatigue at 2.32 frequency. EMERGENCY REFRESH REQUIRED.",
+      "topLine": {
+        "impressions": 11274,
+        "clicks": 117,
+        "purchases": 2,
+        "frequency": 2.319276
+      },
+      "performance": [
+        { "date": "Mar 9", "spend": 34.77, "leads": 0, "ctr": 0.74 },
+        { "date": "Mar 10", "spend": 42.57, "leads": 0, "ctr": 1.45 },
+        { "date": "Mar 11", "spend": 32.91, "leads": 0, "ctr": 0.64 },
+        { "date": "Mar 12", "spend": 31.97, "leads": 0, "ctr": 1.00 },
+        { "date": "Mar 13", "spend": 23.95, "leads": 0, "ctr": 1.41 },
+        { "date": "Mar 14", "spend": 12.76, "leads": 0, "ctr": 0.78 },
+        { "date": "Mar 15", "spend": 29.54, "leads": 0, "ctr": 1.60 },
+        { "date": "Mar 16", "spend": 26.61, "leads": 0, "ctr": 0.99 },
+        { "date": "Mar 17", "spend": 33.04, "leads": 0, "ctr": 0.83 },
+        { "date": "Mar 18", "spend": 30.00, "leads": 0, "ctr": 1.04 },
+        { "date": "Mar 19", "spend": 36.67, "leads": 0, "ctr": 1.16 },
+        { "date": "Mar 20", "spend": 28.08, "leads": 0, "ctr": 1.61 },
+        { "date": "Mar 21", "spend": 25.78, "leads": 0, "ctr": 0.70 }
+      ],
+      "campaigns": [
+        {
+          "id": "52513101185639",
+          "name": "We Do Hardscape | 03/09/26 | Lead Gen Campaign - Copy",
+          "objective": "OUTCOME LEADS",
+          "status": "Active",
+          "spend": 377.16,
+          "revenue": 0,
+          "roas": 0,
+          "cpl": 210.66
+        }
+      ],
+      "creatives": [
+        {
+          "id": "52513101185839",
+          "name": "Backyard Full Remodel + Info",
+          "format": "Image",
+          "hook": "WINNER — 1 lead @ $72.37",
+          "spend": 72.85,
+          "ctr": 1.13,
+          "cpa": 72.85,
+          "thumb": "RMD"
+        },
+        {
+          "id": "52513101186439",
+          "name": "Blue Stripe Drone Shot",
+          "format": "Image",
+          "hook": "WINNER — 1 lead @ $80.89",
+          "spend": 80.89,
+          "ctr": 1.12,
+          "cpa": 80.89,
+          "thumb": "DRN"
+        },
+        {
+          "id": "52513101186239",
+          "name": "Turf Before & After",
+          "format": "Image",
+          "hook": "PAUSE — $74.39 spent, 0 leads, 0.98% CTR",
+          "spend": 74.39,
+          "ctr": 0.98,
+          "cpa": 0,
+          "thumb": "BFA"
+        },
+        {
+          "id": "52513101186039",
+          "name": "Your Backyard Circle Before Image",
+          "format": "Image",
+          "hook": "PAUSE — $62.95 spent, 0 leads",
+          "spend": 62.95,
+          "ctr": 1.19,
+          "cpa": 0,
+          "thumb": "BYD"
+        },
+        {
+          "id": "52513101185439",
+          "name": "Basic Travertine Blue",
+          "format": "Image",
+          "hook": "PAUSE — $60.01 spent, 0 leads, highest CTR 1.68%",
+          "spend": 60.01,
+          "ctr": 1.68,
+          "cpa": 0,
+          "thumb": "TRV"
+        },
+        {
+          "id": "52513101185239",
+          "name": "Turf Upgrade",
+          "format": "Image",
+          "hook": "PAUSE — $37.56 spent, 0 leads, worst CTR 0.47%",
+          "spend": 37.56,
+          "ctr": 0.47,
+          "cpa": 0,
+          "thumb": "TUR"
+        }
+      ]
+    },
+    {
+      "id": "ricardo-madera",
+      "name": "Ricardo Madera",
+      "brand": "Madera Landscape",
+      "accountStatus": "Needs Attention",
+      "monthlyBudget": 5000,
+      "spendMTD": 0,
+      "revenueMTD": 0,
+      "roas": 0,
+      "cpa": 0,
+      "leads": 0,
+      "primaryObjective": "Pending Meta connection",
+      "description": "Meta Ads connection pending",
+      "lastUpdated": "2026-03-22T20:11:40.960Z",
+      "audienceNote": "Awaiting API token",
+      "topLine": {
+        "impressions": 0,
+        "clicks": 0,
+        "purchases": 0,
+        "frequency": 0
+      },
+      "performance": [],
+      "campaigns": [],
+      "creatives": []
+    }
+  ],
+  "updatedAt": "2026-03-22T21:40:00.000Z"
+}

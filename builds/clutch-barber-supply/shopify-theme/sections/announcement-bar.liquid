@@ -1,0 +1,53 @@
+{% if section.blocks.size > 0 %}
+  <div class="clutch-top-note" {{ section.shopify_attributes }}>
+    <p class="clutch-top-note__text">
+      {% for block in section.blocks %}
+        <span {{ block.shopify_attributes }}>{{ block.settings.text }}</span>
+        {% unless forloop.last %}<span class="clutch-top-note__dot">•</span>{% endunless %}
+      {% endfor %}
+    </p>
+  </div>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Announcement Bar",
+  "max_blocks": 3,
+  "blocks": [
+    {
+      "type": "announcement",
+      "name": "Announcement",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "default": "Free Shipping On Orders Over $300",
+          "label": "Text"
+        }
+      ]
+    }
+  ],
+  "default": {
+    "blocks": [
+      {
+        "type": "announcement",
+        "settings": {
+          "text": "Free Shipping On Orders Over $300"
+        }
+      },
+      {
+        "type": "announcement",
+        "settings": {
+          "text": "Free 30 day return for all faulty products"
+        }
+      },
+      {
+        "type": "announcement",
+        "settings": {
+          "text": "Same day In Store Pickups"
+        }
+      }
+    ]
+  }
+}
+{% endschema %}
