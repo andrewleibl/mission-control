@@ -19,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={robotoMono.className} style={{ margin: 0, padding: 0, background: '#0D0D0D' }}>
+      <body className={robotoMono.className} style={{ margin: 0, padding: 0, background: '#0D0D0D', fontWeight: 500 }}>
         <div style={{ display: 'flex' }}>
           <Sidebar />
           <main style={{ marginLeft: 240, flex: 1 }}>
