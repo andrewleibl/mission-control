@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
+import { Roboto_Mono } from 'next/font/google';
 import Sidebar from '@/components/Sidebar'
+
+const robotoMono = Roboto_Mono({
+  subsets: ['latin'],
+  variable: '--font-mono',
+});
 
 export const metadata: Metadata = {
   title: "Mission Control",
@@ -13,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body style={{ margin: 0, padding: 0, background: '#0D0D0D' }}>
+      <body className={robotoMono.className} style={{ margin: 0, padding: 0, background: '#0D0D0D' }}>
         <div style={{ display: 'flex' }}>
           <Sidebar />
           <main style={{ marginLeft: 240, flex: 1 }}>
