@@ -381,7 +381,7 @@ function TaskCard({ task, index }: TaskCardProps) {
 }
 
 export default function TasksPage() {
-  const [tasks, setTasks] = useState<Task[]>([])
+  const [tasks, setTasks] = useState<Task[]>(seedTasks)
   const [activity, setActivity] = useState<string[]>([
     '2026-03-17 12:01 AM — Clutch Barber Supply audit moved to In Progress',
     '2026-03-17 12:00 AM — Nightly build session started',
@@ -393,11 +393,9 @@ export default function TasksPage() {
       const stored = localStorage.getItem('mc_tasks')
       if (stored) {
         setTasks(JSON.parse(stored) as Task[])
-      } else {
-        setTasks(seedTasks)
       }
     } catch {
-      setTasks(seedTasks)
+      // Keep seedTasks on error
     }
   }, [])
 
