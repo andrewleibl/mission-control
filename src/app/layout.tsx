@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Navigation from './components/Navigation'
+import Sidebar from '@/components/Sidebar'
 
 export const metadata: Metadata = {
   title: "Mission Control",
@@ -15,8 +15,8 @@ export default function RootLayout({
     <html lang="en">
       <body style={{ margin: 0, padding: 0, background: '#0D0D0D' }}>
         <div style={{ display: 'flex' }}>
-          <Navigation />
-          <main style={{ marginLeft: 200, flex: 1 }}>
+          <Sidebar />
+          <main style={{ marginLeft: 240, flex: 1 }}>
             {children}
           </main>
         </div>
