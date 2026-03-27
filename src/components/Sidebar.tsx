@@ -56,7 +56,7 @@ export default function Sidebar() {
                 padding: '10px 12px',
                 borderRadius: 6,
                 fontSize: 13,
-                fontWeight: 900,
+                fontWeight: 700,
                 textDecoration: 'none',
                 color: active ? '#F7FAFC' : '#718096',
                 background: active ? '#2A2A2A' : 'transparent',
