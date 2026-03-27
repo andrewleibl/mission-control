@@ -42,16 +42,28 @@ export default function Sidebar() {
       </div>
 
       {/* Nav */}
-      <nav style={{ flex: 1, paddingTop: 12 }}>
+      <nav style={{ flex: 1, padding: '12px 12px', display: 'flex', flexDirection: 'column', gap: 4 }}>
         {navItems.map((item) => {
           const active = pathname === item.href || pathname.startsWith(item.href + '/')
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`sidebar-item ${active ? 'active' : ''}`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '10px 12px',
+                borderRadius: 6,
+                fontSize: 13,
+                fontWeight: 500,
+                textDecoration: 'none',
+                color: active ? '#F7FAFC' : '#718096',
+                background: active ? '#2A2A2A' : 'transparent',
+                transition: 'background 0.15s, color 0.15s',
+              }}
             >
-              <span style={{ fontSize: 16 }}>{item.icon}</span>
+              <span style={{ fontSize: 16, lineHeight: 1 }}>{item.icon}</span>
               <span>{item.label}</span>
             </Link>
           )
