@@ -4,7 +4,7 @@ import Sidebar from '@/components/Sidebar'
 
 const robotoMono = Roboto_Mono({
   subsets: ['latin'],
-  weight: ['400', '700', '900'],
+  weight: ['400', '700'],
   variable: '--font-mono',
 });
 
