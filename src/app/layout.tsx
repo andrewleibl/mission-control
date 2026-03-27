@@ -1,25 +1,26 @@
-import type { Metadata } from 'next'
-import './globals.css'
-import Sidebar from '@/components/Sidebar'
+import type { Metadata } from "next";
+import Navigation from './components/Navigation'
 
 export const metadata: Metadata = {
-  title: 'Mission Control | Straight Point Marketing',
-  description: 'Poseidon Command Center',
-}
+  title: "Mission Control",
+  description: "Straight Point Marketing Dashboard",
+};
 
 export default function RootLayout({
   children,
-}: {
-  children: React.ReactNode
-}) {
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html lang="en">
-      <body style={{ display: 'flex', minHeight: '100vh', background: '#0A0A0A' }}>
-        <Sidebar />
-        <main style={{ flex: 1, marginLeft: '240px', padding: '28px', minHeight: '100vh', overflowY: 'auto' }}>
-          {children}
-        </main>
+      <body style={{ margin: 0, padding: 0, background: '#0D0D0D' }}>
+        <div style={{ display: 'flex' }}>
+          <Navigation />
+          <main style={{ marginLeft: 200, flex: 1 }}>
+            {children}
+          </main>
+        </div>
       </body>
     </html>
-  )
+  );
 }

@@ -132,6 +132,17 @@
     "status": "done"
   },
   {
+    "id": "t13",
+    "title": "Clutch Newsletter Popup — Session-Only",
+    "description": "Fix popup to only show once per tab session using sessionStorage. Previously showed on every refresh/page navigation.",
+    "assignee": "poseidon",
+    "project": "Clutch Barber",
+    "priority": "medium",
+    "dueDate": "2026-03-26",
+    "createdAt": "2026-03-26T21:26:00Z",
+    "status": "done"
+  },
+  {
     "id": "n1-task",
     "title": "Vicelia — Weekly Retention Touchpoint",
     "description": "Spend 30 min/week sending Vicelia quick updates on website changes or performance indicators. Goal: keep her happy, easiest retention play.",

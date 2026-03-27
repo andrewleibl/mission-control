@@ -6,6 +6,8 @@ const navItems = [
   { href: '/tasks', label: 'Task Board', icon: '⬛' },
   { href: '/calendar', label: 'Calendar', icon: '📅' },
   { href: '/notes', label: 'Notes & Ideas', icon: '📝' },
+  { href: '/sales', label: 'Sales Pipeline', icon: '💰' },
+  { href: '/callers', label: 'Caller Performance', icon: '📞' },
   { href: '/docs', label: 'Docs', icon: '📄' },
   { href: '/clients', label: 'Clients', icon: '👥' },
   { href: '/dashboard/meta-ads', label: 'Meta Ads', icon: '🎯' },
