@@ -109,7 +109,7 @@ function LoomRecordingContent() {
   const leadsMax = Math.max(...data.leadsThisWeek)
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0D0D0D', color: '#F7FAFC', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #0D0D0D 0%, rgba(229, 62, 62, 0.03) 100%)', color: '#F7FAFC', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       {/* Header */}
       <div style={{ 
         background: '#141414', 
@@ -164,9 +164,22 @@ function LoomRecordingContent() {
         </button>
       </div>
 
-      <div style={{ padding: '32px', maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ padding: '32px', maxWidth: '1200px', margin: '0 auto', position: 'relative' }}>
+        {/* Subtle red glow background */}
+        <div style={{
+          position: 'absolute',
+          top: '100px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '80%',
+          height: '400px',
+          background: 'radial-gradient(ellipse at center, rgba(229, 62, 62, 0.08) 0%, transparent 70%)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }} />
+        
         {/* Charts Section */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px', marginBottom: '32px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px', marginBottom: '32px', position: 'relative', zIndex: 1 }}>
           {/* Campaign Spend Chart */}
           <div style={{ 
             background: '#141414', 
@@ -350,7 +363,7 @@ function LoomRecordingContent() {
         </div>
 
         {/* Big 3 Questions */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', position: 'relative', zIndex: 1 }}>
           {bigThreeQuestions.map((question) => (
             <div 
               key={question.id}
