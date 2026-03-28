@@ -1,0 +1,110 @@
+<section class="clutch-home-hero">
+  <div class="clutch-home-hero__media">
+    {% if section.settings.image != blank %}
+      <img src="{{ section.settings.image | image_url: width: 1920 }}" alt="{{ section.settings.image.alt | escape }}" class="clutch-home-hero__image" loading="eager">
+    {% else %}
+      <img src="https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=1920&q=80" alt="Premium barber tools" class="clutch-home-hero__image" loading="eager">
+    {% endif %}
+    <div class="clutch-home-hero__overlay"></div>
+  </div>
+  
+  <div class="clutch-home-hero__content">
+    <div class="clutch-home-hero__social-proof">
+      <span class="clutch-home-hero__stars">
+        {% for i in (1..5) %}
+          <svg viewBox="0 0 24 24"><path d="m12 2.6 2.9 5.88 6.49.95-4.69 4.57 1.11 6.46L12 17.42 6.19 20.46l1.11-6.46L2.61 9.43l6.49-.95Z"></path></svg>
+        {% endfor %}
+      </span>
+      <span class="clutch-home-hero__social-text">{{ section.settings.social_proof_text }}</span>
+    </div>
+    
+    <h1>{{ section.settings.heading }}</h1>
+    <p class="clutch-home-hero__subheading">{{ section.settings.subheading }}</p>
+    
+    <div class="clutch-home-hero__actions">
+      <a href="{{ section.settings.primary_button_link }}" class="clutch-button clutch-button--primary">{{ section.settings.primary_button_text }}</a>
+      <a href="{{ section.settings.secondary_button_link }}" class="clutch-button clutch-button--ghost">{{ section.settings.secondary_button_text }}</a>
+    </div>
+    
+    <div class="clutch-home-hero__trust">
+      <div class="clutch-home-hero__trust-item">
+        <span class="clutch-home-hero__trust-icon">
+          <svg viewBox="0 0 24 24"><path d="M3 7h11v8H3z"></path><path d="M14 10h3l4 3v2h-7z"></path><path d="M7 18a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm10 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z"></path></svg>
+        </span>
+        <span>Fast Shipping Across the U.S.</span>
+      </div>
+      <div class="clutch-home-hero__trust-item">
+        <span class="clutch-home-hero__trust-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.4 2.9 7.5 7 8 4.1-.5 7-3.6 7-8V6l-7-3Z"></path><path d="m9.5 12 1.8 1.8L15 10.5"></path></svg>
+        </span>
+        <span>Top Brands In Stock & Ready</span>
+      </div>
+      <div class="clutch-home-hero__trust-item">
+        <span class="clutch-home-hero__trust-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 21s-6-4.35-6-10a6 6 0 1 1 12 0c0 5.65-6 10-6 10Z"></path><path d="M12 13.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"></path></svg>
+        </span>
+        <span>Local Pickup Available in Dallas</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Hero",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Background Image"
+    },
+    {
+      "type": "text",
+      "id": "social_proof_text",
+      "default": "4.8 Stars, Trusted By Hundreds Of Barbers Worldwide",
+      "label": "Social Proof Text"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "default": "Premium Barber Supplies, When And Where You Need Them",
+      "label": "Heading"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "default": "Clippers, trimmers, and essentials. Everything you need to stay sharp — available online or in-store.",
+      "label": "Subheading"
+    },
+    {
+      "type": "text",
+      "id": "primary_button_text",
+      "default": "Shop All",
+      "label": "Primary Button Text"
+    },
+    {
+      "type": "url",
+      "id": "primary_button_link",
+      "default": "/collections/all",
+      "label": "Primary Button Link"
+    },
+    {
+      "type": "text",
+      "id": "secondary_button_text",
+      "default": "What Customers Say",
+      "label": "Secondary Button Text"
+    },
+    {
+      "type": "url",
+      "id": "secondary_button_link",
+      "default": "#reviews",
+      "label": "Secondary Button Link"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero"
+    }
+  ]
+}
+{% endschema %}

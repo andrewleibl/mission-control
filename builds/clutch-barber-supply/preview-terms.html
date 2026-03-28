@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terms & Conditions — Clutch Barber Supply</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --clutch-bg: #05070c; --clutch-bg-light: #091018; --clutch-bg-lighter: #0d1822;
+      --clutch-text: #f5efe3; --clutch-text-muted: #d1c7b3; --clutch-text-dim: #9ca3af;
+      --clutch-border: #253242; --clutch-accent: #c9894b;
+    }
+    body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--clutch-bg); color: var(--clutch-text); line-height: 1.6; }
+    a { color: var(--clutch-accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Header */
+    .clutch-header { background: var(--clutch-bg-light); border-bottom: 1px solid var(--clutch-border); position: sticky; top: 0; z-index: 100; }
+    .clutch-header__inner { max-width: 1400px; margin: 0 auto; padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+    .clutch-header__logo { flex-shrink: 0; }
+    .clutch-header__logo img { height: 80px; width: auto; }
+    .clutch-header__nav { display: flex; gap: 1.5rem; }
+    .clutch-header__nav a { font-size: 0.875rem; font-weight: 500; color: var(--clutch-text-muted); transition: color 0.2s; }
+    .clutch-header__nav a:hover, .clutch-header__nav a.active { color: var(--clutch-accent); }
+    .clutch-header__cart { position: relative; width: 2.5rem; height: 2.5rem; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid var(--clutch-border); border-radius: 8px; }
+
+    /* Page Header */
+    .page-header { padding: 4rem 1.5rem; text-align: center; background: linear-gradient(180deg, var(--clutch-bg-light) 0%, var(--clutch-bg) 100%); }
+    .page-header h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 700; letter-spacing: -0.03em; margin-bottom: 0.5rem; }
+    .page-header p { color: var(--clutch-text-muted); }
+
+    /* Terms Content */
+    .terms-section { padding: 3rem 0 5rem; }
+    .terms-container { max-width: 900px; margin: 0 auto; padding: 0 1.5rem; }
+    
+    .terms-content h2 { font-size: 1.25rem; font-weight: 700; margin: 2.5rem 0 1rem; color: var(--clutch-accent); text-transform: uppercase; letter-spacing: 0.05em; }
+    .terms-content h2:first-child { margin-top: 0; }
+    .terms-content p { color: var(--clutch-text-muted); margin-bottom: 1rem; }
+    .terms-content ul { margin: 1rem 0; padding-left: 1.5rem; color: var(--clutch-text-muted); }
+    .terms-content li { margin-bottom: 0.5rem; }
+
+    /* Footer - Full Homepage Version */
+    .clutch-home-footer {
+      background: var(--clutch-bg);
+      border-top: 1px solid var(--clutch-border);
+      padding: 3rem 0 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .clutch-home-footer::before {
+      content: '';
+      position: absolute;
+      top: -100%;
+      left: -10%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(201, 137, 75, 0.2) 0%, transparent 50%);
+      pointer-events: none;
+      filter: blur(80px);
+    }
+
+    .clutch-home-footer::after {
+      content: '';
+      position: absolute;
+      top: -80%;
+      right: -10%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(201, 137, 75, 0.12) 0%, transparent 45%);
+      pointer-events: none;
+      filter: blur(60px);
+    }
+
+    .clutch-home-section__inner {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .clutch-home-footer__grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem;
+      margin-bottom: 2.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .clutch-home-footer__grid {
+        grid-template-columns: 2fr 2fr 1fr 1fr;
+        gap: 3rem;
+      }
+    }
+
+    .clutch-home-footer__sublinks {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+
+    .clutch-home-footer__heading {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .clutch-home-footer__links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.625rem;
+    }
+
+    .clutch-home-footer__links a {
+      font-size: 0.875rem;
+      color: var(--clutch-text-dim);
+      transition: color 0.2s;
+    }
+
+    .clutch-home-footer__links a:hover {
+      color: var(--clutch-accent);
+    }
+
+    .clutch-home-footer__contact-info {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--clutch-border);
+    }
+
+    .clutch-home-footer__contact-info p {
+      font-size: 0.8125rem;
+      color: var(--clutch-text-muted);
+      margin-bottom: 0.375rem;
+      line-height: 1.5;
+    }
+
+    .clutch-home-footer__bottom {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+      padding-top: 2rem;
+      border-top: 1px solid #1a2332;
+    }
+
+    @media (min-width: 640px) {
+      .clutch-home-footer__bottom {
+        flex-direction: row;
+        justify-content: space-between;
+      }
+    }
+
+    .clutch-home-footer__social {
+      display: flex;
+      gap: 0.875rem;
+    }
+
+    .clutch-home-footer__social a {
+      width: 2.25rem;
+      height: 2.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--clutch-border);
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .clutch-home-footer__social a:hover {
+      border-color: var(--clutch-accent);
+      background: rgba(201, 137, 75, 0.1);
+    }
+
+    .clutch-home-footer__social svg {
+      width: 1rem;
+      height: 1rem;
+      stroke: var(--clutch-text-dim);
+      stroke-width: 1.5;
+      fill: none;
+      transition: stroke 0.2s;
+    }
+
+    .clutch-home-footer__social a:hover svg {
+      stroke: var(--clutch-accent);
+    }
+
+    .clutch-home-footer__copyright {
+      font-size: 0.8125rem;
+      color: #6b7a8a;
+      text-align: center;
+    }
+
+    .clutch-home-footer__payment {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .clutch-home-footer__payment-row {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .clutch-home-footer__payment-icon {
+      font-size: 0.625rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: #6b7a8a;
+      padding: 0.25rem 0.5rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--clutch-border);
+      border-radius: 4px;
+    }
+  
+    /* Mobile menu button */
+    .clutch-header__menu { display: none; width: 2.5rem; height: 2.5rem; background: rgba(255,255,255,0.05); border: 1px solid var(--clutch-border); border-radius: 8px; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; }
+    .clutch-header__menu span { display: block; width: 18px; height: 2px; background: var(--clutch-text); border-radius: 2px; }
+    /* Mobile Navigation Drawer */
+    .clutch-mobile-nav { position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--clutch-bg-light); border-right: 1px solid var(--clutch-border); z-index: 200; transform: translateX(-100%); transition: transform 0.3s ease; display: flex; flex-direction: column; }
+    .clutch-mobile-nav.active { transform: translateX(0); }
+    .clutch-mobile-nav__header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; border-bottom: 1px solid var(--clutch-border); }
+    .clutch-mobile-nav__title { font-size: 1rem; font-weight: 600; color: var(--clutch-text); }
+    .clutch-mobile-nav__close { width: 2.5rem; height: 2.5rem; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid var(--clutch-border); border-radius: 8px; color: var(--clutch-text); cursor: pointer; }
+    .clutch-mobile-nav__links { flex: 1; padding: 1rem 0; display: flex; flex-direction: column; }
+    .clutch-mobile-nav__links a { padding: 1rem 1.25rem; font-size: 1rem; font-weight: 500; color: var(--clutch-text); border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s; }
+    .clutch-mobile-nav__links a:hover { background: rgba(201,137,75,0.1); color: var(--clutch-accent); }
+    .clutch-mobile-nav__footer { padding: 1rem 1.25rem; border-top: 1px solid var(--clutch-border); }
+    .clutch-mobile-nav__cart { display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1rem; background: rgba(201,137,75,0.1); border: 1px solid var(--clutch-accent); border-radius: 8px; color: var(--clutch-accent); font-weight: 600; }
+    .clutch-mobile-nav__overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 150; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
+    .clutch-mobile-nav__overlay.active { opacity: 1; visibility: visible; }
+    @media (max-width: 900px) { .clutch-header__menu { display: flex; } .clutch-header__nav { display: none; } }
+</style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="clutch-header">
+    <div class="clutch-header__inner">
+      <button class="clutch-header__menu" aria-label="Open menu"><span></span><span></span><span></span></button><a href="preview-homepage-complete.html" class="clutch-header__logo"><img src="assets/clutch-logo.png" alt="Clutch Barber Supply" width="200" height="80"></a>
+      <div style="display: flex; align-items: center; gap: 1.5rem;">
+        <nav class="clutch-header__nav">
+          <a href="preview-collections.html">Shop</a>
+          <a href="preview-brands.html">Brands</a>
+          <a href="preview-supplies.html">Supplies</a>
+          <a href="preview-classes.html">Classes</a>
+          <a href="preview-contact.html">Contact</a>
+          <a href="preview-faq.html">FAQ</a>
+        </nav>
+        <a href="preview-cart.html" class="clutch-header__cart">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h2l2.1 9.2a1 1 0 0 0 1 .8H18a1 1 0 0 0 1-.8L21 8H7"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+<!-- MOBILE NAVIGATION DRAWER -->
+<div class="clutch-mobile-nav" id="mobileNav">
+  <div class="clutch-mobile-nav__header">
+    <span class="clutch-mobile-nav__title">Menu</span>
+    <button class="clutch-mobile-nav__close" id="closeMobileNav" aria-label="Close menu">
+      <svg viewBox="0 0 24 24" width="24" height="24"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+    </button>
+  </div>
+  <nav class="clutch-mobile-nav__links">
+    <a href="preview-collections.html">Shop</a>
+    <a href="preview-brands.html">Brands</a>
+    <a href="preview-supplies.html">Supplies</a>
+    <a href="preview-classes.html">Classes</a>
+    <a href="preview-contact.html">Contact</a>
+    <a href="preview-faq.html">FAQ</a>
+    <a href="preview-reviews.html">Reviews</a>
+  </nav>
+  <div class="clutch-mobile-nav__footer">
+    <a href="preview-cart.html" class="clutch-mobile-nav__cart">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 5h2l2.1 9.2a1 1 0 0 0 1 .8H18a1 1 0 0 0 1-.8L21 8H7"></path><circle cx="9" cy="19" r="1.5"></circle><circle cx="17" cy="19" r="1.5"></circle></svg>
+      Cart
+    </a>
+  </div>
+</div>
+<div class="clutch-mobile-nav__overlay" id="mobileNavOverlay"></div>
+
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1>Terms & Conditions</h1>
+    <p>Please read these terms carefully before using our services.</p>
+  </div>
+
+  <!-- Terms Content -->
+  <section class="terms-section">
+    <div class="terms-container">
+      <div class="terms-content">
+        <h2>Overview</h2>
+        <p>This website is operated by Clutch Barber Supply. Throughout the site, the terms "we", "us" and "our" refer to Clutch Barber Supply. Clutch Barber Supply offers this website, including all information, tools and services available from this site to you, the user, conditioned upon your acceptance of all terms, conditions, policies and notices stated here.</p>
+        <p>By visiting our site and/or purchasing something from us, you engage in our "Service" and agree to be bound by the following terms and conditions ("Terms of Service", "Terms"), including those additional terms and conditions and policies referenced herein and/or available by hyperlink. These Terms of Service apply to all users of the site, including without limitation users who are browsers, vendors, customers, merchants, and/or contributors of content.</p>
+        <p>Please read these Terms of Service carefully before accessing or using our website. By accessing or using any part of the site, you agree to be bound by these Terms of Service. If you do not agree to all the terms and conditions of this agreement, then you may not access the website or use any services. If these Terms of Service are considered an offer, acceptance is expressly limited to these Terms of Service.</p>
+        <p>Any new features or tools which are added to the current store shall also be subject to the Terms of Service. You can review the most current version of the Terms of Service at any time on this page. We reserve the right to update, change or replace any part of these Terms of Service by posting updates and/or changes to our website. It is your responsibility to check this page periodically for changes. Your continued use of or access to the website following the posting of any changes constitutes acceptance of those changes.</p>
+        <p>Our store is hosted on Shopify Inc. They provide us with the online e-commerce platform that allows us to sell our products and services to you.</p>
+
+        <h2>Section 1 - Online Store Terms</h2>
+        <p>By agreeing to these Terms of Service, you represent that you are at least the age of majority in your state or province of residence, or that you are the age of majority in your state or province of residence and you have given us your consent to allow any of your minor dependents to use this site.</p>
+        <p>You may not use our products for any illegal or unauthorized purpose nor may you, in the use of the Service, violate any laws in your jurisdiction (including but not limited to copyright laws).</p>
+        <p>You must not transmit any worms or viruses or any code of a destructive nature.</p>
+        <p>A breach or violation of any of the Terms will result in an immediate termination of your Services.</p>
+
+        <h2>Section 2 - General Conditions</h2>
+        <p>We reserve the right to refuse service to anyone for any reason at any time.</p>
+        <p>You understand that your content (not including credit card information), may be transferred unencrypted and involve (a) transmissions over various networks; and (b) changes to conform and adapt to technical requirements of connecting networks or devices. Credit card information is always encrypted during transfer over networks.</p>
+        <p>You agree not to reproduce, duplicate, copy, sell, resell or exploit any portion of the Service, use of the Service, or access to the Service or any contact on the website through which the service is provided, without express written permission by us.</p>
+        <p>The headings used in this agreement are included for convenience only and will not limit or otherwise affect these Terms.</p>
+
+        <h2>Section 3 - Accuracy, Completeness and Timeliness of Information</h2>
+        <p>We are not responsible if information made available on this site is not accurate, complete or current. The material on this site is provided for general information only and should not be relied upon or used as the sole basis for making decisions without consulting primary, more accurate, more complete or more timely sources of information. Any reliance on the material on this site is at your own risk.</p>
+        <p>This site may contain certain historical information. Historical information, necessarily, is not current and is provided for your reference only. We reserve the right to modify the contents of this site at any time, but we have no obligation to update any information on our site. You agree that it is your responsibility to monitor changes to our site.</p>
+
+        <h2>Section 4 - Modifications to the Service and Prices</h2>
+        <p>Prices for our products are subject to change without notice.</p>
+        <p>We reserve the right at any time to modify or discontinue the Service (or any part or content thereof) without notice at any time.</p>
+        <p>We shall not be liable to you or to any third-party for any modification, price change, suspension or discontinuance of the Service.</p>
+
+        <h2>Section 5 - Products or Services</h2>
+        <p>Certain products or services may be available exclusively online through the website. These products or services may have limited quantities and are subject to return or exchange only according to our Return Policy.</p>
+        <p>We have made every effort to display as accurately as possible the colors and images of our products that appear at the store. We cannot guarantee that your computer monitor's display of any color will be accurate.</p>
+        <p>We reserve the right, but are not obligated, to limit the sales of our products or Services to any person, geographic region or jurisdiction. We may exercise this right on a case-by-case basis. We reserve the right to limit the quantities of any products or services that we offer. All descriptions of products or product pricing are subject to change at anytime without notice, at the sole discretion of us. We reserve the right to discontinue any product at any time. Any offer for any product or service made on this site is void where prohibited.</p>
+        <p>We do not warrant that the quality of any products, services, information, or other material purchased or obtained by you will meet your expectations, or that any errors in the Service will be corrected.</p>
+
+        <h2>Section 6 - Accuracy of Billing and Account Information</h2>
+        <p>We reserve the right to refuse any order you place with us. We may, in our sole discretion, limit or cancel quantities purchased per person, per household or per order. These restrictions may include orders placed by or under the same customer account, the same credit card, and/or orders that use the same billing and/or shipping address. In the event that we make a change to or cancel an order, we may attempt to notify you by contacting the e‑mail and/or billing address/phone number provided at the time the order was made. We reserve the right to limit or prohibit orders that, in our sole judgment, appear to be placed by dealers, resellers or distributors.</p>
+        <p>You agree to provide current, complete and accurate purchase and account information for all purchases made at our store. You agree to promptly update your account and other information, including your email address and credit card numbers and expiration dates, so that we can complete your transactions and contact you as needed.</p>
+        <p>For more detail, please review our <a href="preview-returns.html">Returns Policy</a>.</p>
+
+        <h2>Section 7 - Optional Tools</h2>
+        <p>We may provide you with access to third-party tools over which we neither monitor nor have any control nor input.</p>
+        <p>You acknowledge and agree that we provide access to such tools "as is" and "as available" without any warranties, representations or conditions of any kind and without any endorsement. We shall have no liability whatsoever arising from or relating to your use of optional third-party tools.</p>
+        <p>Any use by you of optional tools offered through the site is entirely at your own risk and discretion and you should ensure that you are familiar with and approve of the terms on which tools are provided by the relevant third-party provider(s).</p>
+        <p>We may also, in the future, offer new services and/or features through the website (including, the release of new tools and resources). Such new features and/or services shall also be subject to these Terms of Service.</p>
+
+        <h2>Section 8 - Third-Party Links</h2>
+        <p>Certain content, products and services available via our Service may include materials from third-parties.</p>
+        <p>Third-party links on this site may direct you to third-party websites that are not affiliated with us. We are not responsible for examining or evaluating the content or accuracy and we do not warrant and will not have any liability or responsibility for any third-party materials or websites, or for any other materials, products, or services of third-parties.</p>
+        <p>We are not liable for any harm or damages related to the purchase or use of goods, services, resources, content, or any other transactions made in connection with any third-party websites. Please review carefully the third-party's policies and practices and make sure you understand them before you engage in any transaction. Complaints, claims, concerns, or questions regarding third-party products should be directed to the third-party.</p>
+
+        <h2>Section 9 - User Comments, Feedback and Other Submissions</h2>
+        <p>If, at our request, you send certain specific submissions (for example contest entries) or without a request from us you send creative ideas, suggestions, proposals, plans, or other materials, whether online, by email, by postal mail, or otherwise (collectively, 'comments'), you agree that we may, at any time, without restriction, edit, copy, publish, distribute, translate and otherwise use in any medium any comments that you forward to us. We are and shall be under no obligation (1) to maintain any comments in confidence; (2) to pay compensation for any comments; or (3) to respond to any comments.</p>
+        <p>We may, but have no obligation to, monitor, edit or remove content that we determine in our sole discretion are unlawful, offensive, threatening, libelous, defamatory, pornographic, obscene or otherwise objectionable or violates any party's intellectual property or these Terms of Service.</p>
+        <p>You agree that your comments will not violate any right of any third-party, including copyright, trademark, privacy, personality or other personal or proprietary right. You further agree that your comments will not contain libelous or otherwise unlawful, abusive or obscene material, or contain any computer virus or other malware that could in any way affect the operation of the Service or any related website. You may not use a false e‑mail address, pretend to be someone other than yourself, or otherwise mislead us or third-parties as to the origin of any comments. You are solely responsible for any comments you make and their accuracy. We take no responsibility and assume no liability for any comments posted by you or any third-party.</p>
+
+        <h2>Section 10 - Personal Information</h2>
+        <p>Your submission of personal information through the store is governed by our Privacy Policy. To view our Privacy Policy, <a href="preview-privacy.html">click here</a>.</p>
+
+        <h2>Section 11 - Errors, Inaccuracies and Omissions</h2>
+        <p>Occasionally there may be information on our site or in the Service that contains typographical errors, inaccuracies or omissions that may relate to product descriptions, pricing, promotions, offers, product shipping charges, transit times and availability. We reserve the right to correct any errors, inaccuracies or omissions, and to change or update information or cancel orders if any information in the Service or on any related website is inaccurate at any time without prior notice (including after you have submitted your order).</p>
+        <p>We undertake no obligation to update, amend or clarify information in the Service or on any related website, including without limitation, pricing information, except as required by law. No specified update or refresh date applied in the Service or on any related website, should be taken to indicate that all information in the Service or on any related website has been modified or updated.</p>
+
+        <h2>Section 12 - Prohibited Uses</h2>
+        <p>In addition to other prohibitions as set forth in the Terms of Service, you are prohibited from using the site or its content: (a) for any unlawful purpose; (b) to solicit others to perform or participate in any unlawful acts; (c) to violate any international, federal, provincial or state regulations, rules, laws, or local ordinances; (d) to infringe upon or violate our intellectual property rights or the intellectual property rights of others; (e) to harass, abuse, insult, harm, defame, slander, disparage, intimidate, or discriminate based on gender, sexual orientation, religion, ethnicity, race, age, national origin, or disability; (f) to submit false or misleading information; (g) to upload or transmit viruses or any other type of malicious code that will or may be used in any way that will affect the functionality or operation of the Service or of any related website, other websites, or the Internet; (h) to collect or track the personal information of others; (i) to spam, phish, pharm, pretext, spider, crawl, or scrape; (j) for any obscene or immoral purpose; or (k) to interfere with or circumvent the security features of the Service or any related website, other websites, or the Internet. We reserve the right to terminate your use of the Service or any related website for violating any of the prohibited uses.</p>
+
+        <h2>Section 13 - Disclaimer of Warranties; Limitation of Liability</h2>
+        <p>We do not guarantee, represent or warrant that your use of our service will be uninterrupted, timely, secure or error-free.</p>
+        <p>We do not warrant that the results that may be obtained from the use of the service will be accurate or reliable.</p>
+        <p>You agree that from time to time we may remove the service for indefinite periods of time or cancel the service at any time, without notice to you.</p>
+        <p>You expressly agree that your use of, or inability to use, the service is at your sole risk. The service and all products and services delivered to you through the service are (except as expressly stated by us) provided 'as is' and 'as available' for your use, without any representation, warranties or conditions of any kind, either express or implied, including all implied warranties or conditions of merchantability, merchantable quality, fitness for a particular purpose, durability, title, and non-infringement.</p>
+        <p>In no case shall Clutch Barber Supply, our directors, officers, employees, affiliates, agents, contractors, interns, suppliers, service providers or licensors be liable for any injury, loss, claim, or any direct, indirect, incidental, punitive, special, or consequential damages of any kind, including, without limitation lost profits, lost revenue, lost savings, loss of data, replacement costs, or any similar damages, whether based in contract, tort (including negligence), strict liability or otherwise, arising from your use of any of the service or any products procured using the service, or for any other claim related in any way to your use of the service or any product, including, but not limited to, any errors or omissions in any content, or any loss or damage of any kind incurred as a result of the use of the service or any content (or product) posted, transmitted, or otherwise made available via the service, even if advised of their possibility. Because some states or jurisdictions do not allow the exclusion or the limitation of liability for consequential or incidental damages, in such states or jurisdictions, our liability shall be limited to the maximum extent permitted by law.</p>
+
+        <h2>Section 14 - Indemnification</h2>
+        <p>You agree to indemnify, defend and hold harmless Clutch Barber Supply and our parent, subsidiaries, affiliates, partners, officers, directors, agents, contractors, licensors, service providers, subcontractors, suppliers, interns and employees, harmless from any claim or demand, including reasonable attorneys' fees, made by any third-party due to or arising out of your breach of these Terms of Service or the documents they incorporate by reference, or your violation of any law or the rights of a third-party.</p>
+
+        <h2>Section 15 - Severability</h2>
+        <p>In the event that any provision of these Terms of Service is determined to be unlawful, void or unenforceable, such provision shall nonetheless be enforceable to the fullest extent permitted by applicable law, and the unenforceable portion shall be deemed to be severed from these Terms of Service, such determination shall not affect the validity and enforceability of any other remaining provisions.</p>
+
+        <h2>Section 16 - Termination</h2>
+        <p>The obligations and liabilities of the parties incurred prior to the termination date shall survive the termination of this agreement for all purposes.</p>
+        <p>These Terms of Service are effective unless and until terminated by either you or us. You may terminate these Terms of Service at any time by notifying us that you no longer wish to use our Services, or when you cease using our site.</p>
+        <p>If in our sole judgment you fail, or we suspect that you have failed, to comply with any term or provision of these Terms of Service, we also may terminate this agreement at any time without notice and you will remain liable for all amounts due up to and including the date of termination; and/or accordingly may deny you access to our Services (or any part thereof).</p>
+
+        <h2>Section 17 - Entire Agreement</h2>
+        <p>The failure of us to exercise or enforce any right or provision of these Terms of Service shall not constitute a waiver of such right or provision.</p>
+        <p>These Terms of Service and any policies or operating rules posted by us on this site or in respect to The Service constitutes the entire agreement and understanding between you and us and govern your use of the Service, superseding any prior or contemporaneous agreements, communications and proposals, whether oral or written, between you and us (including, but not limited to, any prior versions of the Terms of Service).</p>
+        <p>Any ambiguities in the interpretation of these Terms of Service shall not be construed against the drafting party.</p>
+
+        <h2>Section 18 - Governing Law</h2>
+        <p>These Terms of Service and any separate agreements whereby we provide you Services shall be governed by and construed in accordance with the laws of United States.</p>
+
+        <h2>Section 19 - Changes to Terms of Service</h2>
+        <p>You can review the most current version of the Terms of Service at any time at this page.</p>
+        <p>We reserve the right, at our sole discretion, to update, change or replace any part of these Terms of Service by posting updates and changes to our website. It is your responsibility to check our website periodically for changes. Your continued use of or access to our website or the Service following the posting of any changes to these Terms of Service constitutes acceptance of those changes.</p>
+
+        <h2>Section 20 - Contact Information</h2>
+        <p>Questions about the Terms of Service should be sent to us at <a href="mailto:viceliatinde20@gmail.com">viceliatinde20@gmail.com</a>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="clutch-home-footer">
+    <div class="clutch-home-section__inner">
+      <div class="clutch-home-footer__grid">
+        <div class="clutch-home-footer__column clutch-home-footer__column--wide">
+          <h3 class="clutch-home-footer__heading">Shop by Brand</h3>
+          <div class="clutch-home-footer__sublinks">
+            <nav class="clutch-home-footer__links">
+              <a href="preview-collections.html?vendor=Andis">Andis</a>
+              <a href="preview-collections.html?vendor=Babyliss%20Pro">Babyliss Pro</a>
+              <a href="preview-collections.html?vendor=JRL">JRL</a>
+              <a href="preview-collections.html?vendor=Wahl">Wahl</a>
+              <a href="preview-collections.html?vendor=Gamma%20%7C%20Style%20Craft">Gamma | Style Craft</a>
+              <a href="preview-collections.html?vendor=Supreme%20Trimmers">Supreme Trimmers</a>
+              <a href="preview-collections.html?vendor=Level%203">Level 3</a>
+            </nav>
+            <nav class="clutch-home-footer__links">
+              <a href="preview-collections.html?vendor=Cocco%20Hair%20Pro">Cocco Hair Pro</a>
+              <a href="preview-collections.html?vendor=Oster">Oster</a>
+              <a href="preview-collections.html?vendor=Tomb45">Tomb45</a>
+              <a href="preview-collections.html?vendor=Vincent">Vincent</a>
+              <a href="preview-collections.html?vendor=OG%20Walker">OG Walker</a>
+              <a href="preview-collections.html?vendor=Smash">Smash</a>
+              <a href="preview-collections.html?vendor=Rolda">Rolda</a>
+            </nav>
+          </div>
+        </div>
+        
+        <div class="clutch-home-footer__column clutch-home-footer__column--wide">
+          <h3 class="clutch-home-footer__heading">Shop by Supplies</h3>
+          <div class="clutch-home-footer__sublinks">
+            <nav class="clutch-home-footer__links">
+              <a href="preview-collections.html?category=clippers">Clippers</a>
+              <a href="preview-collections.html?category=trimmers">Trimmers</a>
+              <a href="preview-collections.html?category=shavers">Shavers</a>
+              <a href="preview-collections.html?category=barber-bags-cases">Barber Bags | Cases</a>
+              <a href="preview-collections.html?category=lights">Lights</a>
+            </nav>
+            <nav class="clutch-home-footer__links">
+              <a href="preview-collections.html?category=accessories">Accessories</a>
+              <a href="preview-collections.html?category=capes">Capes</a>
+              <a href="preview-collections.html?category=barber-chairs">Barber Chairs</a>
+              <a href="preview-collections.html?category=barber-clothing">Barber Clothing</a>
+              <a href="preview-collections.html?category=barber-poles">Barber Poles</a>
+            </nav>
+          </div>
+        </div>
+        
+        <div class="clutch-home-footer__column">
+          <h3 class="clutch-home-footer__heading">Support</h3>
+          <nav class="clutch-home-footer__links">
+            <a href="preview-classes.html">View All Classes</a>
+            <a href="preview-faq.html">FAQ</a>
+          <a href="preview-reviews.html">Reviews</a>
+            <a href="preview-shipping.html">Shipping</a>
+            <a href="preview-returns.html">Return Policy</a>
+            <a href="preview-terms.html">Terms & Conditions</a>
+            <a href="preview-privacy.html">Privacy Policy</a>
+          </nav>
+        </div>
+        
+        <div class="clutch-home-footer__column">
+          <h3 class="clutch-home-footer__heading">Contact</h3>
+          <nav class="clutch-home-footer__links">
+            <a href="preview-contact.html">Reach Out</a>
+          </nav>
+          <div class="clutch-home-footer__contact-info">
+            <p>+1 (214) 677-1059</p>
+            <p>viceliatinde20@gmail.com</p>
+            <p>113 South Center. Grand Prairie, TX 75050</p>
+            <p>Mon - Fri 9am - 6pm.</p>
+            <p>Sat. 9am-12pm CST</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="clutch-home-footer__bottom">
+        <div class="clutch-home-footer__social">
+          <a href="https://www.instagram.com/clutchbarbersupply?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+            <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="currentColor" fill="none"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+          </a>
+          <a href="https://www.facebook.com/clutchbarbersupply" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+            <svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+          </a>
+          <a href="https://share.google/OtN5piiXnWaImxX0e" target="_blank" rel="noopener noreferrer" aria-label="Google">
+            <svg viewBox="0 0 24 24"><text x="12" y="20" text-anchor="middle" font-family="DM Sans, sans-serif" font-size="22" font-weight="700" fill="currentColor">G</text></svg>
+          </a>
+        </div>
+        
+        <p class="clutch-home-footer__copyright">© 2026 Clutch Barber Supply. All rights reserved. Website Powered By Straight Point Marketing</p>
+        
+        <div class="clutch-home-footer__payment">
+          <div class="clutch-home-footer__payment-row">
+            <span class="clutch-home-footer__payment-icon">AMEX</span>
+            <span class="clutch-home-footer__payment-icon">Apple Pay</span>
+            <span class="clutch-home-footer__payment-icon">Diners</span>
+            <span class="clutch-home-footer__payment-icon">Discover</span>
+            <span class="clutch-home-footer__payment-icon">G Pay</span>
+          </div>
+          <div class="clutch-home-footer__payment-row">
+            <span class="clutch-home-footer__payment-icon">MC</span>
+            <span class="clutch-home-footer__payment-icon">PayPal</span>
+            <span class="clutch-home-footer__payment-icon">Shop Pay</span>
+            <span class="clutch-home-footer__payment-icon">UnionPay</span>
+            <span class="clutch-home-footer__payment-icon">VISA</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+<script>
+(function() {
+  const menuBtn = document.querySelector('.clutch-header__menu');
+  const mobileNav = document.getElementById('mobileNav');
+  const closeBtn = document.getElementById('closeMobileNav');
+  const overlay = document.getElementById('mobileNavOverlay');
+  if (!menuBtn || !mobileNav) return;
+
+  function openNav() {
+    mobileNav.classList.add('active');
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeNav() {
+    mobileNav.classList.remove('active');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  menuBtn.addEventListener('click', openNav);
+  closeBtn.addEventListener('click', closeNav);
+  overlay.addEventListener('click', closeNav);
+})();
+</script>
+
+</body>
+</html>

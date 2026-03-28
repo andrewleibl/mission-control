@@ -1,0 +1,17 @@
+{
+  "client": "Hector Huizar",
+  "business": "Valley of the Sun Landscape",
+  "businessManagerId": "3912495572386412",
+  "adAccountId": "1999744500951711",
+  "status": "active",
+  "accessToken": "EAAVKxhZB0TGQBRHLaAYzZBIZAkstaQlxB43iNoTBkQJmV9tFSsrU4AUlxu0CkbCkhSIEEEFZCNSNnhEzKnu2OyZCUiVCgZCex6S4pSOoYZBMsAnqyGjlelbs5EYV1MuPZBRoQWGD0ND8MAjIAT2zPZBxxJfV9GLZAMJvWsvffDq9xl8C3kxmXWd1sIrySHMGWBJwZDZD",
+  "permissions": [
+    "ads_read",
+    "ads_management"
+  ],
+  "webhookEvents": [
+    "ads_insights",
+    "campaign_budget",
+    "ad_review_feedback"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "client": "PJ Sparks",
+  "business": "We Do Hardscape",
+  "businessManagerId": "1279361533454281",
+  "adAccountId": "78776600",
+  "status": "active",
+  "accessToken": "EAAVIlOFSQp4BRC9nD17T0fYAeQzew1Co8yDlHIi81XNNa3UUkbnD7PBnuUC5bf2cjcIbbZCOyk6tR1sShtfXgCqxjMeyVAoA7GqqeAZB9Ow1ZBm7prr7h3aXiWINy5SPZC2WLwd43l6AryOkZAqgjxU9BF6ZAWSISSZA7yr9zxu5Piq6Fqy9WvsFygd8ZA7RWC2shiDS",
+  "permissions": [
+    "ads_read",
+    "ads_management"
+  ],
+  "webhookEvents": [
+    "ads_insights",
+    "campaign_budget",
+    "ad_review_feedback"
+  ]
+}

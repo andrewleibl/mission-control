@@ -1,0 +1,198 @@
+<section class="clutch-home-section clutch-home-reviews" id="reviews">
+  <div class="clutch-home-section__inner">
+    <header class="clutch-home-section__header">
+      <p class="clutch-home-section__eyebrow">{{ section.settings.eyebrow }}</p>
+      <h2 class="clutch-home-section__title">{{ section.settings.title }}</h2>
+      <p class="clutch-home-section__subtitle">{{ section.settings.subtitle }}</p>
+    </header>
+    
+    <div class="clutch-home-reviews__marquee">
+      <div class="clutch-home-reviews__track">
+        {% for block in section.blocks %}
+          <a href="{{ block.settings.review_link }}" target="_blank" rel="noopener noreferrer" class="clutch-home-reviews__card-link" {{ block.shopify_attributes }}>
+            <article class="clutch-home-reviews__card">
+              <div class="clutch-home-reviews__stars">{{ block.settings.stars }}</div>
+              <h3 class="clutch-home-reviews__name">{{ block.settings.author }}</h3>
+              <p class="clutch-home-reviews__quote">"{{ block.settings.quote }}"</p>
+            </article>
+          </a>
+        {% endfor %}
+        <!-- Duplicate for seamless loop -->
+        {% for block in section.blocks %}
+          <a href="{{ block.settings.review_link }}" target="_blank" rel="noopener noreferrer" class="clutch-home-reviews__card-link" {{ block.shopify_attributes }}>
+            <article class="clutch-home-reviews__card">
+              <div class="clutch-home-reviews__stars">{{ block.settings.stars }}</div>
+              <h3 class="clutch-home-reviews__name">{{ block.settings.author }}</h3>
+              <p class="clutch-home-reviews__quote">"{{ block.settings.quote }}"</p>
+            </article>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+    
+    <p class="clutch-home-section__hint">{{ section.settings.hint_text }}</p>
+  </div>
+</section>
+
+<style>
+.clutch-home-reviews {
+  background: linear-gradient(180deg, var(--clutch-bg) 0%, var(--clutch-bg-lighter) 50%, var(--clutch-bg) 100%);
+  position: relative;
+  overflow: hidden;
+}
+/* Marquee Reviews */
+.clutch-home-reviews__marquee {
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+.clutch-home-reviews__track {
+  display: flex;
+  gap: 1.25rem;
+  animation: marquee-scroll 40s linear infinite;
+  width: max-content;
+}
+.clutch-home-reviews__marquee:hover .clutch-home-reviews__track {
+  animation-play-state: paused;
+}
+@keyframes marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.clutch-home-reviews__card-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+  width: 350px;
+}
+@media (min-width: 640px) {
+  .clutch-home-reviews__card-link {
+    width: 400px;
+  }
+}
+.clutch-home-reviews__card-link:hover {
+  transform: translateY(-3px);
+}
+.clutch-home-reviews__card-link:hover .clutch-home-reviews__card {
+  border-color: rgba(201, 137, 75, 0.5);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.clutch-home-reviews__card {
+  padding: 1.75rem;
+  background: linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
+  border: 1px solid var(--clutch-border);
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  height: 100%;
+  position: relative;
+}
+.clutch-home-reviews__card::before {
+  content: '"';
+  position: absolute;
+  top: 1rem;
+  right: 1.25rem;
+  font-size: 3rem;
+  color: rgba(201, 137, 75, 0.15);
+  font-family: Georgia, serif;
+  line-height: 1;
+}
+.clutch-home-reviews__card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(201, 137, 75, 0.4);
+  box-shadow: 0 16px 32px rgba(0,0,0,0.3);
+}
+.clutch-home-reviews__stars {
+  color: var(--clutch-accent);
+  font-size: 0.9375rem;
+  letter-spacing: 0.15em;
+  margin-bottom: 1rem;
+}
+.clutch-home-reviews__name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--clutch-text);
+}
+.clutch-home-reviews__quote {
+  font-size: 0.9375rem;
+  color: var(--clutch-text-muted);
+  line-height: 1.7;
+  font-style: italic;
+}
+.clutch-home-section__hint {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.875rem;
+  color: var(--clutch-text-dim);
+}
+</style>
+
+{% schema %}
+{
+  "name": "Reviews",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "default": "Google reviews",
+      "label": "Eyebrow Text"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "default": "Perfection Every Time",
+      "label": "Title"
+    },
+    {
+      "type": "textarea",
+      "id": "subtitle",
+      "default": "Fast shipping from Texas + 30-day returns on any damaged product. No hassle, no runaround.",
+      "label": "Subtitle"
+    },
+    {
+      "type": "text",
+      "id": "hint_text",
+      "default": "👆 Click any review to read the full story on Google Reviews",
+      "label": "Hint Text"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "review",
+      "name": "Review",
+      "settings": [
+        {
+          "type": "text",
+          "id": "stars",
+          "default": "★★★★★",
+          "label": "Stars"
+        },
+        {
+          "type": "text",
+          "id": "author",
+          "label": "Author Name"
+        },
+        {
+          "type": "textarea",
+          "id": "quote",
+          "label": "Review Quote"
+        },
+        {
+          "type": "url",
+          "id": "review_link",
+          "label": "Google Review Link"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 6,
+  "presets": [
+    {
+      "name": "Reviews"
+    }
+  ]
+}
+{% endschema %}

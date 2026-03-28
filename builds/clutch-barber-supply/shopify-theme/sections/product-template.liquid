@@ -1,0 +1,147 @@
+<div class="breadcrumbs">
+  <a href="{{ routes.root_url }}">Home</a> / 
+  {% if product.collections.first %}<a href="{{ product.collections.first.url }}">{{ product.collections.first.title }}</a> / {% endif %}
+  {{ product.title }}
+</div>
+
+<div class="product-page">
+  <div class="product-gallery">
+    <div class="product-gallery__main">
+      {% if product.featured_image %}
+        <img src="{{ product.featured_image | image_url: width: 800 }}" alt="{{ product.featured_image.alt | escape }}" id="mainImage">
+      {% else %}
+        <span style="color: var(--clutch-text-dim);">Product Image</span>
+      {% endif %}
+    </div>
+    {% if product.images.size > 1 %}
+      <div class="product-gallery__thumbs">
+        {% for image in product.images %}
+          <div class="product-gallery__thumb {% if forloop.first %}active{% endif %}" onclick="changeImage('{{ image | image_url: width: 800 }}', this)">
+            <img src="{{ image | image_url: width: 150 }}" alt="{{ image.alt | escape }}" loading="lazy">
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="product-info">
+    <div class="product-info__brand">{{ product.vendor }}</div>
+    <h1 class="product-info__title">{{ product.title }}</h1>
+    
+    <div class="product-info__price">
+      <span class="product-info__price-current">{{ product.price | money }}</span>
+      {% if product.compare_at_price > product.price %}
+        <span class="product-info__price-compare">{{ product.compare_at_price | money }}</span>
+      {% endif %}
+    </div>
+    
+    <div class="product-info__description">
+      {{ product.description }}
+    </div>
+    
+    {% form 'product', product %}
+      {% if product.variants.size > 1 %}
+        <div class="product-options">
+          <label class="product-options__label">Select Option</label>
+          <div class="product-options__values">
+            {% for variant in product.variants %}
+              <button type="button" class="product-option {% if variant == product.selected_or_first_available_variant %}selected{% endif %} {% unless variant.available %}disabled{% endunless %}" 
+                      onclick="selectVariant('{{ variant.id }}', {{ variant.price }}, {{ variant.compare_at_price | default: 0 }}, {{ variant.available | json }})" 
+                      data-variant-id="{{ variant.id }}">
+                {{ variant.title }}
+              </button>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+      
+      <input type="hidden" name="id" id="variantId" value="{{ product.selected_or_first_available_variant.id }}">
+      
+      <div class="quantity-selector">
+        <span class="quantity-selector__label">Quantity</span>
+        <div class="quantity-selector__control">
+          <button type="button" onclick="updateQuantity(-1)">−</button>
+          <input type="number" name="quantity" value="1" min="1" id="quantityInput">
+          <button type="button" onclick="updateQuantity(1)">+</button>
+        </div>
+      </div>
+      
+      <button type="submit" class="add-to-cart" id="addToCartBtn" {% unless product.available %}disabled{% endunless %}>
+        {% if product.available %}Add to Cart - {{ product.price | money }}{% else %}Sold Out{% endif %}
+      </button>
+    {% endform %}
+    
+    <div class="product-meta">
+      <div class="product-meta__item">
+        <span class="product-meta__label">SKU:</span>
+        <span class="product-meta__value" id="sku">{{ product.selected_or_first_available_variant.sku }}</span>
+      </div>
+      <div class="product-meta__item">
+        <span class="product-meta__label">Availability:</span>
+        <span class="product-meta__value" id="availability">{% if product.available %}In Stock{% else %}Out of Stock{% endif %}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if product.metafields.custom.specifications %}
+  <div class="product-specs">
+    <h2>Specifications</h2>
+    {{ product.metafields.custom.specifications }}
+  </div>
+{% endif %}
+
+<script>
+function changeImage(src, thumb) {
+  document.getElementById('mainImage').src = src;
+  document.querySelectorAll('.product-gallery__thumb').forEach(t => t.classList.remove('active'));
+  thumb.classList.add('active');
+}
+
+function updateQuantity(change) {
+  const input = document.getElementById('quantityInput');
+  const newValue = parseInt(input.value) + change;
+  if (newValue >= 1) input.value = newValue;
+}
+
+function selectVariant(id, price, comparePrice, available) {
+  document.getElementById('variantId').value = id;
+  
+  // Update UI
+  document.querySelectorAll('.product-option').forEach(btn => btn.classList.remove('selected'));
+  document.querySelector(`[data-variant-id="${id}"]`).classList.add('selected');
+  
+  // Update price display
+  const priceDisplay = document.querySelector('.product-info__price-current');
+  const compareDisplay = document.querySelector('.product-info__price-compare');
+  
+  priceDisplay.textContent = formatMoney(price);
+  if (comparePrice > price) {
+    compareDisplay.textContent = formatMoney(comparePrice);
+    compareDisplay.style.display = '';
+  } else {
+    compareDisplay.style.display = 'none';
+  }
+  
+  // Update add to cart button
+  const btn = document.getElementById('addToCartBtn');
+  if (available) {
+    btn.disabled = false;
+    btn.textContent = `Add to Cart - ${formatMoney(price)}`;
+  } else {
+    btn.disabled = true;
+    btn.textContent = 'Sold Out';
+  }
+}
+
+function formatMoney(cents) {
+  return '$' + (cents / 100).toFixed(2);
+}
+</script>
+
+{% schema %}
+{
+  "name": "Product Template",
+  "settings": []
+}
+{% endschema %}
