@@ -139,7 +139,7 @@ function LoomRecordingContent() {
       leads: data.totalLeads,
       cpl: data.cplThisWeek,
       ctr: data.ctr,
-      answers,
+      sections: sectionData,
     }
     
     const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' })
