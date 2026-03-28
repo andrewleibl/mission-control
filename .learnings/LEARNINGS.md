@@ -122,3 +122,65 @@ Never assume `useState(initial)` will be visible if `useEffect` modifies state o
 - **Notes**: Added localStorage.clear() on mount to force fresh initial state
 
 ---
+
+---
+
+## [LRN-20250328-002] Weekly Breakdown Structure — Section 1 Format
+
+**Logged**: 2026-03-28T12:28:00Z
+**Priority**: high
+**Status**: active
+**Area**: content, reporting
+
+### Summary
+Weekly breakdown Section 1 "How Is The Campaign Going?" must include BOTH:
+1. **GOOD — What's Working** (green, ✓)
+2. **NEEDS IMPROVING** (yellow, ▲)
+
+### Format
+```
+## Section 1: How Is The Campaign Going?
+
+**Main Summary**: [1-2 sentence overview]
+
+**✓ GOOD — WHAT'S WORKING** (green section)
+- [Positive bullet 1]
+- [Positive bullet 2]
+- [Positive bullet 3]
+- [Positive bullet 4]
+
+**▲ NEEDS IMPROVING** (yellow section)
+- [Action item 1]
+- [Action item 2]
+- [Action item 3]
+- [Action item 4]
+```
+
+### Why This Structure Works
+- Shows balanced perspective (not just problems)
+- Celebrates wins first (psychological safety)
+- Clear action items after (what we're doing about it)
+- Green/yellow color coding matches tone
+- Arrow bullets (→) for consistency
+
+### Data Structure
+```typescript
+section1: {
+  mainText: string
+  goods: string[]        // What's working (green)
+  improvements: string[] // What needs work (yellow)
+}
+```
+
+### Suggested Action
+For every weekly breakdown going forward:
+1. Start with 4 GOOD items (positive trends, wins)
+2. Follow with 4 IMPROVEMENT items (actions, fixes, watch points)
+3. Use consistent labels and colors
+4. Match client tone — upbeat but honest
+
+### Metadata
+- Source: user_feedback
+- Related Files: /builds/mission-control/src/app/loom-recording/page.tsx
+- Tags: reporting, content-structure, client-retention
+- Pattern-Key: content.weekly-breakdown-format

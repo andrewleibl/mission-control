@@ -43,6 +43,8 @@ Skills are reusable workflows and patterns, refined through each session:
 
 ### Recent Skill Updates (Mar 28, 2026)
 
+**[LRN-20250328-002] Weekly Breakdown Format** — Section 1 "How Is The Campaign Going?" must always include BOTH: ✓ **Good — What's Working** (green) and ▲ **Needs Improving** (yellow). Balanced perspective with wins first, then action items.
+
 **[LRN-20250328-001] localStorage vs Initial State** — React `useState` initialization can be overwritten by `useEffect` hydration from localStorage. When adding hardcoded data to initial state, either clear old storage keys or merge carefully. See learnings log for full pattern.
 
 ### Recent Skill Updates (Mar 27, 2026)
