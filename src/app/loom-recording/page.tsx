@@ -2,14 +2,14 @@
 
 import React, { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { 
-  Download, 
-  ChevronLeft, 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  Users, 
-  Target, 
+import {
+  Download,
+  ChevronLeft,
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  Users,
+  Target,
   MousePointer,
   Edit3
 } from 'lucide-react'
@@ -35,9 +35,9 @@ const mockCampaignData = {
 function LoomRecordingContent() {
   const searchParams = useSearchParams()
   const clientId = searchParams.get('client') || 'hector-huizar'
-  
+
   const [editingSection, setEditingSection] = useState<string | null>(null)
-  
+
   // Section data with main text and list items
   const [sectionData, setSectionData] = useState({
     section1: {
@@ -50,7 +50,7 @@ function LoomRecordingContent() {
       ]
     },
     section2: {
-      mainText: 'Changes attempted but market conditions shifted — need more aggressive fixes.',
+      mainText: 'Changes attempted but market conditions shifted - need more aggressive fixes.',
       items: [
         'Paused 2 creatives showing fatigue (CTR < 1.5%)',
         'Adjusted budget allocation',
@@ -71,7 +71,7 @@ function LoomRecordingContent() {
       }
     }
   })
-  
+
   // Temp state for editing
   const [tempData, setTempData] = useState({
     mainText: '',
@@ -130,27 +130,350 @@ function LoomRecordingContent() {
   }
 
   const handleDownload = () => {
-    const reportData = {
-      client: data.clientName,
-      week: data.weekOf,
-      spend: data.spentThisWeek,
-      totalSpent: data.spentTotal,
-      budget: data.totalBudget,
-      leads: data.totalLeads,
-      cpl: data.cplThisWeek,
-      ctr: data.ctr,
-      sections: sectionData,
-    }
+    // Generate HTML report that renders the actual display
+    const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${data.clientName} — Weekly Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #0D0D0D;
+            color: #F7FAFC;
+            padding: 40px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #2A2A2A;
+        }
+        .header-top {
+            font-size: 12px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+        }
+        .header-title {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .header-date {
+            font-size: 14px;
+            color: #A0AEC0;
+            margin-top: 4px;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        .metric-card {
+            background: #141414;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #2A2A2A;
+        }
+        .metric-label {
+            font-size: 13px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .metric-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .metric-sub {
+            font-size: 12px;
+            color: #718096;
+        }
+        .progress-bar {
+            background: #1A1A1A;
+            border-radius: 8px;
+            height: 12px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+        .progress-fill {
+            background: linear-gradient(90deg, #E53E3E, #FC8181);
+            height: 100%;
+            border-radius: 8px;
+        }
+        .bar-chart {
+            display: flex;
+            align-items: end;
+            gap: 8px;
+            height: 100px;
+            margin: 16px 0;
+        }
+        .bar {
+            flex: 1;
+            background: #2A2A2A;
+            border-radius: 6px;
+            min-height: 4px;
+        }
+        .bar.active {
+            background: #48BB78;
+        }
+        .section {
+            background: linear-gradient(180deg, #141414 0%, rgba(229, 62, 62, 0.02) 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(229, 62, 62, 0.1);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .section-number {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #E53E3E, #FC8181);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .section-text {
+            font-size: 14px;
+            color: #A0AEC0;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        .subsection-label {
+            font-size: 11px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 10px;
+        }
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #F7FAFC;
+        }
+        .arrow {
+            color: #E53E3E;
+        }
+        .targets-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 16px 0;
+        }
+        .target-box {
+            background: #0D0D0D;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+        .target-label {
+            font-size: 10px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+        .target-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .trend-positive {
+            color: #48BB78;
+        }
+        .trend-negative {
+            color: #E53E3E;
+        }
+        @media print {
+            body { background: #fff; color: #000; }
+            .metric-card, .section { background: #f5f5f5; border: 1px solid #ddd; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-top">Weekly Report</div>
+            <div class="header-title">${data.clientName}</div>
+            <div class="header-date">${data.weekOf}</div>
+        </div>
+        
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">Campaign Spend vs Budget</div>
+                <div style="display: flex; gap: 24px; margin-bottom: 16px;">
+                    <div>
+                        <div class="metric-value">$${data.spentTotal.toLocaleString()}</div>
+                        <div class="metric-sub">Total Spent</div>
+                    </div>
+                    <div>
+                        <div class="metric-value" style="color: #E53E3E;">$${data.totalBudget.toLocaleString()}</div>
+                        <div class="metric-sub">Total Budget</div>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${(data.spentTotal / data.totalBudget * 100).toFixed(0)}%"></div>
+                </div>
+                <div style="font-size: 12px; color: #718096; margin-top: 8px;">
+                    ${(data.spentTotal / data.totalBudget * 100).toFixed(1)}% of budget used
+                </div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-label">Leads This Week (Daily)</div>
+                <div class="bar-chart">
+                    ${data.leadsThisWeek.map((leads, i) => {
+                      const maxLeads = Math.max(...data.leadsThisWeek);
+                      const height = maxLeads > 0 ? (leads / maxLeads * 80) + 20 : 20;
+                      return `<div class="bar ${leads === maxLeads ? 'active' : ''}" style="height: ${height}px;"></div>`;
+                    }).join('')}
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <div>
+                        <div style="font-size: 12px; color: #718096;">Total This Week</div>
+                        <div style="font-size: 24px; font-weight: 700;">${data.leadsThisWeek.reduce((a, b) => a + b, 0)}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 12px; color: #718096;">Best Day</div>
+                        <div style="font-size: 24px; font-weight: 700; color: #48BB78;">${Math.max(...data.leadsThisWeek)}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-label">Cost Per Lead</div>
+                <div style="display: flex; align-items: center; gap: 32px; margin-bottom: 16px;">
+                    <div>
+                        <div class="metric-value">$${data.cplThisWeek}</div>
+                        <div class="metric-sub">This Week</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;" class="${data.cplChange < 0 ? 'trend-positive' : 'trend-negative'}">
+                        <span style="font-size: 18px; font-weight: 600;">
+                            ${data.cplChange > 0 ? '+' : ''}${data.cplChange}%
+                        </span>
+                    </div>
+                    <div style="margin-left: auto; text-align: right;">
+                        <div style="font-size: 24px; font-weight: 700; color: #718096;">$${data.cplLastWeek}</div>
+                        <div style="font-size: 12px; color: #718096;">Last Week</div>
+                    </div>
+                </div>
+                <div style="background: ${data.cplChange < 0 ? 'rgba(72, 187, 120, 0.1)' : 'rgba(229, 62, 62, 0.1)'}; border-radius: 8px; padding: 12px; border: 1px solid ${data.cplChange < 0 ? 'rgba(72, 187, 120, 0.2)' : 'rgba(229, 62, 62, 0.2)'}">
+                    <div style="font-size: 13px; color: ${data.cplChange < 0 ? '#48BB78' : '#E53E3E'}">
+                        ${data.cplChange < 0 ? 'CPL improved — optimizations working' : 'CPL increased — adjustments needed'}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-label">Click-Through Rate</div>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                    <div>
+                        <div style="font-size: 48px; font-weight: 700;">${data.ctr}%</div>
+                        <div style="font-size: 12px; color: #718096;">Current CTR</div>
+                    </div>
+                    <div style="background: ${data.ctrChange > 0 ? 'rgba(72, 187, 120, 0.1)' : 'rgba(229, 62, 62, 0.1)'}; padding: 8px 12px; border-radius: 8px;" class="${data.ctrChange > 0 ? 'trend-positive' : 'trend-negative'}">
+                        ${data.ctrChange > 0 ? '+' : ''}${data.ctrChange}%
+                    </div>
+                </div>
+                <div style="background: #1A1A1A; border-radius: 8px; height: 8px; overflow: hidden;">
+                    <div style="background: ${data.ctrChange > 0 ? '#48BB78' : '#E53E3E'}; height: 100%; width: ${(data.ctr / 5 * 100).toFixed(0)}%; border-radius: 8px;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-header">
+                <div class="section-number">1</div>
+                <div class="section-title">How Is The Campaign Going?</div>
+            </div>
+            <div class="section-text">${sectionData.section1.mainText}</div>
+            <div class="subsection-label">⚠ FIXES WE'RE IMPLEMENTING</div>
+            <div class="item-list">
+                ${sectionData.section1.items.map(item => `<div class="item"><span class="arrow">→</span>${item}</div>`).join('')}
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-header">
+                <div class="section-number">2</div>
+                <div class="section-title">Changes Made This Week</div>
+            </div>
+            <div class="section-text">${sectionData.section2.mainText}</div>
+            <div class="item-list">
+                ${sectionData.section2.items.map(item => `<div class="item"><span class="arrow">→</span>${item}</div>`).join('')}
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-header">
+                <div class="section-number">3</div>
+                <div class="section-title">What To Expect Next Week</div>
+            </div>
+            <div class="section-text">${sectionData.section3.mainText}</div>
+            <div class="targets-grid">
+                <div class="target-box">
+                    <div class="target-label">Target Leads</div>
+                    <div class="target-value">${sectionData.section3.targets.leads}</div>
+                </div>
+                <div class="target-box">
+                    <div class="target-label">Target CPL</div>
+                    <div class="target-value">${sectionData.section3.targets.cpl}</div>
+                </div>
+                <div class="target-box">
+                    <div class="target-label">Target Spend</div>
+                    <div class="target-value">${sectionData.section3.targets.spend}</div>
+                </div>
+            </div>
+            <div class="subsection-label">FOCUS AREAS</div>
+            <div class="item-list">
+                ${sectionData.section3.items.map(item => `<div class="item"><span class="arrow">→</span>${item}</div>`).join('')}
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
     
-    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${data.clientName.replace(/\s+/g, '-').toLowerCase()}-weekly-report-${new Date().toISOString().split('T')[0]}.json`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${data.clientName.replace(/\s+/g, '-').toLowerCase()}-weekly-report-${new Date().toISOString().split('T')[0]}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   const maxSpend = Math.max(data.spentThisWeek, data.totalBudget - data.spentTotal)
@@ -159,8 +482,8 @@ function LoomRecordingContent() {
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #1A1A1A 0%, rgba(229, 62, 62, 0.02) 100%)', color: '#F7FAFC', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       {/* Header */}
-      <div style={{ 
-        background: '#141414', 
+      <div style={{
+        background: '#141414',
         borderBottom: '1px solid #2A2A2A',
         padding: '20px 32px',
         display: 'flex',
@@ -168,7 +491,7 @@ function LoomRecordingContent() {
         justifyContent: 'space-between',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <button 
+          <button
             onClick={() => window.history.back()}
             style={{
               background: 'transparent',
@@ -188,12 +511,12 @@ function LoomRecordingContent() {
               Weekly Loom Recording
             </div>
             <div style={{ fontSize: '20px', fontWeight: 700 }}>
-              {data.clientName} — {data.weekOf}
+              {data.clientName} - {data.weekOf}
             </div>
           </div>
         </div>
-        
-        <button 
+
+        <button
           onClick={handleDownload}
           style={{
             background: '#2A2A2A',
@@ -235,13 +558,13 @@ function LoomRecordingContent() {
           pointerEvents: 'none',
           zIndex: 0,
         }} />
-        
+
         {/* Charts Section */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px', marginBottom: '32px', position: 'relative', zIndex: 1 }}>
           {/* Campaign Spend Chart */}
-          <div style={{ 
-            background: '#141414', 
-            borderRadius: '16px', 
+          <div style={{
+            background: '#141414',
+            borderRadius: '16px',
             padding: '24px',
             border: '1px solid #2A2A2A',
           }}>
@@ -251,7 +574,7 @@ function LoomRecordingContent() {
                 Campaign Spend vs Budget
               </span>
             </div>
-            
+
             <div style={{ display: 'flex', gap: '24px', marginBottom: '20px' }}>
               <div>
                 <div style={{ fontSize: '32px', fontWeight: 700 }}>${data.spentTotal.toLocaleString()}</div>
@@ -278,9 +601,9 @@ function LoomRecordingContent() {
           </div>
 
           {/* Leads Per Day Chart */}
-          <div style={{ 
-            background: '#141414', 
-            borderRadius: '16px', 
+          <div style={{
+            background: '#141414',
+            borderRadius: '16px',
             padding: '24px',
             border: '1px solid #2A2A2A',
           }}>
@@ -322,9 +645,9 @@ function LoomRecordingContent() {
           </div>
 
           {/* CPL Comparison */}
-          <div style={{ 
-            background: '#141414', 
-            borderRadius: '16px', 
+          <div style={{
+            background: '#141414',
+            borderRadius: '16px',
             padding: '24px',
             border: '1px solid #2A2A2A',
           }}>
@@ -352,22 +675,22 @@ function LoomRecordingContent() {
               </div>
             </div>
 
-            <div style={{ 
-              background: data.cplChange < 0 ? 'rgba(72, 187, 120, 0.1)' : 'rgba(229, 62, 62, 0.1)', 
-              borderRadius: '8px', 
+            <div style={{
+              background: data.cplChange < 0 ? 'rgba(72, 187, 120, 0.1)' : 'rgba(229, 62, 62, 0.1)',
+              borderRadius: '8px',
               padding: '12px',
               border: `1px solid ${data.cplChange < 0 ? 'rgba(72, 187, 120, 0.2)' : 'rgba(229, 62, 62, 0.2)'}`,
             }}>
               <div style={{ fontSize: '13px', color: data.cplChange < 0 ? '#48BB78' : '#E53E3E' }}>
-                {data.cplChange < 0 ? 'CPL improved — optimizations working' : 'CPL increased — adjustments needed'}
+                {data.cplChange < 0 ? 'CPL improved - optimizations working' : 'CPL increased - adjustments needed'}
               </div>
             </div>
           </div>
 
           {/* CTR */}
-          <div style={{ 
-            background: '#141414', 
-            borderRadius: '16px', 
+          <div style={{
+            background: '#141414',
+            borderRadius: '16px',
             padding: '24px',
             border: '1px solid #2A2A2A',
           }}>
@@ -383,9 +706,9 @@ function LoomRecordingContent() {
                 <div style={{ fontSize: '48px', fontWeight: 700 }}>{data.ctr}%</div>
                 <div style={{ fontSize: '12px', color: '#718096' }}>Current CTR</div>
               </div>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
                 gap: '6px',
                 background: data.ctrChange > 0 ? 'rgba(72, 187, 120, 0.1)' : 'rgba(229, 62, 62, 0.1)',
                 padding: '8px 12px',
@@ -398,9 +721,9 @@ function LoomRecordingContent() {
               </div>
             </div>
 
-            <div style={{ 
-              background: '#1A1A1A', 
-              borderRadius: '8px', 
+            <div style={{
+              background: '#1A1A1A',
+              borderRadius: '8px',
               height: '8px',
               overflow: 'hidden',
               position: 'relative',
@@ -443,7 +766,7 @@ function LoomRecordingContent() {
                 <Edit3 size={16} />
               </button>
             </div>
-            
+
             {editingSection === 'section1' ? (
               /* Edit Mode */
               <div>
@@ -535,7 +858,7 @@ function LoomRecordingContent() {
                 <Edit3 size={16} />
               </button>
             </div>
-            
+
             {editingSection === 'section2' ? (
               <div>
                 <div style={{ fontSize: '12px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>Main Summary</div>
@@ -620,7 +943,7 @@ function LoomRecordingContent() {
                 <Edit3 size={16} />
               </button>
             </div>
-            
+
             {editingSection === 'section3' ? (
               <div>
                 <div style={{ fontSize: '12px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>Main Summary</div>
@@ -705,22 +1028,6 @@ function LoomRecordingContent() {
           </div>
         </div>
 
-        {/* Recording Tips Footer */}
-        <div style={{ 
-          marginTop: '32px',
-          padding: '20px',
-          background: '#1A1A1A',
-          borderRadius: '12px',
-          border: '1px dashed #3A3A3A',
-        }}>
-          <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '8px', color: '#A0AEC0' }}>
-            💡 Loom Recording Tips
-          </div>
-          <div style={{ fontSize: '12px', color: '#718096', lineHeight: 1.6 }}>
-            Start with "Here's what I'm seeing" → show this dashboard → dive into the Big 3 → end with "Here's what to expect next week."
-            Keep it under 2 minutes. Speed shows confidence.
-          </div>
-        </div>
       </div>
     </div>
   )
