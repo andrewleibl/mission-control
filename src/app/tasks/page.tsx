@@ -525,6 +525,27 @@ export default function TasksPage() {
   const [formTime, setFormTime] = useState('09:00')
   const [formNotes, setFormNotes] = useState('')
 
+  // Load retention events from localStorage
+  useEffect(() => {
+    try {
+      const storedEvents = localStorage.getItem('mc_retention_events')
+      if (storedEvents) {
+        setRetentionEvents(JSON.parse(storedEvents) as RetentionEvent[])
+      }
+    } catch {
+      // ignore
+    }
+  }, [])
+
+  // Save retention events to localStorage when they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('mc_retention_events', JSON.stringify(retentionEvents))
+    } catch {
+      // ignore
+    }
+  }, [retentionEvents])
+
   useEffect(() => {
     try {
       const stored = localStorage.getItem('mc_tasks')
