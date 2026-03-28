@@ -17,6 +17,14 @@ import {
   Trash2,
   LayoutGrid,
   CalendarDays,
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  Users,
+  Target,
+  AlertCircle,
+  CheckCircle2,
+  ArrowRight,
 } from 'lucide-react'
 
 type Task = {
@@ -1456,38 +1464,109 @@ export default function TasksPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {/* Weekly Report Breakdown (if editing a report) */}
               {editingEvent?.type === 'report' && editingEvent?.reportData && (
-                <div style={{ background: '#0D0D0D', border: '1px solid rgba(229, 62, 62, 0.3)', borderRadius: '12px', padding: '20px' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
-                    <div style={{ background: '#1A1A1A', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '11px', color: '#718096', marginBottom: '4px' }}>SPEND</div>
-                      <div style={{ fontSize: '20px', fontWeight: 700, color: '#F7FAFC' }}>${editingEvent.reportData.spend.toFixed(0)}</div>
-                    </div>
-                    <div style={{ background: '#1A1A1A', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '11px', color: '#718096', marginBottom: '4px' }}>LEADS</div>
-                      <div style={{ fontSize: '20px', fontWeight: 700, color: '#F7FAFC' }}>{editingEvent.reportData.leads}</div>
-                    </div>
-                    <div style={{ background: '#1A1A1A', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '11px', color: '#718096', marginBottom: '4px' }}>CPL</div>
-                      <div style={{ fontSize: '20px', fontWeight: 700, color: '#F7FAFC' }}>${editingEvent.reportData.cpl.toFixed(0)}</div>
-                    </div>
-                  </div>
-                  <div style={{ marginBottom: '12px' }}>
-                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#F7FAFC', marginBottom: '8px' }}>Campaign Status</div>
-                    <p style={{ fontSize: '13px', color: '#A0AEC0', lineHeight: 1.5 }}>{editingEvent.reportData.campaignStatus.summary}</p>
-                  </div>
-                  {editingEvent.reportData.campaignStatus.fixes && (
+                <div style={{ background: '#0D0D0D', border: '1px solid rgba(229, 62, 62, 0.15)', borderRadius: '16px', padding: '24px' }}>
+                  {/* Header: Client + Week */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid #2A2A2A' }}>
                     <div>
-                      <div style={{ fontSize: '12px', color: '#718096', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>⚠ Fixes We're Implementing</div>
-                      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        {editingEvent.reportData.campaignStatus.fixes.map((item, i) => (
-                          <li key={i} style={{ fontSize: '13px', color: '#F7FAFC', paddingLeft: '16px', position: 'relative' }}>
-                            <span style={{ position: 'absolute', left: '0', color: '#E53E3E' }}>→</span>
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
+                      <div style={{ fontSize: '12px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' }}>Weekly Report</div>
+                      <div style={{ fontSize: '20px', fontWeight: 700, color: '#F7FAFC' }}>{editingEvent.client}</div>
                     </div>
-                  )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: editingEvent.reportData.direction === 'positive' ? 'rgba(72, 187, 120, 0.1)' : editingEvent.reportData.direction === 'negative' ? 'rgba(229, 62, 62, 0.1)' : '#1A1A1A', padding: '8px 12px', borderRadius: '8px' }}>
+                      {editingEvent.reportData.direction === 'positive' ? <TrendingUp size={16} color="#48BB78" /> : editingEvent.reportData.direction === 'negative' ? <TrendingDown size={16} color="#E53E3E" /> : <Target size={16} color="#718096" />}
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: editingEvent.reportData.direction === 'positive' ? '#48BB78' : editingEvent.reportData.direction === 'negative' ? '#E53E3E' : '#F7FAFC' }}>
+                        {editingEvent.reportData.leadsChange > 0 ? '+' : ''}{editingEvent.reportData.leadsChange}% leads
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Metrics Grid */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '24px' }}>
+                    <div style={{ background: '#1A1A1A', borderRadius: '12px', padding: '16px', border: '1px solid #2A2A2A' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                        <DollarSign size={14} color="#718096" />
+                        <span style={{ fontSize: '11px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Spend</span>
+                      </div>
+                      <div style={{ fontSize: '22px', fontWeight: 700, color: '#F7FAFC' }}>${editingEvent.reportData.spend.toFixed(0)}</div>
+                    </div>
+                    <div style={{ background: '#1A1A1A', borderRadius: '12px', padding: '16px', border: '1px solid #2A2A2A' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                        <Users size={14} color="#718096" />
+                        <span style={{ fontSize: '11px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Leads</span>
+                      </div>
+                      <div style={{ fontSize: '22px', fontWeight: 700, color: '#F7FAFC' }}>{editingEvent.reportData.leads}</div>
+                    </div>
+                    <div style={{ background: '#1A1A1A', borderRadius: '12px', padding: '16px', border: '1px solid #2A2A2A' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                        <Target size={14} color="#718096" />
+                        <span style={{ fontSize: '11px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.05em' }}>CPL</span>
+                      </div>
+                      <div style={{ fontSize: '22px', fontWeight: 700, color: '#F7FAFC' }}>${editingEvent.reportData.cpl.toFixed(0)}</div>
+                    </div>
+                    <div style={{ background: '#1A1A1A', borderRadius: '12px', padding: '16px', border: '1px solid #2A2A2A' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                        <CalendarIcon size={14} color="#718096" />
+                        <span style={{ fontSize: '11px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.05em' }}>CTR</span>
+                      </div>
+                      <div style={{ fontSize: '22px', fontWeight: 700, color: '#F7FAFC' }}>{editingEvent.reportData.ctr.toFixed(1)}%</div>
+                    </div>
+                  </div>
+
+                  {/* The Story */}
+                  <div style={{ marginBottom: '20px' }}>
+                    <div style={{ fontSize: '12px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>The Story This Week</div>
+                    <div style={{ background: '#1A1A1A', borderRadius: '12px', padding: '16px', border: '1px solid #2A2A2A', fontSize: '14px', color: '#A0AEC0', lineHeight: 1.6 }}>
+                      {editingEvent.reportData.campaignStatus.summary}
+                    </div>
+                  </div>
+
+                  {/* Two Column Layout */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    {/* What's Working */}
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                        <CheckCircle2 size={16} color="#48BB78" />
+                        <span style={{ fontSize: '12px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.1em' }}>What's Working</span>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {editingEvent.reportData.campaignStatus.whatsWorking?.map((item, i) => (
+                          <div key={i} style={{ background: '#1A1A1A', borderRadius: '8px', padding: '12px', border: '1px solid #2A2A2A', fontSize: '13px', color: '#F7FAFC' }}>
+                            {item}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* What Changed */}
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                        <AlertCircle size={16} color="#E53E3E" />
+                        <span style={{ fontSize: '12px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Changes Made</span>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {editingEvent.reportData.campaignStatus.whatChanged?.map((item, i) => (
+                          <div key={i} style={{ background: '#1A1A1A', borderRadius: '8px', padding: '12px', border: '1px solid #2A2A2A', fontSize: '13px', color: '#F7FAFC' }}>
+                            {item}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Next Week */}
+                  <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #2A2A2A' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                      <ArrowRight size={16} color="#63B3ED" />
+                      <span style={{ fontSize: '12px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Next Week Focus</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {editingEvent.reportData.nextWeek.focusAreas?.map((item, i) => (
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#1A1A1A', borderRadius: '8px', padding: '12px', border: '1px solid #2A2A2A' }}>
+                          <div style={{ width: '24px', height: '24px', background: 'rgba(99, 179, 237, 0.1)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', color: '#63B3ED', fontWeight: 700 }}>{i + 1}</div>
+                          <span style={{ fontSize: '13px', color: '#F7FAFC' }}>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
 
