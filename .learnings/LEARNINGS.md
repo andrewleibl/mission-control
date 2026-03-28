@@ -1,116 +1,62 @@
 # Learnings Log
 
-## [LRN-20250325-001] best_practice
+## [LRN-20250327-001] Integration Pattern
 
-**Logged**: 2026-03-25T13:06:00Z
+**Logged**: 2026-03-27T22:37:00Z
 **Priority**: high
-**Status**: promoted
+**Status**: pending
 **Area**: frontend
 
 ### Summary
-Website build workflow refined: Image asset handling via file:// URLs, iterative CSS sizing, and grid layout management for brand/logo sections.
+User prefers integrated solutions over standalone pages when features are naturally related.
 
 ### Details
-Clutch Barber Supply homepage build session revealed effective patterns for real-time collaboration on visual assets:
-
-**Image Handling Pattern:**
-- User provides images via `file:///Users/poseidon/Downloads/...` URLs
-- Use `exec cp` to copy from Downloads to project assets folder
-- Verify with `file` command to ensure valid image format
-- HTML references relative path: `assets/logos/brand-logo.png`
-
-**Iterative Sizing Workflow:**
-- Start with default size (65px max-height)
-- User requests "bigger" → jump to 85px
-- "Still bigger" → 100px → 110px → 120px → 135px, etc.
-- Final fine-tuning: 150px → 165px (tiny increments)
-- Some brands need different sizes (Level 3 logo needed 165px, Andis 135px, BaByliss 50px)
-
-**Grid Management:**
-- 6 brands: 3x2 grid (`grid-template-columns: repeat(3, 1fr)`)
-- 8 brands: 4x2 grid (`grid-template-columns: repeat(4, 1fr)`)
-- All cards uniform sizing for consistency
-
-**Common Bugs:**
-- Duplicate CSS rules override each other (check for multiple `.classname` definitions)
-- Browser caching prevents image updates (hard refresh Cmd+Shift+R)
-- Cache-busting: rename file or add `?v=2` query param
+Built Client Retention calendar as a standalone route (`/client-retention`) with full React page. User feedback: integrate it into the existing `/tasks` page instead. The calendar and task board serve the same workflow (managing client work), so keeping them together reduces context switching.
 
 ### Suggested Action
-Update TOOLS.md Website Build Workflow section with these patterns. Apply to future Shopify/e-commerce builds.
+When building new features that relate to existing pages:
+1. Default to integration first (tabs, sections, toggles)
+2. Only create standalone routes for truly separate workflows
+3. Ask "would the user switch between these frequently?" — if yes, integrate
 
 ### Metadata
 - Source: user_feedback
-- Related Files: /builds/clutch-barber-supply/preview-homepage-complete.html
-- Tags: css, images, workflow, shopify
-- Pattern-Key: workflow.image_assets
-- Recurrence-Count: 1
-- First-Seen: 2026-03-25
-- Last-Seen: 2026-03-25
-
-### Resolution
-- **Resolved**: 2026-03-25T13:30:00Z
-- **Promoted**: TOOLS.md
-- **Notes**: Added to Website Build Workflow section in TOOLS.md with image handling and iterative sizing patterns.
+- Related Files: /builds/mission-control/src/app/tasks/page.tsx, /builds/mission-control/src/app/client-retention/page.tsx
+- Tags: ux, navigation, integration
+- Pattern-Key: ux.integration-over-standalone
 
 ---
 
-## [LRN-20250325-002] best_practice
+## [LRN-20250327-002] Variable Naming Collisions
 
-**Logged**: 2026-03-25T13:47:00Z
-**Priority**: high
-**Status**: promoted
+**Logged**: 2026-03-27T22:37:00Z
+**Priority**: medium
+**Status**: resolved
 **Area**: frontend
 
 ### Summary
-Cross-page header consistency requires batch updates across all HTML files. Browser caching patterns for image updates.
+When merging two React components into one file, watch for duplicate variable names in the merged scope.
 
 ### Details
-Clutch Barber Supply multi-page site update revealed critical workflow patterns:
+Merged Task Board and Client Retention calendar into `/tasks/page.tsx`. Both had `weekStart` and `weekEnd` variables — Task Board used them for stats calculation, Client Retention used them for calendar navigation. Build failed with "name defined multiple times" error.
 
-**Cross-Page Consistency:**
-- Shared elements (header logo) require updating EVERY HTML file individually
-- 8 pages × 2 edits each = 16 edits for one change
-- Missing one page causes visual inconsistency when user navigates
-- Risk: User sees change on homepage but old version on Shop page
-
-**Browser Caching Solutions:**
-- Symptom: Images/code updated but browser shows old version
-- Hard refresh: Cmd+Shift+R (Mac) clears cache for current page
-- Cache-busting: Add `?v=2` query param to force reload: `image.png?v=2`
-- Incognito/Private mode: Bypasses cache entirely
-- Nuclear option: Rename file (e.g., `logo-v2.png`)
-
-**Multi-File Update Pattern:**
-```bash
-# Find all files needing update
-grep -l "OLD_TEXT" *.html
-
-# Batch edit with sed or edit tool
-# Must update CSS and HTML in each file
-```
-
-**Google Reviews Integration:**
-- Real reviews with links add authenticity
-- Each card should link to actual Google Review
-- Add hint text: "Click any review to read the full story"
-- Position hint below reviews, centered
+Fix: Renamed Task Board variables to `taskWeekStart` and `taskWeekEnd` to disambiguate.
 
 ### Suggested Action
-Update TOOLS.md with cross-page update checklist. Create script template for batch header/footer updates.
+When merging components:
+1. Check for overlapping variable names (dates, constants, helpers)
+2. Prefix with component name (`taskXxx`, `calendarXxx`)
+3. Run build immediately after merge to catch collisions
 
 ### Metadata
-- Source: user_feedback
-- Related Files: /builds/clutch-barber-supply/*.html
-- Tags: multi-page, caching, workflow, header
-- Pattern-Key: workflow.multi_page_consistency
-- Recurrence-Count: 1
-- First-Seen: 2026-03-25
-- Last-Seen: 2026-03-25
+- Source: error
+- Related Files: /builds/mission-control/src/app/tasks/page.tsx
+- Tags: react, variables, merge, build
+- Pattern-Key: code.merge-variable-prefixing
 
 ### Resolution
-- **Resolved**: 2026-03-25T13:47:00Z
-- **Promoted**: TOOLS.md
-- **Notes**: Added cross-page consistency and caching patterns to TOOLS.md
+- **Resolved**: 2026-03-27T22:40:00Z
+- **Commit**: Fixed in place during session
+- **Notes**: Renamed `weekStart`/`weekEnd` to `taskWeekStart`/`taskWeekEnd` in Task Board section
 
 ---

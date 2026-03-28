@@ -1,5 +1,10 @@
 # HEARTBEAT.md
 
+## Polling Schedule (Updated Mar 27, 2026)
+- **Active hours:** 11:00 PM to 6:00 AM CDT
+- **Frequency:** Every 2 hours
+- **Heartbeat times:** 11:00 PM → 1:00 AM → 3:00 AM → 5:00 AM
+
 ## Morning Brief (6:00 AM CDT)
 Check weather for Milwaukee. Pull nightly build summary from memory/YYYY-MM-DD.md. Send Telegram brief with:
 1. Weather + gym day check

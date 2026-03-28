@@ -1,0 +1,20 @@
+{
+  "name": "Weekly Report Generator",
+  "description": "Generate Meta Ads weekly reports at 12:00 PM CST for scheduled events",
+  "schedule": {
+    "kind": "cron",
+    "expr": "0 12 * * *",
+    "tz": "America/Chicago"
+  },
+  "payload": {
+    "kind": "agentTurn",
+    "message": "Check Mission Control Client Retention calendar for Weekly Report events scheduled today. If found, generate Meta Ads weekly reports using the report generator script for each client with an event. Send notification to Andrew when complete with report links.",
+    "model": "venice/kimi-k2-5",
+    "timeoutSeconds": 300
+  },
+  "sessionTarget": "isolated",
+  "delivery": {
+    "mode": "announce"
+  },
+  "enabled": true
+}

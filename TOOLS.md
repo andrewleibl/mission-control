@@ -109,6 +109,64 @@ Using `.includes('lead')` overcounts by 5x+. Always exact match.
 - Risk: User navigates to another page and sees old version
 - Fix: Batch update all files before declaring "done"
 
+---
+
+### Shopify Product Recommendations Workflow (Mar 26, 2026)
+
+**Data-Driven Product Pair System** — Custom alternative to Rebuy/Zipify:
+
+**Phase 1: Order Analysis (Python)**
+```python
+# Export orders from Shopify Admin → CSV
+# Group by order ID, find product pairs
+from collections import defaultdict, Counter
+
+orders = defaultdict(list)
+pair_counts = Counter()
+
+# For each order, generate all product pairs
+for order_id, products in orders.items():
+    for i in range(len(products)):
+        for j in range(i+1, len(products)):
+            pair = tuple(sorted([products[i], products[j]]))
+            pair_counts[pair] += 1
+
+# Filter: pairs bought together >3x, affinity >20%
+```
+
+**Phase 2: Metafield Setup**
+```
+Settings → Metafields → Products → Add Definition:
+- Name: "Common Pair"
+- Key: custom.common_pair
+- Type: Product (Single product reference)
+```
+
+**Phase 3: Liquid Template**
+```liquid
+{% assign pair_product = product.metafields.custom.common_pair.value %}
+{% assign gap = 300 | minus: product.price | divided_by: 100.0 %}
+
+<section class="recommendations-split">
+  <!-- Free Shipping Upsell -->
+  <!-- Commonly Bought Together -->
+</section>
+```
+
+**Key Conversion Patterns:**
+- Same-brand pairing: Oster Clipper → Oster Trimmer (100% affinity)
+- Price point: $100-120 gap hits $300 free shipping threshold
+- Split section: Left (progress bar) + Right (bundle CTA)
+
+**Outputs:**
+1. `product-recommendations.liquid` - Shopify section
+2. `metafield-import.csv` - Bulk data for top 50 products
+3. `SETUP-INSTRUCTIONS.md` - Deployment guide
+
+**Reference:** Clutch Barber Supply build — 2,987 orders analyzed, 50 pairs identified, AOV lift projected 15-25%.
+
+---
+
 ## What Goes Here
 
 Things like:

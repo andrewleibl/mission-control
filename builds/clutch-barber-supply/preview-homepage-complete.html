@@ -29,6 +29,205 @@
     
     a { color: inherit; text-decoration: none; }
     
+    /* Newsletter Popup — 5 Second Delay */
+    .clutch-popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(5, 7, 12, 0.85);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .clutch-popup-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .clutch-popup {
+      background: var(--clutch-bg);
+      border: 1px solid var(--clutch-border);
+      border-radius: 16px;
+      max-width: 480px;
+      width: 90%;
+      position: relative;
+      transform: scale(0.9) translateY(20px);
+      transition: all 0.3s ease;
+    }
+
+    .clutch-popup-overlay.active .clutch-popup {
+      transform: scale(1) translateY(0);
+    }
+
+    .clutch-popup__close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      width: 36px;
+      height: 36px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--clutch-border);
+      border-radius: 8px;
+      color: var(--clutch-text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .clutch-popup__close:hover {
+      background: rgba(255,255,255,0.1);
+      color: var(--clutch-text);
+    }
+
+    .clutch-popup__close svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .clutch-popup__content {
+      padding: 2.5rem 2rem;
+    }
+
+    .clutch-popup__eyebrow {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--clutch-accent);
+      margin-bottom: 0.75rem;
+      text-align: center;
+    }
+
+    .clutch-popup__headline {
+      font-size: 1.75rem;
+      font-weight: 700;
+      line-height: 1.2;
+      text-align: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .clutch-popup__subtitle {
+      font-size: 0.9375rem;
+      color: var(--clutch-text-muted);
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .clutch-popup__offer {
+      background: rgba(201, 137, 75, 0.1);
+      border: 1px solid var(--clutch-accent);
+      border-radius: 10px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .clutch-popup__offer-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .clutch-popup__offer-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .clutch-popup__offer-icon {
+      width: 32px;
+      height: 32px;
+      background: rgba(201, 137, 75, 0.15);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .clutch-popup__offer-icon svg {
+      width: 16px;
+      height: 16px;
+      color: var(--clutch-accent);
+    }
+
+    .clutch-popup__offer-text {
+      font-size: 0.9375rem;
+      font-weight: 600;
+    }
+
+    .clutch-popup__form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .clutch-popup__input-wrapper {
+      position: relative;
+    }
+
+    .clutch-popup__input {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--clutch-border);
+      border-radius: 10px;
+      padding: 1rem 1rem 1rem 3rem;
+      color: var(--clutch-text);
+      font-size: 0.9375rem;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .clutch-popup__input:focus {
+      outline: none;
+      border-color: var(--clutch-accent);
+      background: rgba(255,255,255,0.08);
+    }
+
+    .clutch-popup__input::placeholder {
+      color: var(--clutch-text-dim);
+    }
+
+    .clutch-popup__input-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--clutch-text-dim);
+    }
+
+    .clutch-popup__submit {
+      background: var(--clutch-accent);
+      color: var(--clutch-bg);
+      border: none;
+      border-radius: 10px;
+      padding: 1rem 1.5rem;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .clutch-popup__submit:hover {
+      background: var(--clutch-accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .clutch-popup__disclaimer {
+      font-size: 0.75rem;
+      color: var(--clutch-text-dim);
+      text-align: center;
+      margin-top: 1rem;
+    }
+
     /* Top Note */
     .clutch-top-note {
       background: var(--clutch-bg);
@@ -583,16 +782,14 @@
     }
 
     /* Brand-specific sizing */
-    .clutch-home-brands__item[href*="andis"] .clutch-home-brands__logo-img {
-      max-height: 135px;
+    .clutch-home-brands__item[href*="Andis"] .clutch-home-brands__logo-img,
+    .clutch-home-brands__item[href*="Tomb45"] .clutch-home-brands__logo-img {
+      max-height: 110px;
     }
 
-    .clutch-home-brands__item[href*="level-3"] .clutch-home-brands__logo-img {
-      max-height: 165px;
-    }
-
-    .clutch-home-brands__item[href*="tomb45"] .clutch-home-brands__logo-img {
-      max-height: 120px;
+    .clutch-home-brands__item[href*="Level%203"] .clutch-home-brands__logo-img,
+    .clutch-home-brands__item[href*="Level 3"] .clutch-home-brands__logo-img {
+      max-height: 150px;
     }
     
     /* Reviews - MAX COPPER GLOW */
@@ -639,22 +836,27 @@
       z-index: 0;
     }
     
-    .clutch-home-reviews__grid {
-      display: grid;
-      grid-template-columns: 1fr;
+    /* Marquee Reviews */
+    .clutch-home-reviews__marquee {
+      overflow: hidden;
+      position: relative;
+      width: 100%;
+    }
+
+    .clutch-home-reviews__track {
+      display: flex;
       gap: 1.25rem;
+      animation: marquee-scroll 40s linear infinite;
+      width: max-content;
     }
-    
-    @media (min-width: 640px) {
-      .clutch-home-reviews__grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
+
+    .clutch-home-reviews__marquee:hover .clutch-home-reviews__track {
+      animation-play-state: paused;
     }
-    
-    @media (min-width: 1024px) {
-      .clutch-home-reviews__grid {
-        grid-template-columns: repeat(3, 1fr);
-      }
+
+    @keyframes marquee-scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
     }
     
     .clutch-home-reviews__card {
@@ -710,6 +912,14 @@
       color: inherit;
       cursor: pointer;
       transition: transform 0.3s ease;
+      flex-shrink: 0;
+      width: 350px;
+    }
+
+    @media (min-width: 640px) {
+      .clutch-home-reviews__card-link {
+        width: 400px;
+      }
     }
 
     .clutch-home-reviews__card-link:hover {
@@ -977,112 +1187,251 @@
       line-height: 1.4;
     }
     
-    /* Email Signup (Section 8) - MAX COPPER GLOW */
-    .clutch-home-email {
-      background: linear-gradient(135deg, var(--clutch-bg) 0%, var(--clutch-bg-light) 50%, var(--clutch-bg-lighter) 100%);
-      padding: 5rem 0;
+    /* Newsletter Section (Section 8) - Redesigned */
+    .clutch-newsletter {
+      background: linear-gradient(135deg, var(--clutch-bg-light) 0%, var(--clutch-bg-lighter) 100%);
+      border-top: 1px solid var(--clutch-border);
+      border-bottom: 1px solid var(--clutch-border);
+      padding: 4rem 1.5rem;
       position: relative;
       overflow: hidden;
     }
-    
-    .clutch-home-email::before {
+
+    .clutch-newsletter::before {
       content: '';
       position: absolute;
       top: -50%;
       left: -20%;
       width: 900px;
       height: 900px;
-      background: radial-gradient(circle, rgba(201, 137, 75, 0.45) 0%, transparent 50%);
+      background: radial-gradient(circle, rgba(201, 137, 75, 0.25) 0%, transparent 50%);
       pointer-events: none;
       filter: blur(120px);
     }
-    
-    .clutch-home-email::after {
-      content: '';
-      position: absolute;
-      bottom: -60%;
-      right: -20%;
-      width: 700px;
-      height: 700px;
-      background: radial-gradient(circle, rgba(201, 137, 75, 0.3) 0%, transparent 45%);
-      pointer-events: none;
-      filter: blur(100px);
-    }
-    
-    .clutch-home-email .clutch-home-section__inner::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 800px;
-      height: 400px;
-      background: radial-gradient(ellipse, rgba(201, 137, 75, 0.15) 0%, transparent 50%);
-      pointer-events: none;
-      filter: blur(60px);
-      z-index: 0;
-    }
-    
-    .clutch-home-email__content {
+
+    .clutch-newsletter__inner {
+      max-width: 1200px;
+      margin: 0 auto;
       position: relative;
       z-index: 1;
-      max-width: 560px;
-      margin: 0 auto;
-      text-align: center;
     }
-    
-    .clutch-home-email__title {
-      font-size: clamp(1.75rem, 4vw, 2.25rem);
-      font-weight: 700;
-      margin-bottom: 0.75rem;
-      letter-spacing: -0.02em;
+
+    .clutch-newsletter__grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: center;
     }
-    
-    .clutch-home-email__subtitle {
-      font-size: 1rem;
-      color: var(--clutch-text-muted);
-      margin-bottom: 2rem;
-      line-height: 1.6;
-    }
-    
-    .clutch-home-email__input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      margin-bottom: 1rem;
-    }
-    
-    @media (min-width: 480px) {
-      .clutch-home-email__input-group {
-        flex-direction: row;
-        gap: 0.5rem;
+
+    @media (max-width: 768px) {
+      .clutch-newsletter__grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
       }
     }
-    
-    .clutch-home-email__input-group input {
+
+    .clutch-newsletter__content {
+      text-align: left;
+    }
+
+    .clutch-newsletter__eyebrow {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--clutch-accent);
+      margin-bottom: 1rem;
+    }
+
+    .clutch-newsletter__headline {
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 1.5rem;
+      color: var(--clutch-text);
+    }
+
+    @media (max-width: 768px) {
+      .clutch-newsletter__headline {
+        font-size: 1.5rem;
+      }
+    }
+
+    .clutch-newsletter__benefits {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .clutch-newsletter__benefit {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.875rem;
+    }
+
+    .clutch-newsletter__benefit-icon {
+      width: 40px;
+      height: 40px;
+      background: rgba(201, 137, 75, 0.15);
+      border: 1px solid var(--clutch-accent);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .clutch-newsletter__benefit-icon svg {
+      width: 20px;
+      height: 20px;
+      color: var(--clutch-accent);
+    }
+
+    .clutch-newsletter__benefit-text {
       flex: 1;
-      padding: 0.875rem 1rem;
+    }
+
+    .clutch-newsletter__benefit-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--clutch-text);
+      margin-bottom: 0.25rem;
+    }
+
+    .clutch-newsletter__benefit-desc {
+      font-size: 0.875rem;
+      color: var(--clutch-text-muted);
+    }
+
+    .clutch-newsletter__form-wrapper {
+      background: var(--clutch-bg);
+      border: 1px solid var(--clutch-border);
+      border-radius: 16px;
+      padding: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .clutch-newsletter__form-wrapper {
+        padding: 1.5rem;
+      }
+    }
+
+    .clutch-newsletter__form-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+
+    .clutch-newsletter__form-subtitle {
+      font-size: 0.875rem;
+      color: var(--clutch-text-muted);
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .clutch-newsletter__form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.875rem;
+    }
+
+    .clutch-newsletter__input-wrapper {
+      position: relative;
+    }
+
+    .clutch-newsletter__input {
+      width: 100%;
       background: rgba(255,255,255,0.05);
       border: 1px solid var(--clutch-border);
       border-radius: 10px;
+      padding: 1rem 1rem 1rem 3rem;
       color: var(--clutch-text);
-      font-size: 1rem;
+      font-size: 0.9375rem;
       font-family: inherit;
+      transition: all 0.2s;
     }
-    
-    .clutch-home-email__input-group input:focus {
+
+    .clutch-newsletter__input:focus {
       outline: none;
       border-color: var(--clutch-accent);
       background: rgba(255,255,255,0.08);
     }
-    
-    .clutch-home-email__input-group input::placeholder {
-      color: #6b7a8a;
+
+    .clutch-newsletter__input::placeholder {
+      color: var(--clutch-text-dim);
     }
-    
-    .clutch-home-email__disclaimer {
+
+    .clutch-newsletter__input-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--clutch-text-dim);
+    }
+
+    .clutch-newsletter__submit {
+      background: var(--clutch-accent);
+      color: var(--clutch-bg);
+      border: none;
+      border-radius: 10px;
+      padding: 1rem 1.5rem;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .clutch-newsletter__submit:hover {
+      background: var(--clutch-accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .clutch-newsletter__submit svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .clutch-newsletter__disclaimer {
       font-size: 0.75rem;
-      color: #6b7a8a;
+      color: var(--clutch-text-dim);
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    .clutch-newsletter__trust {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--clutch-border);
+    }
+
+    @media (max-width: 480px) {
+      .clutch-newsletter__trust {
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+    }
+
+    .clutch-newsletter__trust-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8125rem;
+      color: var(--clutch-text-muted);
+    }
+
+    .clutch-newsletter__trust-item svg {
+      width: 16px;
+      height: 16px;
+      color: var(--clutch-accent);
     }
     
     /* Footer (Section 9) - with copper glow */
@@ -1422,52 +1771,53 @@
         </div>
       </div>
       
-      <a href="http://localhost:8765/preview-homepage-complete.html" class="clutch-home-header__logo">
+      <a href="preview-homepage-complete.html" class="clutch-home-header__logo">
         <img src="assets/clutch-logo.png" alt="Clutch Barber Supply" width="200" height="80">
       </a>
       
       <div class="clutch-home-header__right">
         <nav class="clutch-home-header__desktop-nav">
-          <a href="http://localhost:8765/preview-collections.html">Shop</a>
+          <a href="preview-collections.html">Shop</a>
           <div class="clutch-home-header__dropdown">
-            <a href="http://localhost:8765/preview-brands.html">Brands</a>
+            <a href="preview-brands.html">Brands</a>
             <div class="clutch-home-header__dropdown-menu">
-              <a href="http://localhost:8765/preview-collections.html?vendor=Andis" class="clutch-home-header__dropdown-item">Andis</a>
-              <a href="http://localhost:8765/preview-collections.html?vendor=Babyliss%20Pro" class="clutch-home-header__dropdown-item">Babyliss Pro</a>
-              <a href="http://localhost:8765/preview-collections.html?vendor=JRL" class="clutch-home-header__dropdown-item">JRL</a>
-              <a href="http://localhost:8765/preview-collections.html?vendor=Wahl" class="clutch-home-header__dropdown-item">Wahl</a>
-              <a href="http://localhost:8765/preview-collections.html?vendor=Gamma%20%7C%20Style%20Craft" class="clutch-home-header__dropdown-item">Gamma | Style Craft</a>
-              <a href="http://localhost:8765/preview-collections.html?vendor=Supreme%20Trimmers" class="clutch-home-header__dropdown-item">Supreme Trimmers</a>
-              <a href="http://localhost:8765/preview-collections.html?vendor=Level%203" class="clutch-home-header__dropdown-item">Level 3</a>
-              <a href="http://localhost:8765/preview-collections.html?vendor=Cocco%20Hair%20Pro" class="clutch-home-header__dropdown-item">Cocco Hair Pro</a>
-              <a href="http://localhost:8765/preview-collections.html?vendor=Oster" class="clutch-home-header__dropdown-item">Oster</a>
-              <a href="http://localhost:8765/preview-collections.html?vendor=Tomb45" class="clutch-home-header__dropdown-item">Tomb45</a>
-              <a href="http://localhost:8765/preview-collections.html?vendor=Vincent" class="clutch-home-header__dropdown-item">Vincent</a>
-              <a href="http://localhost:8765/preview-collections.html?vendor=OG%20Walker" class="clutch-home-header__dropdown-item">OG Walker</a>
-              <a href="http://localhost:8765/preview-collections.html?vendor=Smash" class="clutch-home-header__dropdown-item">Smash</a>
-              <a href="http://localhost:8765/preview-collections.html?vendor=Rolda" class="clutch-home-header__dropdown-item">Rolda</a>
+              <a href="preview-collections.html?vendor=Andis" class="clutch-home-header__dropdown-item">Andis</a>
+              <a href="preview-collections.html?vendor=Babyliss%20Pro" class="clutch-home-header__dropdown-item">Babyliss Pro</a>
+              <a href="preview-collections.html?vendor=JRL" class="clutch-home-header__dropdown-item">JRL</a>
+              <a href="preview-collections.html?vendor=Wahl" class="clutch-home-header__dropdown-item">Wahl</a>
+              <a href="preview-collections.html?vendor=Gamma%20%7C%20Style%20Craft" class="clutch-home-header__dropdown-item">Gamma | Style Craft</a>
+              <a href="preview-collections.html?vendor=Supreme%20Trimmers" class="clutch-home-header__dropdown-item">Supreme Trimmers</a>
+              <a href="preview-collections.html?vendor=Level%203" class="clutch-home-header__dropdown-item">Level 3</a>
+              <a href="preview-collections.html?vendor=Cocco%20Hair%20Pro" class="clutch-home-header__dropdown-item">Cocco Hair Pro</a>
+              <a href="preview-collections.html?vendor=Oster" class="clutch-home-header__dropdown-item">Oster</a>
+              <a href="preview-collections.html?vendor=Tomb45" class="clutch-home-header__dropdown-item">Tomb45</a>
+              <a href="preview-collections.html?vendor=Vincent" class="clutch-home-header__dropdown-item">Vincent</a>
+              <a href="preview-collections.html?vendor=OG%20Walker" class="clutch-home-header__dropdown-item">OG Walker</a>
+              <a href="preview-collections.html?vendor=Smash" class="clutch-home-header__dropdown-item">Smash</a>
+              <a href="preview-collections.html?vendor=Rolda" class="clutch-home-header__dropdown-item">Rolda</a>
             </div>
           </div>
           <div class="clutch-home-header__dropdown">
-            <a href="http://localhost:8765/preview-supplies.html">Supplies</a>
+            <a href="preview-supplies.html">Supplies</a>
             <div class="clutch-home-header__dropdown-menu">
-              <a href="http://localhost:8765/preview-collections.html?category=clippers" class="clutch-home-header__dropdown-item">Clippers</a>
-              <a href="http://localhost:8765/preview-collections.html?category=trimmers" class="clutch-home-header__dropdown-item">Trimmers</a>
-              <a href="http://localhost:8765/preview-collections.html?category=shavers" class="clutch-home-header__dropdown-item">Shavers</a>
-              <a href="http://localhost:8765/preview-collections.html" class="clutch-home-header__dropdown-item">Barber Bags | Cases</a>
-              <a href="http://localhost:8765/preview-collections.html?category=lights" class="clutch-home-header__dropdown-item">Lights</a>
-              <a href="http://localhost:8765/preview-collections.html?category=accessories" class="clutch-home-header__dropdown-item">Accessories</a>
-              <a href="http://localhost:8765/preview-collections.html?category=capes" class="clutch-home-header__dropdown-item">Capes</a>
-              <a href="http://localhost:8765/preview-collections.html?category=barber-chairs" class="clutch-home-header__dropdown-item">Barber Chairs</a>
-              <a href="http://localhost:8765/preview-collections.html?category=barber-clothing" class="clutch-home-header__dropdown-item">Barber Clothing</a>
-              <a href="http://localhost:8765/preview-collections.html?category=barber-poles" class="clutch-home-header__dropdown-item">Barber Poles</a>
+              <a href="preview-collections.html?category=clippers" class="clutch-home-header__dropdown-item">Clippers</a>
+              <a href="preview-collections.html?category=trimmers" class="clutch-home-header__dropdown-item">Trimmers</a>
+              <a href="preview-collections.html?category=shavers" class="clutch-home-header__dropdown-item">Shavers</a>
+              <a href="preview-collections.html" class="clutch-home-header__dropdown-item">Barber Bags | Cases</a>
+              <a href="preview-collections.html?category=lights" class="clutch-home-header__dropdown-item">Lights</a>
+              <a href="preview-collections.html?category=accessories" class="clutch-home-header__dropdown-item">Accessories</a>
+              <a href="preview-collections.html?category=capes" class="clutch-home-header__dropdown-item">Capes</a>
+              <a href="preview-collections.html?category=barber-chairs" class="clutch-home-header__dropdown-item">Barber Chairs</a>
+              <a href="preview-collections.html?category=barber-clothing" class="clutch-home-header__dropdown-item">Barber Clothing</a>
+              <a href="preview-collections.html?category=barber-poles" class="clutch-home-header__dropdown-item">Barber Poles</a>
             </div>
           </div>
-          <a href="http://localhost:8765/preview-classes.html">Classes</a>
-          <a href="http://localhost:8765/preview-contact.html">Contact</a>
-          <a href="http://localhost:8765/preview-faq.html">FAQ</a>
+          <a href="preview-classes.html">Classes</a>
+          <a href="preview-contact.html">Contact</a>
+          <a href="preview-faq.html">FAQ</a>
+          <a href="preview-reviews.html">Reviews</a>
         </nav>
-        <a href="http://localhost:8765/preview-cart.html" class="clutch-home-header__cart" aria-label="Cart">
+        <a href="preview-cart.html" class="clutch-home-header__cart" aria-label="Cart">
           <svg viewBox="0 0 24 24"><path d="M3 5h2l2.1 9.2a1 1 0 0 0 1 .8H18a1 1 0 0 0 1-.8L21 8H7"></path><circle cx="9" cy="19" r="1.5"></circle><circle cx="17" cy="19" r="1.5"></circle></svg>
         </a>
       </div>
@@ -1489,6 +1839,7 @@
       <a href="preview-classes.html">Classes</a>
       <a href="preview-contact.html">Contact</a>
       <a href="preview-faq.html">FAQ</a>
+      <a href="preview-reviews.html">Reviews</a>
     </nav>
     <div class="clutch-mobile-nav__footer">
       <a href="preview-cart.html" class="clutch-mobile-nav__cart">
@@ -1522,8 +1873,8 @@
       <p class="clutch-home-hero__subheading">Clippers, trimmers, and essentials. Everything you need to stay sharp — available online or in-store.</p>
       
       <div class="clutch-home-hero__actions">
-        <a href="#brands" class="clutch-button clutch-button--primary">Shop By Brand</a>
-        <a href="#reviews" class="clutch-button clutch-button--ghost">What Customers Say</a>
+        <a href="preview-collections.html" class="clutch-button clutch-button--primary">Shop All</a>
+        <a href="preview-reviews.html" class="clutch-button clutch-button--ghost">What Customers Say</a>
       </div>
       
       <div class="clutch-home-hero__trust">
@@ -1554,7 +1905,7 @@
     <div class="clutch-home-section__inner">
       <header class="clutch-home-section__header">
         <p class="clutch-home-section__eyebrow">Top Barbers Picks</p>
-        <h2 class="clutch-home-section__title">Featured Products</h2>
+        <h2 class="clutch-home-section__title">Top Trending Products</h2>
       </header>
       
       <div class="clutch-home-products__grid">
@@ -1618,49 +1969,94 @@
         <p class="clutch-home-section__subtitle">Fast shipping from Texas + 30-day returns on any damaged product. No hassle, no runaround.</p>
       </header>
       
-      <div class="clutch-home-reviews__grid">
-        <a href="https://share.google/qYNYnKpIkvXdajHIh" target="_blank" rel="noopener noreferrer" class="clutch-home-reviews__card-link">
-          <article class="clutch-home-reviews__card">
-            <div class="clutch-home-reviews__stars">★★★★★</div>
-            <h3 class="clutch-home-reviews__name">Erik Deleon</h3>
-            <p class="clutch-home-reviews__quote">"Man I'm glad I stopped by the shop today it's hard finding a good barber supply store but let me tell you this shop has everything you can ever want and need with great prices this shop a 10/10"</p>
-          </article>
-        </a>
-        <a href="https://share.google/m9E6OOclfoYr3Lm7p" target="_blank" rel="noopener noreferrer" class="clutch-home-reviews__card-link">
-          <article class="clutch-home-reviews__card">
-            <div class="clutch-home-reviews__stars">★★★★★</div>
-            <h3 class="clutch-home-reviews__name">Scarlett Salas</h3>
-            <p class="clutch-home-reviews__quote">"Be careful when walking in to Clutch Barber supply. It's like walking in to Target, you can never walk out with just one thing. I love that they have just about EVERYTHING here! And not to mention the wonderful staff!"</p>
-          </article>
-        </a>
-        <a href="https://share.google/PVtiJEMNbRJI2vKIG" target="_blank" rel="noopener noreferrer" class="clutch-home-reviews__card-link">
-          <article class="clutch-home-reviews__card">
-            <div class="clutch-home-reviews__stars">★★★★★</div>
-            <h3 class="clutch-home-reviews__name">dtx.outlaws</h3>
-            <p class="clutch-home-reviews__quote">"Bought 2 barber chairs here for my business. And this is by far the best barber supply store I've been to. Definitely recommend!"</p>
-          </article>
-        </a>
-        <a href="https://share.google/kYP3dkGxrFuLL84pf" target="_blank" rel="noopener noreferrer" class="clutch-home-reviews__card-link">
-          <article class="clutch-home-reviews__card">
-            <div class="clutch-home-reviews__stars">★★★★★</div>
-            <h3 class="clutch-home-reviews__name">Fernando Perez</h3>
-            <p class="clutch-home-reviews__quote">"Great atmosphere great store with all of your barber needs and if you can't find it in store don't you worry they will come in clutch and get it for you"</p>
-          </article>
-        </a>
-        <a href="https://share.google/TmKXuMQR3XjuPsZGM" target="_blank" rel="noopener noreferrer" class="clutch-home-reviews__card-link">
-          <article class="clutch-home-reviews__card">
-            <div class="clutch-home-reviews__stars">★★★★★</div>
-            <h3 class="clutch-home-reviews__name">derrick dumas</h3>
-            <p class="clutch-home-reviews__quote">"The name is official for the exceptional service They provide me with all my Barber accessories"</p>
-          </article>
-        </a>
-        <a href="https://share.google/m50L7G5wdMCTYaTyc" target="_blank" rel="noopener noreferrer" class="clutch-home-reviews__card-link">
-          <article class="clutch-home-reviews__card">
-            <div class="clutch-home-reviews__stars">★★★★★</div>
-            <h3 class="clutch-home-reviews__name">Sabrina Reina</h3>
-            <p class="clutch-home-reviews__quote">"Wonderful customer service! Best barber supply hands down! Pricing is perfect and well stocked! Highly recommend!"</p>
-          </article>
-        </a>
+      <div class="clutch-home-reviews__marquee">
+        <div class="clutch-home-reviews__track">
+          <a href="https://share.google/qYNYnKpIkvXdajHIh" target="_blank" rel="noopener noreferrer" class="clutch-home-reviews__card-link">
+            <article class="clutch-home-reviews__card">
+              <div class="clutch-home-reviews__stars">★★★★★</div>
+              <h3 class="clutch-home-reviews__name">Erik Deleon</h3>
+              <p class="clutch-home-reviews__quote">"Man I'm glad I stopped by the shop today it's hard finding a good barber supply store but let me tell you this shop has everything you can ever want and need with great prices this shop a 10/10"</p>
+            </article>
+          </a>
+          <a href="https://share.google/m9E6OOclfoYr3Lm7p" target="_blank" rel="noopener noreferrer" class="clutch-home-reviews__card-link">
+            <article class="clutch-home-reviews__card">
+              <div class="clutch-home-reviews__stars">★★★★★</div>
+              <h3 class="clutch-home-reviews__name">Scarlett Salas</h3>
+              <p class="clutch-home-reviews__quote">"Be careful when walking in to Clutch Barber supply. It's like walking in to Target, you can never walk out with just one thing. I love that they have just about EVERYTHING here! And not to mention the wonderful staff!"</p>
+            </article>
+          </a>
+          <a href="https://share.google/PVtiJEMNbRJI2vKIG" target="_blank" rel="noopener noreferrer" class="clutch-home-reviews__card-link">
+            <article class="clutch-home-reviews__card">
+              <div class="clutch-home-reviews__stars">★★★★★</div>
+              <h3 class="clutch-home-reviews__name">dtx.outlaws</h3>
+              <p class="clutch-home-reviews__quote">"Bought 2 barber chairs here for my business. And this is by far the best barber supply store I've been to. Definitely recommend!"</p>
+            </article>
+          </a>
+          <a href="https://share.google/kYP3dkGxrFuLL84pf" target="_blank" rel="noopener noreferrer" class="clutch-home-reviews__card-link">
+            <article class="clutch-home-reviews__card">
+              <div class="clutch-home-reviews__stars">★★★★★</div>
+              <h3 class="clutch-home-reviews__name">Fernando Perez</h3>
+              <p class="clutch-home-reviews__quote">"Great atmosphere great store with all of your barber needs and if you can't find it in store don't you worry they will come in clutch and get it for you"</p>
+            </article>
+          </a>
+          <a href="https://share.google/TmKXuMQR3XjuPsZGM" target="_blank" rel="noopener noreferrer" class="clutch-home-reviews__card-link">
+            <article class="clutch-home-reviews__card">
+              <div class="clutch-home-reviews__stars">★★★★★</div>
+              <h3 class="clutch-home-reviews__name">derrick dumas</h3>
+              <p class="clutch-home-reviews__quote">"The name is official for the exceptional service They provide me with all my Barber accessories"</p>
+            </article>
+          </a>
+          <a href="https://share.google/m50L7G5wdMCTYaTyc" target="_blank" rel="noopener noreferrer" class="clutch-home-reviews__card-link">
+            <article class="clutch-home-reviews__card">
+              <div class="clutch-home-reviews__stars">★★★★★</div>
+              <h3 class="clutch-home-reviews__name">Sabrina Reina</h3>
+              <p class="clutch-home-reviews__quote">"Wonderful customer service! Best barber supply hands down! Pricing is perfect and well stocked! Highly recommend!"</p>
+            </article>
+          </a>
+          <!-- Duplicate for seamless loop -->
+          <a href="https://share.google/qYNYnKpIkvXdajHIh" target="_blank" rel="noopener noreferrer" class="clutch-home-reviews__card-link">
+            <article class="clutch-home-reviews__card">
+              <div class="clutch-home-reviews__stars">★★★★★</div>
+              <h3 class="clutch-home-reviews__name">Erik Deleon</h3>
+              <p class="clutch-home-reviews__quote">"Man I'm glad I stopped by the shop today it's hard finding a good barber supply store but let me tell you this shop has everything you can ever want and need with great prices this shop a 10/10"</p>
+            </article>
+          </a>
+          <a href="https://share.google/m9E6OOclfoYr3Lm7p" target="_blank" rel="noopener noreferrer" class="clutch-home-reviews__card-link">
+            <article class="clutch-home-reviews__card">
+              <div class="clutch-home-reviews__stars">★★★★★</div>
+              <h3 class="clutch-home-reviews__name">Scarlett Salas</h3>
+              <p class="clutch-home-reviews__quote">"Be careful when walking in to Clutch Barber supply. It's like walking in to Target, you can never walk out with just one thing. I love that they have just about EVERYTHING here! And not to mention the wonderful staff!"</p>
+            </article>
+          </a>
+          <a href="https://share.google/PVtiJEMNbRJI2vKIG" target="_blank" rel="noopener noreferrer" class="clutch-home-reviews__card-link">
+            <article class="clutch-home-reviews__card">
+              <div class="clutch-home-reviews__stars">★★★★★</div>
+              <h3 class="clutch-home-reviews__name">dtx.outlaws</h3>
+              <p class="clutch-home-reviews__quote">"Bought 2 barber chairs here for my business. And this is by far the best barber supply store I've been to. Definitely recommend!"</p>
+            </article>
+          </a>
+          <a href="https://share.google/kYP3dkGxrFuLL84pf" target="_blank" rel="noopener noreferrer" class="clutch-home-reviews__card-link">
+            <article class="clutch-home-reviews__card">
+              <div class="clutch-home-reviews__stars">★★★★★</div>
+              <h3 class="clutch-home-reviews__name">Fernando Perez</h3>
+              <p class="clutch-home-reviews__quote">"Great atmosphere great store with all of your barber needs and if you can't find it in store don't you worry they will come in clutch and get it for you"</p>
+            </article>
+          </a>
+          <a href="https://share.google/TmKXuMQR3XjuPsZGM" target="_blank" rel="noopener noreferrer" class="clutch-home-reviews__card-link">
+            <article class="clutch-home-reviews__card">
+              <div class="clutch-home-reviews__stars">★★★★★</div>
+              <h3 class="clutch-home-reviews__name">derrick dumas</h3>
+              <p class="clutch-home-reviews__quote">"The name is official for the exceptional service They provide me with all my Barber accessories"</p>
+            </article>
+          </a>
+          <a href="https://share.google/m50L7G5wdMCTYaTyc" target="_blank" rel="noopener noreferrer" class="clutch-home-reviews__card-link">
+            <article class="clutch-home-reviews__card">
+              <div class="clutch-home-reviews__stars">★★★★★</div>
+              <h3 class="clutch-home-reviews__name">Sabrina Reina</h3>
+              <p class="clutch-home-reviews__quote">"Wonderful customer service! Best barber supply hands down! Pricing is perfect and well stocked! Highly recommend!"</p>
+            </article>
+          </a>
+        </div>
       </div>
       <p class="clutch-home-section__hint">👆 Click any review to read the full story on Google Reviews</p>
     </div>
@@ -1676,31 +2072,31 @@
       </header>
       
       <div class="clutch-home-brands__grid">
-        <a href="/collections/gamma" class="clutch-home-brands__item">
+        <a href="preview-collections.html?vendor=Gamma%20%7C%20Style%20Craft" class="clutch-home-brands__item">
           <img src="assets/logos/gamma-logo.png" alt="Gamma" class="clutch-home-brands__logo-img">
         </a>
-        <a href="/collections/jrl" class="clutch-home-brands__item">
+        <a href="preview-collections.html?vendor=JRL" class="clutch-home-brands__item">
           <img src="assets/logos/jrl-logo.png" alt="JRL" class="clutch-home-brands__logo-img">
         </a>
-        <a href="/collections/wahl" class="clutch-home-brands__item">
+        <a href="preview-collections.html?vendor=Wahl" class="clutch-home-brands__item">
           <img src="assets/logos/wahl-logo.png" alt="Wahl" class="clutch-home-brands__logo-img">
         </a>
-        <a href="/collections/babyliss-pro" class="clutch-home-brands__item">
+        <a href="preview-collections.html?vendor=Babyliss%20Pro" class="clutch-home-brands__item">
           <img src="assets/logos/brand-logo.png" alt="BaByliss Pro" class="clutch-home-brands__logo-img">
         </a>
-        <a href="/collections/level-3" class="clutch-home-brands__item">
+        <a href="preview-collections.html?vendor=Level%203" class="clutch-home-brands__item">
           <img src="assets/logos/level3-logo.png" alt="Level 3" class="clutch-home-brands__logo-img">
         </a>
-        <a href="/collections/andis" class="clutch-home-brands__item">
+        <a href="preview-collections.html?vendor=Andis" class="clutch-home-brands__item">
           <img src="assets/logos/andis-logo.png" alt="Andis" class="clutch-home-brands__logo-img">
         </a>
-        <a href="/collections/oster" class="clutch-home-brands__item">
+        <a href="preview-collections.html?vendor=Oster" class="clutch-home-brands__item">
           <img src="assets/logos/oster-logo.png" alt="Oster" class="clutch-home-brands__logo-img">
         </a>
-        <a href="/collections/cocco" class="clutch-home-brands__item">
+        <a href="preview-collections.html?vendor=Cocco%20Hair%20Pro" class="clutch-home-brands__item">
           <img src="assets/logos/cocco-logo.png" alt="Cocco" class="clutch-home-brands__logo-img">
         </a>
-        <a href="/collections/tomb45" class="clutch-home-brands__item">
+        <a href="preview-collections.html?vendor=Tomb45" class="clutch-home-brands__item">
           <img src="assets/logos/tomb45-logo.png" alt="Tomb45" class="clutch-home-brands__logo-img">
         </a>
       </div>
@@ -1739,19 +2135,102 @@
     </div>
   </section>
 
-  <!-- SECTION 8: Email Signup -->
-  <section class="clutch-home-email">
-    <div class="clutch-home-section__inner">
-      <div class="clutch-home-email__content">
-        <h2 class="clutch-home-email__title">Join the Clutch Crew</h2>
-        <p class="clutch-home-email__subtitle">Get 10% off your first order + exclusive drops and barber tips delivered to your inbox.</p>
+  <!-- SECTION 8: Newsletter — Redesigned -->
+  <section class="clutch-newsletter">
+    <div class="clutch-newsletter__inner">
+      <div class="clutch-newsletter__grid">
         
-        <form class="clutch-home-email__input-group">
-          <input type="email" placeholder="Enter your email" required>
-          <button type="submit" class="clutch-button clutch-button--primary">Get 10% Off</button>
-        </form>
-        
-        <p class="clutch-home-email__disclaimer">No spam, unsubscribe anytime.</p>
+        <!-- Left: Value Props -->
+        <div class="clutch-newsletter__content">
+          <p class="clutch-newsletter__eyebrow">Exclusive Offers</p>
+          <h2 class="clutch-newsletter__headline">Get 10% Off Your First Order + Exclusive Access</h2>
+          
+          <div class="clutch-newsletter__benefits">
+            <div class="clutch-newsletter__benefit">
+              <div class="clutch-newsletter__benefit-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 8v13M8 12l4-4 4 4M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <div class="clutch-newsletter__benefit-text">
+                <p class="clutch-newsletter__benefit-title">Free Shipping on Orders $300+</p>
+                <p class="clutch-newsletter__benefit-desc">Stock up on premium tools and save on delivery</p>
+              </div>
+            </div>
+            
+            <div class="clutch-newsletter__benefit">
+              <div class="clutch-newsletter__benefit-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <div class="clutch-newsletter__benefit-text">
+                <p class="clutch-newsletter__benefit-title">10% Off Your First Purchase</p>
+                <p class="clutch-newsletter__benefit-desc">Instant savings when you subscribe today</p>
+              </div>
+            </div>
+            
+            <div class="clutch-newsletter__benefit">
+              <div class="clutch-newsletter__benefit-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+              </div>
+              <div class="clutch-newsletter__benefit-text">
+                <p class="clutch-newsletter__benefit-title">Early Access to Sales</p>
+                <p class="clutch-newsletter__benefit-desc">Be first to know about new drops and limited deals</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Form -->
+        <div class="clutch-newsletter__form-wrapper">
+          <h3 class="clutch-newsletter__form-title">Claim Your 10% Off</h3>
+          <p class="clutch-newsletter__form-subtitle">Enter your email and we'll send your discount code</p>
+          
+          <form class="clutch-newsletter__form">
+            <div class="clutch-newsletter__input-wrapper">
+              <span class="clutch-newsletter__input-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+              </span>
+              <input type="email" class="clutch-newsletter__input" placeholder="Enter your email address" required>
+            </div>
+            
+            <button type="submit" class="clutch-newsletter__submit">
+              Get My 10% Off
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+          </form>
+          
+          <p class="clutch-newsletter__disclaimer">No spam, unsubscribe anytime.</p>
+          
+          <div class="clutch-newsletter__trust">
+            <div class="clutch-newsletter__trust-item">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              Secure
+            </div>
+            <div class="clutch-newsletter__trust-item">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              No Spam
+            </div>
+            <div class="clutch-newsletter__trust-item">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Instant
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
@@ -1809,13 +2288,14 @@
           <nav class="clutch-home-footer__links">
             <a href="preview-classes.html">View All Classes</a>
             <a href="preview-faq.html">FAQ</a>
+            <a href="preview-reviews.html">Reviews</a>
             <a href="preview-shipping.html">Shipping</a>
             <a href="preview-returns.html">Return Policy</a>
             <a href="preview-terms.html">Terms & Conditions</a>
             <a href="preview-privacy.html">Privacy Policy</a>
           </nav>
         </div>
-        
+
         <div class="clutch-home-footer__column">
           <h3 class="clutch-home-footer__heading">Contact</h3>
           <nav class="clutch-home-footer__links">
@@ -1866,6 +2346,56 @@
     </div>
   </footer>
 
+  <!-- Newsletter Popup -->
+  <div id="newsletterPopup" class="clutch-popup-overlay">
+    <div class="clutch-popup">
+      <button class="clutch-popup__close" aria-label="Close popup">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+      
+      <div class="clutch-popup__content">
+        <p class="clutch-popup__eyebrow">Limited Time Offer</p>
+        <h2 class="clutch-popup__headline">Get 10% Off Your First Order</h2>
+        <p class="clutch-popup__subtitle">Unlock exclusive deals, early access to sales, and barber tips.</p>
+        
+        <div class="clutch-popup__offer">
+          <div class="clutch-popup__offer-item">
+            <div class="clutch-popup__offer-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 8v13M8 12l4-4 4 4M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <span class="clutch-popup__offer-text">Free Shipping on Orders $300+</span>
+          </div>
+          <div class="clutch-popup__offer-item">
+            <div class="clutch-popup__offer-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <span class="clutch-popup__offer-text">10% Off Instantly — Code to Your Inbox</span>
+          </div>
+        </div>
+        
+        <form class="clutch-popup__form" id="popupNewsletterForm">
+          <div class="clutch-popup__input-wrapper">
+            <span class="clutch-popup__input-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+            </span>
+            <input type="email" class="clutch-popup__input" placeholder="Enter your email address" required>
+          </div>
+          <button type="submit" class="clutch-popup__submit">Get My 10% Off</button>
+        </form>
+        
+        <p class="clutch-popup__disclaimer">No spam, unsubscribe anytime.</p>
+      </div>
+    </div>
+  </div>
+
   <script>
     // Mobile Navigation Toggle
     (function() {
@@ -1889,6 +2419,55 @@
       menuBtn.addEventListener('click', openNav);
       closeBtn.addEventListener('click', closeNav);
       overlay.addEventListener('click', closeNav);
+    })();
+
+    // Newsletter Popup — 5 Second Delay, Once Per Session
+    (function() {
+      const popup = document.getElementById('newsletterPopup');
+      const closeBtn = popup.querySelector('.clutch-popup__close');
+      const form = document.getElementById('popupNewsletterForm');
+      
+      // Check if popup was already shown in this session
+      const popupShown = sessionStorage.getItem('newsletterPopupShown');
+      
+      if (!popupShown) {
+        // Show popup after 5 seconds
+        setTimeout(function() {
+          popup.classList.add('active');
+          document.body.style.overflow = 'hidden';
+          // Mark as shown in this session
+          sessionStorage.setItem('newsletterPopupShown', 'true');
+        }, 5000);
+      }
+      
+      // Close popup
+      function closePopup() {
+        popup.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+      
+      closeBtn.addEventListener('click', closePopup);
+      
+      // Close on overlay click
+      popup.addEventListener('click', function(e) {
+        if (e.target === popup) {
+          closePopup();
+        }
+      });
+      
+      // Close on Escape key
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && popup.classList.contains('active')) {
+          closePopup();
+        }
+      });
+      
+      // Form submission (demo)
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        alert('Thanks! Your 10% off code has been sent to your email.');
+        closePopup();
+      });
     })();
   </script>
 

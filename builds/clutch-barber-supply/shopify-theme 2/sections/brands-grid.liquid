@@ -1,0 +1,77 @@
+<section class="clutch-home-section clutch-home-brands" id="brands">
+  <div class="clutch-home-section__inner">
+    <header class="clutch-home-section__header">
+      <p class="clutch-home-section__eyebrow">{{ section.settings.eyebrow }}</p>
+      <h2 class="clutch-home-section__title">{{ section.settings.title }}</h2>
+      <p class="clutch-home-section__subtitle">{{ section.settings.subtitle }}</p>
+    </header>
+    
+    <div class="clutch-home-brands__grid">
+      {% for block in section.blocks %}
+        <a href="{{ block.settings.link }}" class="clutch-home-brands__item" {{ block.shopify_attributes }}>
+          {% if block.settings.image != blank %}
+            <img src="{{ block.settings.image | image_url }}" alt="{{ block.settings.title }}" class="clutch-home-brands__logo-img">
+          {% else %}
+            <span>{{ block.settings.title }}</span>
+          {% endif %}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Brands Grid",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "default": "Shop by brand",
+      "label": "Eyebrow Text"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "default": "Shop the Big Brands",
+      "label": "Title"
+    },
+    {
+      "type": "textarea",
+      "id": "subtitle",
+      "default": "The brands barbers swear by, ready for pickup today",
+      "label": "Subtitle"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "brand",
+      "name": "Brand",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "default": "Brand Name",
+          "label": "Brand Name"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Logo"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 9,
+  "presets": [
+    {
+      "name": "Brands Grid"
+    }
+  ]
+}
+{% endschema %}

@@ -91,59 +91,200 @@
     .clutch-footer__links a:hover { color: var(--clutch-accent); }
     .clutch-footer__bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 2rem; border-top: 1px solid var(--clutch-border); }
     .clutch-footer__copyright { font-size: 0.8125rem; color: var(--clutch-text-dim); }
-  </style>
+  
+    /* Mobile Navigation Drawer */
+    .clutch-mobile-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 280px;
+      height: 100vh;
+      background: var(--clutch-bg-light);
+      border-right: 1px solid var(--clutch-border);
+      z-index: 200;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .clutch-mobile-nav.active { transform: translateX(0); }
+    .clutch-mobile-nav__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--clutch-border);
+    }
+    .clutch-mobile-nav__title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--clutch-text);
+    }
+    .clutch-mobile-nav__close {
+      width: 2.5rem;
+      height: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--clutch-border);
+      border-radius: 8px;
+      color: var(--clutch-text);
+      cursor: pointer;
+    }
+    .clutch-mobile-nav__links {
+      flex: 1;
+      padding: 1rem 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .clutch-mobile-nav__links a {
+      padding: 1rem 1.25rem;
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--clutch-text);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      transition: background 0.2s;
+    }
+    .clutch-mobile-nav__links a:hover {
+      background: rgba(201,137,75,0.1);
+      color: var(--clutch-accent);
+    }
+    .clutch-mobile-nav__footer {
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--clutch-border);
+    }
+    .clutch-mobile-nav__cart {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.875rem 1rem;
+      background: rgba(201,137,75,0.1);
+      border: 1px solid var(--clutch-accent);
+      border-radius: 8px;
+      color: var(--clutch-accent);
+      font-weight: 600;
+    }
+    .clutch-mobile-nav__overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.5);
+      z-index: 150;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    .clutch-mobile-nav__overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    /* Mobile menu button */
+    .clutch-header__menu {
+      display: none;
+      width: 2.5rem;
+      height: 2.5rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--clutch-border);
+      border-radius: 8px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      margin-right: 0.75rem;
+    }
+    .clutch-header__menu span {
+      display: block;
+      width: 18px;
+      height: 2px;
+      background: var(--clutch-text);
+      border-radius: 2px;
+    }
+    @media (max-width: 900px) {
+      .clutch-header__menu { display: flex; }
+      .clutch-header__nav { display: none; }
+    }
+</style>
 </head>
 <body>
   <header class="clutch-header">
     <div class="clutch-header__inner">
-      <a href="http://localhost:8765/preview-homepage-complete.html" class="clutch-header__logo"><img src="assets/clutch-logo.png" alt="Clutch Barber Supply" width="200" height="80"></a>
+      <button class="clutch-header__menu" aria-label="Open menu"><span></span><span></span><span></span></button><a href="preview-homepage-complete.html" class="clutch-header__logo"><img src="assets/clutch-logo.png" alt="Clutch Barber Supply" width="200" height="80"></a>
       <div style="display: flex; align-items: center; gap: 1.5rem;">
         <nav class="clutch-header__nav">
-          <a href="http://localhost:8765/preview-collections.html">Shop</a>
+          <a href="preview-collections.html">Shop</a>
           <div class="clutch-header__dropdown">
-            <a href="http://localhost:8765/preview-brands.html">Brands</a>
+            <a href="preview-brands.html">Brands</a>
             <div class="clutch-header__dropdown-menu">
-              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Andis</a>
-              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Babyliss Pro</a>
-              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">JRL</a>
-              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Wahl</a>
-              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Gamma | Style Craft</a>
-              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Supreme Trimmers</a>
-              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Level 3</a>
-              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Cocco Hair Pro</a>
-              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Oster</a>
-              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Tomb45</a>
-              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Vincent</a>
-              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">OG Walker</a>
-              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Smash</a>
-              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Rolda</a>
+              <a href="preview-collections.html" class="clutch-header__dropdown-item">Andis</a>
+              <a href="preview-collections.html" class="clutch-header__dropdown-item">Babyliss Pro</a>
+              <a href="preview-collections.html" class="clutch-header__dropdown-item">JRL</a>
+              <a href="preview-collections.html" class="clutch-header__dropdown-item">Wahl</a>
+              <a href="preview-collections.html" class="clutch-header__dropdown-item">Gamma | Style Craft</a>
+              <a href="preview-collections.html" class="clutch-header__dropdown-item">Supreme Trimmers</a>
+              <a href="preview-collections.html" class="clutch-header__dropdown-item">Level 3</a>
+              <a href="preview-collections.html" class="clutch-header__dropdown-item">Cocco Hair Pro</a>
+              <a href="preview-collections.html" class="clutch-header__dropdown-item">Oster</a>
+              <a href="preview-collections.html" class="clutch-header__dropdown-item">Tomb45</a>
+              <a href="preview-collections.html" class="clutch-header__dropdown-item">Vincent</a>
+              <a href="preview-collections.html" class="clutch-header__dropdown-item">OG Walker</a>
+              <a href="preview-collections.html" class="clutch-header__dropdown-item">Smash</a>
+              <a href="preview-collections.html" class="clutch-header__dropdown-item">Rolda</a>
             </div>
           </div>
           <div class="clutch-header__dropdown">
-            <a href="http://localhost:8765/preview-supplies.html">Supplies</a>
+            <a href="preview-supplies.html">Supplies</a>
             <div class="clutch-header__dropdown-menu">
-              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Clippers</a>
-              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Trimmers</a>
-              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Shavers</a>
-              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Barber Bags | Cases</a>
-              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Lights</a>
-              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Accessories</a>
-              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Capes</a>
-              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Barber Chairs</a>
-              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Barber Clothing</a>
-              <a href="http://localhost:8765/preview-collections.html" class="clutch-header__dropdown-item">Barber Poles</a>
+              <a href="preview-collections.html" class="clutch-header__dropdown-item">Clippers</a>
+              <a href="preview-collections.html" class="clutch-header__dropdown-item">Trimmers</a>
+              <a href="preview-collections.html" class="clutch-header__dropdown-item">Shavers</a>
+              <a href="preview-collections.html" class="clutch-header__dropdown-item">Barber Bags | Cases</a>
+              <a href="preview-collections.html" class="clutch-header__dropdown-item">Lights</a>
+              <a href="preview-collections.html" class="clutch-header__dropdown-item">Accessories</a>
+              <a href="preview-collections.html" class="clutch-header__dropdown-item">Capes</a>
+              <a href="preview-collections.html" class="clutch-header__dropdown-item">Barber Chairs</a>
+              <a href="preview-collections.html" class="clutch-header__dropdown-item">Barber Clothing</a>
+              <a href="preview-collections.html" class="clutch-header__dropdown-item">Barber Poles</a>
             </div>
           </div>
-          <a href="http://localhost:8765/preview-classes.html">Classes</a>
-          <a href="http://localhost:8765/preview-contact.html">Contact</a>
-          <a href="http://localhost:8765/preview-faq.html">FAQ</a>
+          <a href="preview-classes.html">Classes</a>
+          <a href="preview-contact.html">Contact</a>
+          <a href="preview-faq.html">FAQ</a>
         </nav>
-        <a href="http://localhost:8765/preview-cart.html" class="clutch-header__cart">
+        <a href="preview-cart.html" class="clutch-header__cart">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h2l2.1 9.2a1 1 0 0 0 1 .8H18a1 1 0 0 0 1-.8L21 8H7"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg>
         </a>
       </div>
     </div>
   </header>
+<!-- MOBILE NAVIGATION DRAWER -->
+<div class="clutch-mobile-nav" id="mobileNav">
+  <div class="clutch-mobile-nav__header">
+    <span class="clutch-mobile-nav__title">Menu</span>
+    <button class="clutch-mobile-nav__close" id="closeMobileNav" aria-label="Close menu">
+      <svg viewBox="0 0 24 24" width="24" height="24"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+    </button>
+  </div>
+  <nav class="clutch-mobile-nav__links">
+    <a href="preview-collections.html">Shop</a>
+    <a href="preview-brands.html">Brands</a>
+    <a href="preview-about.html">About</a>
+    <a href="preview-contact.html">Contact</a>
+    <a href="preview-faq.html">FAQ</a>
+    <a href="preview-homepage-complete.html#reviews">Reviews</a>
+  </nav>
+  <div class="clutch-mobile-nav__footer">
+    <a href="preview-cart.html" class="clutch-mobile-nav__cart">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 5h2l2.1 9.2a1 1 0 0 0 1 .8H18a1 1 0 0 0 1-.8L21 8H7"></path><circle cx="9" cy="19" r="1.5"></circle><circle cx="17" cy="19" r="1.5"></circle></svg>
+      Cart (2)
+    </a>
+  </div>
+</div>
+<div class="clutch-mobile-nav__overlay" id="mobileNavOverlay"></div>
+
 
   <div class="page-header">
     <h1>Shopping Cart</h1>
@@ -227,13 +368,14 @@
     </div>
   </div>
 
-    <footer class="clutch-footer">
-    <div class="clutch-footer__inner">
-      <div class="clutch-footer__grid">
-        <div class="clutch-footer__column clutch-footer__column--wide">
-          <h4>Shop by Brand</h4>
-          <div class="clutch-footer__sublinks">
-            <nav class="clutch-footer__links">
+      <!-- Footer -->
+  <footer class="clutch-home-footer">
+    <div class="clutch-home-section__inner">
+      <div class="clutch-home-footer__grid">
+        <div class="clutch-home-footer__column clutch-home-footer__column--wide">
+          <h3 class="clutch-home-footer__heading">Shop by Brand</h3>
+          <div class="clutch-home-footer__sublinks">
+            <nav class="clutch-home-footer__links">
               <a href="preview-collections.html?vendor=Andis">Andis</a>
               <a href="preview-collections.html?vendor=Babyliss%20Pro">Babyliss Pro</a>
               <a href="preview-collections.html?vendor=JRL">JRL</a>
@@ -242,7 +384,7 @@
               <a href="preview-collections.html?vendor=Supreme%20Trimmers">Supreme Trimmers</a>
               <a href="preview-collections.html?vendor=Level%203">Level 3</a>
             </nav>
-            <nav class="clutch-footer__links">
+            <nav class="clutch-home-footer__links">
               <a href="preview-collections.html?vendor=Cocco%20Hair%20Pro">Cocco Hair Pro</a>
               <a href="preview-collections.html?vendor=Oster">Oster</a>
               <a href="preview-collections.html?vendor=Tomb45">Tomb45</a>
@@ -254,17 +396,17 @@
           </div>
         </div>
         
-        <div class="clutch-footer__column clutch-footer__column--wide">
-          <h4>Shop by Supplies</h4>
-          <div class="clutch-footer__sublinks">
-            <nav class="clutch-footer__links">
+        <div class="clutch-home-footer__column clutch-home-footer__column--wide">
+          <h3 class="clutch-home-footer__heading">Shop by Supplies</h3>
+          <div class="clutch-home-footer__sublinks">
+            <nav class="clutch-home-footer__links">
               <a href="preview-collections.html?category=clippers">Clippers</a>
               <a href="preview-collections.html?category=trimmers">Trimmers</a>
               <a href="preview-collections.html?category=shavers">Shavers</a>
               <a href="preview-collections.html?category=barber-bags-cases">Barber Bags | Cases</a>
               <a href="preview-collections.html?category=lights">Lights</a>
             </nav>
-            <nav class="clutch-footer__links">
+            <nav class="clutch-home-footer__links">
               <a href="preview-collections.html?category=accessories">Accessories</a>
               <a href="preview-collections.html?category=capes">Capes</a>
               <a href="preview-collections.html?category=barber-chairs">Barber Chairs</a>
@@ -274,11 +416,12 @@
           </div>
         </div>
         
-        <div class="clutch-footer__column">
-          <h4>Support</h4>
-          <nav class="clutch-footer__links">
+        <div class="clutch-home-footer__column">
+          <h3 class="clutch-home-footer__heading">Support</h3>
+          <nav class="clutch-home-footer__links">
             <a href="preview-classes.html">View All Classes</a>
             <a href="preview-faq.html">FAQ</a>
+          <a href="preview-reviews.html">Reviews</a>
             <a href="preview-shipping.html">Shipping</a>
             <a href="preview-returns.html">Return Policy</a>
             <a href="preview-terms.html">Terms & Conditions</a>
@@ -286,12 +429,12 @@
           </nav>
         </div>
         
-        <div class="clutch-footer__column">
-          <h4>Contact</h4>
-          <nav class="clutch-footer__links">
+        <div class="clutch-home-footer__column">
+          <h3 class="clutch-home-footer__heading">Contact</h3>
+          <nav class="clutch-home-footer__links">
             <a href="preview-contact.html">Reach Out</a>
           </nav>
-          <div class="clutch-footer__contact-info">
+          <div class="clutch-home-footer__contact-info">
             <p>+1 (214) 677-1059</p>
             <p>viceliatinde20@gmail.com</p>
             <p>113 South Center. Grand Prairie, TX 75050</p>
@@ -301,39 +444,64 @@
         </div>
       </div>
       
-      <div class="clutch-footer__bottom">
-        <div class="clutch-footer__social">
+      <div class="clutch-home-footer__bottom">
+        <div class="clutch-home-footer__social">
           <a href="https://www.instagram.com/clutchbarbersupply?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-            <svg viewBox="0 0 24 24" width="20" height="20"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="currentColor" fill="none" stroke-width="2"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" stroke="currentColor" fill="none" stroke-width="2"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke="currentColor" stroke-width="2"/></svg>
+            <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="currentColor" fill="none"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
           </a>
           <a href="https://www.facebook.com/clutchbarbersupply" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
-            <svg viewBox="0 0 24 24" width="20" height="20"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" stroke="currentColor" fill="none" stroke-width="2"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
           </a>
           <a href="https://share.google/OtN5piiXnWaImxX0e" target="_blank" rel="noopener noreferrer" aria-label="Google">
-            <svg viewBox="0 0 24 24" width="20" height="20"><text x="12" y="20" text-anchor="middle" font-family="DM Sans, sans-serif" font-size="22" font-weight="700" fill="currentColor">G</text></svg>
+            <svg viewBox="0 0 24 24"><text x="12" y="20" text-anchor="middle" font-family="DM Sans, sans-serif" font-size="22" font-weight="700" fill="currentColor">G</text></svg>
           </a>
         </div>
         
-        <p class="clutch-footer__copyright">© 2026 Clutch Barber Supply. All rights reserved. Website Powered By Straight Point Marketing</p>
+        <p class="clutch-home-footer__copyright">© 2026 Clutch Barber Supply. All rights reserved. Website Powered By Straight Point Marketing</p>
         
-        <div class="clutch-footer__payment">
-          <div class="clutch-footer__payment-row">
-            <span class="clutch-footer__payment-icon">AMEX</span>
-            <span class="clutch-footer__payment-icon">Apple Pay</span>
-            <span class="clutch-footer__payment-icon">Diners</span>
-            <span class="clutch-footer__payment-icon">Discover</span>
-            <span class="clutch-footer__payment-icon">G Pay</span>
+        <div class="clutch-home-footer__payment">
+          <div class="clutch-home-footer__payment-row">
+            <span class="clutch-home-footer__payment-icon">AMEX</span>
+            <span class="clutch-home-footer__payment-icon">Apple Pay</span>
+            <span class="clutch-home-footer__payment-icon">Diners</span>
+            <span class="clutch-home-footer__payment-icon">Discover</span>
+            <span class="clutch-home-footer__payment-icon">G Pay</span>
           </div>
-          <div class="clutch-footer__payment-row">
-            <span class="clutch-footer__payment-icon">MC</span>
-            <span class="clutch-footer__payment-icon">PayPal</span>
-            <span class="clutch-footer__payment-icon">Shop Pay</span>
-            <span class="clutch-footer__payment-icon">UnionPay</span>
-            <span class="clutch-footer__payment-icon">VISA</span>
+          <div class="clutch-home-footer__payment-row">
+            <span class="clutch-home-footer__payment-icon">MC</span>
+            <span class="clutch-home-footer__payment-icon">PayPal</span>
+            <span class="clutch-home-footer__payment-icon">Shop Pay</span>
+            <span class="clutch-home-footer__payment-icon">UnionPay</span>
+            <span class="clutch-home-footer__payment-icon">VISA</span>
           </div>
         </div>
       </div>
     </div>
   </footer>
+<script>
+(function() {
+  const menuBtn = document.querySelector('.clutch-header__menu');
+  const mobileNav = document.getElementById('mobileNav');
+  const closeBtn = document.getElementById('closeMobileNav');
+  const overlay = document.getElementById('mobileNavOverlay');
+  if (!menuBtn || !mobileNav) return;
+  
+  function openNav() {
+    mobileNav.classList.add('active');
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  
+  function closeNav() {
+    mobileNav.classList.remove('active');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  
+  menuBtn.addEventListener('click', openNav);
+  closeBtn.addEventListener('click', closeNav);
+  overlay.addEventListener('click', closeNav);
+})();
+</script>
 </body>
 </html>
