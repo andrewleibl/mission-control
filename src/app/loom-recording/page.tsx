@@ -37,30 +37,96 @@ function LoomRecordingContent() {
   const clientId = searchParams.get('client') || 'hector-huizar'
   
   const [editingSection, setEditingSection] = useState<string | null>(null)
-  const [answers, setAnswers] = useState<Record<string, string>>({
-    whatChanged: 'Campaign is stable but underperforming on lead volume. 1 lead at $217 CPL is above target.',
-    whatsWorking: 'Changes attempted but market conditions shifted — need more aggressive fixes.',
-    nextWeek: 'Expect 2-3 day recovery period after implementing fixes, then stabilization.',
+  
+  // Section data with main text and list items
+  const [sectionData, setSectionData] = useState({
+    section1: {
+      mainText: 'Campaign is stable but underperforming on lead volume. 1 lead at $217 CPL is above target.',
+      items: [
+        'Pause lowest-performing creative (CTR < 1%)',
+        'Expand targeting radius by 5 miles',
+        'Test new hook angles in ad copy',
+        'Reduce budget on underperforming ad sets by 20%'
+      ]
+    },
+    section2: {
+      mainText: 'Changes attempted but market conditions shifted — need more aggressive fixes.',
+      items: [
+        'Paused 2 creatives showing fatigue (CTR < 1.5%)',
+        'Adjusted budget allocation',
+        'Reviewed targeting parameters'
+      ]
+    },
+    section3: {
+      mainText: 'Expect 2-3 day recovery period after implementing fixes, then stabilization.',
+      items: [
+        'Monitor daily',
+        'Aggressive creative rotation',
+        'Budget reallocation'
+      ],
+      targets: {
+        leads: '3-4',
+        cpl: '$80-100',
+        spend: '$240-280'
+      }
+    }
   })
-  const [tempAnswer, setTempAnswer] = useState('')
+  
+  // Temp state for editing
+  const [tempData, setTempData] = useState({
+    mainText: '',
+    items: ['']
+  })
 
   const data = mockCampaignData
 
   const startEdit = (sectionId: string) => {
     setEditingSection(sectionId)
-    setTempAnswer(answers[sectionId] || '')
+    const section = sectionData[sectionId as keyof typeof sectionData]
+    setTempData({
+      mainText: section.mainText,
+      items: [...section.items]
+    })
   }
 
   const saveEdit = () => {
     if (editingSection) {
-      setAnswers(prev => ({ ...prev, [editingSection]: tempAnswer }))
+      setSectionData(prev => ({
+        ...prev,
+        [editingSection]: {
+          ...prev[editingSection as keyof typeof prev],
+          mainText: tempData.mainText,
+          items: tempData.items
+        }
+      }))
       setEditingSection(null)
     }
   }
 
   const cancelEdit = () => {
     setEditingSection(null)
-    setTempAnswer('')
+    setTempData({ mainText: '', items: [''] })
+  }
+
+  const updateTempItem = (index: number, value: string) => {
+    setTempData(prev => ({
+      ...prev,
+      items: prev.items.map((item, i) => i === index ? value : item)
+    }))
+  }
+
+  const addTempItem = () => {
+    setTempData(prev => ({
+      ...prev,
+      items: [...prev.items, '']
+    }))
+  }
+
+  const removeTempItem = (index: number) => {
+    setTempData(prev => ({
+      ...prev,
+      items: prev.items.filter((_, i) => i !== index)
+    }))
   }
 
   const handleDownload = () => {
@@ -91,7 +157,7 @@ function LoomRecordingContent() {
   const leadsMax = Math.max(...data.leadsThisWeek)
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #0D0D0D 0%, rgba(229, 62, 62, 0.03) 100%)', color: '#F7FAFC', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #1A1A1A 0%, rgba(229, 62, 62, 0.02) 100%)', color: '#F7FAFC', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       {/* Header */}
       <div style={{ 
         background: '#141414', 
@@ -147,15 +213,25 @@ function LoomRecordingContent() {
       </div>
 
       <div style={{ padding: '32px', maxWidth: '1200px', margin: '0 auto', position: 'relative' }}>
-        {/* Subtle red glow background */}
+        {/* Red glow background - matching retention calendar */}
         <div style={{
           position: 'absolute',
-          top: '100px',
+          top: '50px',
           left: '50%',
           transform: 'translateX(-50%)',
-          width: '80%',
-          height: '400px',
-          background: 'radial-gradient(ellipse at center, rgba(229, 62, 62, 0.08) 0%, transparent 70%)',
+          width: '90%',
+          height: '500px',
+          background: 'radial-gradient(ellipse at center, rgba(229, 62, 62, 0.06) 0%, transparent 70%)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }} />
+        <div style={{
+          position: 'absolute',
+          top: '0',
+          left: '0',
+          right: '0',
+          bottom: '0',
+          background: 'linear-gradient(180deg, transparent 0%, rgba(229, 62, 62, 0.02) 100%)',
           pointerEvents: 'none',
           zIndex: 0,
         }} />
@@ -347,55 +423,37 @@ function LoomRecordingContent() {
         {/* Big 3 Questions */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', position: 'relative', zIndex: 1 }}>
           {/* Section 1: How Is The Campaign Going? */}
-          <div style={{ background: '#141414', borderRadius: '16px', border: '1px solid #2A2A2A', overflow: 'hidden' }}>
-            {/* Status Badge */}
-            <div style={{ padding: '16px 20px 0', display: 'flex', justifyContent: 'flex-start' }}>
-              <span style={{ 
-                background: 'rgba(229, 62, 62, 0.15)', 
-                color: '#FC8181', 
-                fontSize: '11px', 
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                padding: '6px 12px',
-                borderRadius: '20px',
+          <div style={{ background: 'linear-gradient(180deg, #141414 0%, rgba(229, 62, 62, 0.02) 100%)', borderRadius: '16px', border: '1px solid rgba(229, 62, 62, 0.1)', padding: '20px' }}>
+            {/* Title with Number and Edit Button */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <div style={{
+                width: '28px',
+                height: '28px',
+                background: 'linear-gradient(135deg, #E53E3E, #FC8181)',
+                borderRadius: '8px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
-              }}>
-                ▼ Needs Attention
-              </span>
+                justifyContent: 'center',
+                fontSize: '14px',
+                fontWeight: 700,
+                color: '#fff',
+              }}>1</div>
+              <span style={{ fontSize: '16px', fontWeight: 700 }}>How Is The Campaign Going?</span>
+              <button onClick={() => startEdit('section1')} style={{ marginLeft: 'auto', background: 'transparent', border: 'none', color: '#718096', cursor: 'pointer' }}>
+                <Edit3 size={16} />
+              </button>
             </div>
             
-            <div style={{ padding: '16px 20px 20px' }}>
-              {/* Title with Number */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                <div style={{
-                  width: '28px',
-                  height: '28px',
-                  background: 'linear-gradient(135deg, #E53E3E, #FC8181)',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '14px',
-                  fontWeight: 700,
-                  color: '#fff',
-                }}>1</div>
-                <span style={{ fontSize: '16px', fontWeight: 700 }}>How Is The Campaign Going?</span>
-                <button onClick={() => startEdit('whatChanged')} style={{ marginLeft: 'auto', background: 'transparent', border: 'none', color: '#718096', cursor: 'pointer' }}>
-                  <Edit3 size={16} />
-                </button>
-              </div>
-              
-              {/* Description */}
-              {editingSection === 'whatChanged' ? (
+            {editingSection === 'section1' ? (
+              /* Edit Mode */
+              <div>
+                <div style={{ fontSize: '12px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>Main Summary</div>
                 <textarea
-                  value={tempAnswer}
-                  onChange={(e) => setTempAnswer(e.target.value)}
+                  value={tempData.mainText}
+                  onChange={(e) => setTempData(prev => ({ ...prev, mainText: e.target.value }))}
                   style={{
                     width: '100%',
-                    minHeight: '80px',
+                    minHeight: '60px',
                     background: '#0D0D0D',
                     border: '1px solid #E53E3E',
                     borderRadius: '8px',
@@ -406,67 +464,87 @@ function LoomRecordingContent() {
                     marginBottom: '16px',
                   }}
                 />
-              ) : (
-                <p style={{ fontSize: '14px', color: '#A0AEC0', lineHeight: 1.6, marginBottom: '16px' }}>
-                  {answers.whatChanged}
-                </p>
-              )}
-              
-              {/* Fixes Section */}
-              <div style={{ marginBottom: '12px' }}>
-                <div style={{ fontSize: '11px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '10px' }}>
-                  ⚠ FIXES WE'RE IMPLEMENTING
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {['Pause lowest-performing creative (CTR < 1%)', 'Expand targeting radius by 5 miles', 'Test new hook angles in ad copy', 'Reduce budget on underperforming ad sets by 20%'].map((item, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#F7FAFC' }}>
-                      <span style={{ color: '#E53E3E' }}>→</span>
-                      {item}
+                <div style={{ fontSize: '12px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>Fixes We're Implementing</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                  {tempData.items.map((item, i) => (
+                    <div key={i} style={{ display: 'flex', gap: '8px' }}>
+                      <span style={{ color: '#E53E3E', paddingTop: '10px' }}>→</span>
+                      <input
+                        value={item}
+                        onChange={(e) => updateTempItem(i, e.target.value)}
+                        style={{
+                          flex: 1,
+                          background: '#0D0D0D',
+                          border: '1px solid #3A3A3A',
+                          borderRadius: '6px',
+                          padding: '8px 12px',
+                          color: '#F7FAFC',
+                          fontSize: '14px',
+                        }}
+                      />
+                      <button onClick={() => removeTempItem(i)} style={{ background: 'transparent', border: 'none', color: '#E53E3E', cursor: 'pointer' }}>×</button>
                     </div>
                   ))}
+                  <button onClick={addTempItem} style={{ background: 'transparent', border: '1px dashed #3A3A3A', borderRadius: '6px', padding: '8px', color: '#718096', cursor: 'pointer', fontSize: '13px' }}>+ Add Item</button>
                 </div>
-              </div>
-              
-              {editingSection === 'whatChanged' && (
-                <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                <div style={{ display: 'flex', gap: '8px' }}>
                   <button onClick={saveEdit} style={{ background: '#48BB78', border: 'none', borderRadius: '6px', padding: '8px 16px', color: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>Save</button>
                   <button onClick={cancelEdit} style={{ background: 'transparent', border: '1px solid #3A3A3A', borderRadius: '6px', padding: '8px 16px', color: '#718096', cursor: 'pointer', fontSize: '13px' }}>Cancel</button>
                 </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              /* View Mode */
+              <div>
+                <p style={{ fontSize: '14px', color: '#A0AEC0', lineHeight: '1.6', marginBottom: '16px' }}>
+                  {sectionData.section1.mainText}
+                </p>
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={{ fontSize: '11px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '10px' }}>
+                    ⚠ FIXES WE'RE IMPLEMENTING
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {sectionData.section1.items.map((item, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#F7FAFC' }}>
+                        <span style={{ color: '#E53E3E' }}>→</span>
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Section 2: Changes Made This Week */}
-          <div style={{ background: '#141414', borderRadius: '16px', border: '1px solid #2A2A2A' }}>
-            <div style={{ padding: '20px' }}>
-              {/* Title with Number */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                <div style={{
-                  width: '28px',
-                  height: '28px',
-                  background: 'linear-gradient(135deg, #E53E3E, #FC8181)',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '14px',
-                  fontWeight: 700,
-                  color: '#fff',
-                }}>2</div>
-                <span style={{ fontSize: '16px', fontWeight: 700 }}>Changes Made This Week</span>
-                <button onClick={() => startEdit('whatsWorking')} style={{ marginLeft: 'auto', background: 'transparent', border: 'none', color: '#718096', cursor: 'pointer' }}>
-                  <Edit3 size={16} />
-                </button>
-              </div>
-              
-              {/* Description */}
-              {editingSection === 'whatsWorking' ? (
+          <div style={{ background: 'linear-gradient(180deg, #141414 0%, rgba(229, 62, 62, 0.02) 100%)', borderRadius: '16px', border: '1px solid rgba(229, 62, 62, 0.1)', padding: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <div style={{
+                width: '28px',
+                height: '28px',
+                background: 'linear-gradient(135deg, #E53E3E, #FC8181)',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '14px',
+                fontWeight: 700,
+                color: '#fff',
+              }}>2</div>
+              <span style={{ fontSize: '16px', fontWeight: 700 }}>Changes Made This Week</span>
+              <button onClick={() => startEdit('section2')} style={{ marginLeft: 'auto', background: 'transparent', border: 'none', color: '#718096', cursor: 'pointer' }}>
+                <Edit3 size={16} />
+              </button>
+            </div>
+            
+            {editingSection === 'section2' ? (
+              <div>
+                <div style={{ fontSize: '12px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>Main Summary</div>
                 <textarea
-                  value={tempAnswer}
-                  onChange={(e) => setTempAnswer(e.target.value)}
+                  value={tempData.mainText}
+                  onChange={(e) => setTempData(prev => ({ ...prev, mainText: e.target.value }))}
                   style={{
                     width: '100%',
-                    minHeight: '80px',
+                    minHeight: '60px',
                     background: '#0D0D0D',
                     border: '1px solid #E53E3E',
                     borderRadius: '8px',
@@ -477,101 +555,41 @@ function LoomRecordingContent() {
                     marginBottom: '16px',
                   }}
                 />
-              ) : (
-                <p style={{ fontSize: '14px', color: '#A0AEC0', lineHeight: 1.6, marginBottom: '16px' }}>
-                  {answers.whatsWorking}
-                </p>
-              )}
-              
-              {/* Changes List */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {['Paused 2 creatives showing fatigue (CTR < 1.5%)', 'Adjusted budget allocation', 'Reviewed targeting parameters'].map((item, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#F7FAFC' }}>
-                    <span style={{ color: '#E53E3E' }}>→</span>
-                    {item}
-                  </div>
-                ))}
-              </div>
-              
-              {editingSection === 'whatsWorking' && (
-                <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                <div style={{ fontSize: '12px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>Changes Made</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                  {tempData.items.map((item, i) => (
+                    <div key={i} style={{ display: 'flex', gap: '8px' }}>
+                      <span style={{ color: '#E53E3E', paddingTop: '10px' }}>→</span>
+                      <input
+                        value={item}
+                        onChange={(e) => updateTempItem(i, e.target.value)}
+                        style={{
+                          flex: 1,
+                          background: '#0D0D0D',
+                          border: '1px solid #3A3A3A',
+                          borderRadius: '6px',
+                          padding: '8px 12px',
+                          color: '#F7FAFC',
+                          fontSize: '14px',
+                        }}
+                      />
+                      <button onClick={() => removeTempItem(i)} style={{ background: 'transparent', border: 'none', color: '#E53E3E', cursor: 'pointer' }}>×</button>
+                    </div>
+                  ))}
+                  <button onClick={addTempItem} style={{ background: 'transparent', border: '1px dashed #3A3A3A', borderRadius: '6px', padding: '8px', color: '#718096', cursor: 'pointer', fontSize: '13px' }}>+ Add Item</button>
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
                   <button onClick={saveEdit} style={{ background: '#48BB78', border: 'none', borderRadius: '6px', padding: '8px 16px', color: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>Save</button>
                   <button onClick={cancelEdit} style={{ background: 'transparent', border: '1px solid #3A3A3A', borderRadius: '6px', padding: '8px 16px', color: '#718096', cursor: 'pointer', fontSize: '13px' }}>Cancel</button>
                 </div>
-              )}
-            </div>
-          </div>
-
-          {/* Section 3: What To Expect Next Week */}
-          <div style={{ background: '#141414', borderRadius: '16px', border: '1px solid #2A2A2A' }}>
-            <div style={{ padding: '20px' }}>
-              {/* Title with Number */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                <div style={{
-                  width: '28px',
-                  height: '28px',
-                  background: 'linear-gradient(135deg, #E53E3E, #FC8181)',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '14px',
-                  fontWeight: 700,
-                  color: '#fff',
-                }}>3</div>
-                <span style={{ fontSize: '16px', fontWeight: 700 }}>What To Expect Next Week</span>
-                <button onClick={() => startEdit('nextWeek')} style={{ marginLeft: 'auto', background: 'transparent', border: 'none', color: '#718096', cursor: 'pointer' }}>
-                  <Edit3 size={16} />
-                </button>
               </div>
-              
-              {/* Description */}
-              {editingSection === 'nextWeek' ? (
-                <textarea
-                  value={tempAnswer}
-                  onChange={(e) => setTempAnswer(e.target.value)}
-                  style={{
-                    width: '100%',
-                    minHeight: '80px',
-                    background: '#0D0D0D',
-                    border: '1px solid #E53E3E',
-                    borderRadius: '8px',
-                    padding: '12px',
-                    color: '#F7FAFC',
-                    fontSize: '14px',
-                    lineHeight: 1.6,
-                    marginBottom: '16px',
-                  }}
-                />
-              ) : (
-                <p style={{ fontSize: '14px', color: '#A0AEC0', lineHeight: 1.6, marginBottom: '16px' }}>
-                  {answers.nextWeek}
+            ) : (
+              <div>
+                <p style={{ fontSize: '14px', color: '#A0AEC0', lineHeight: '1.6', marginBottom: '16px' }}>
+                  {sectionData.section2.mainText}
                 </p>
-              )}
-              
-              {/* Target Metrics */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
-                <div style={{ background: '#0D0D0D', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '10px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Target Leads</div>
-                  <div style={{ fontSize: '20px', fontWeight: 700 }}>3-4</div>
-                </div>
-                <div style={{ background: '#0D0D0D', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '10px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Target CPL</div>
-                  <div style={{ fontSize: '20px', fontWeight: 700 }}>$80-100</div>
-                </div>
-                <div style={{ background: '#0D0D0D', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '10px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Target Spend</div>
-                  <div style={{ fontSize: '20px', fontWeight: 700 }}>$240-280</div>
-                </div>
-              </div>
-              
-              {/* Focus Areas */}
-              <div style={{ marginBottom: '12px' }}>
-                <div style={{ fontSize: '11px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '10px' }}>
-                  FOCUS AREAS
-                </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {['Monitor daily', 'Aggressive creative rotation', 'Budget reallocation'].map((item, i) => (
+                  {sectionData.section2.items.map((item, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#F7FAFC' }}>
                       <span style={{ color: '#E53E3E' }}>→</span>
                       {item}
@@ -579,14 +597,111 @@ function LoomRecordingContent() {
                   ))}
                 </div>
               </div>
-              
-              {editingSection === 'nextWeek' && (
-                <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+            )}
+          </div>
+
+          {/* Section 3: What To Expect Next Week */}
+          <div style={{ background: 'linear-gradient(180deg, #141414 0%, rgba(229, 62, 62, 0.02) 100%)', borderRadius: '16px', border: '1px solid rgba(229, 62, 62, 0.1)', padding: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <div style={{
+                width: '28px',
+                height: '28px',
+                background: 'linear-gradient(135deg, #E53E3E, #FC8181)',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '14px',
+                fontWeight: 700,
+                color: '#fff',
+              }}>3</div>
+              <span style={{ fontSize: '16px', fontWeight: 700 }}>What To Expect Next Week</span>
+              <button onClick={() => startEdit('section3')} style={{ marginLeft: 'auto', background: 'transparent', border: 'none', color: '#718096', cursor: 'pointer' }}>
+                <Edit3 size={16} />
+              </button>
+            </div>
+            
+            {editingSection === 'section3' ? (
+              <div>
+                <div style={{ fontSize: '12px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>Main Summary</div>
+                <textarea
+                  value={tempData.mainText}
+                  onChange={(e) => setTempData(prev => ({ ...prev, mainText: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    minHeight: '60px',
+                    background: '#0D0D0D',
+                    border: '1px solid #E53E3E',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    color: '#F7FAFC',
+                    fontSize: '14px',
+                    lineHeight: 1.6,
+                    marginBottom: '16px',
+                  }}
+                />
+                <div style={{ fontSize: '12px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>Focus Areas</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                  {tempData.items.map((item, i) => (
+                    <div key={i} style={{ display: 'flex', gap: '8px' }}>
+                      <span style={{ color: '#E53E3E', paddingTop: '10px' }}>→</span>
+                      <input
+                        value={item}
+                        onChange={(e) => updateTempItem(i, e.target.value)}
+                        style={{
+                          flex: 1,
+                          background: '#0D0D0D',
+                          border: '1px solid #3A3A3A',
+                          borderRadius: '6px',
+                          padding: '8px 12px',
+                          color: '#F7FAFC',
+                          fontSize: '14px',
+                        }}
+                      />
+                      <button onClick={() => removeTempItem(i)} style={{ background: 'transparent', border: 'none', color: '#E53E3E', cursor: 'pointer' }}>×</button>
+                    </div>
+                  ))}
+                  <button onClick={addTempItem} style={{ background: 'transparent', border: '1px dashed #3A3A3A', borderRadius: '6px', padding: '8px', color: '#718096', cursor: 'pointer', fontSize: '13px' }}>+ Add Item</button>
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
                   <button onClick={saveEdit} style={{ background: '#48BB78', border: 'none', borderRadius: '6px', padding: '8px 16px', color: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>Save</button>
                   <button onClick={cancelEdit} style={{ background: 'transparent', border: '1px solid #3A3A3A', borderRadius: '6px', padding: '8px 16px', color: '#718096', cursor: 'pointer', fontSize: '13px' }}>Cancel</button>
                 </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div>
+                <p style={{ fontSize: '14px', color: '#A0AEC0', lineHeight: '1.6', marginBottom: '16px' }}>
+                  {sectionData.section3.mainText}
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
+                  <div style={{ background: '#0D0D0D', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '10px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Target Leads</div>
+                    <div style={{ fontSize: '20px', fontWeight: 700 }}>{sectionData.section3.targets.leads}</div>
+                  </div>
+                  <div style={{ background: '#0D0D0D', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '10px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Target CPL</div>
+                    <div style={{ fontSize: '20px', fontWeight: 700 }}>{sectionData.section3.targets.cpl}</div>
+                  </div>
+                  <div style={{ background: '#0D0D0D', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '10px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Target Spend</div>
+                    <div style={{ fontSize: '20px', fontWeight: 700 }}>{sectionData.section3.targets.spend}</div>
+                  </div>
+                </div>
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={{ fontSize: '11px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '10px' }}>
+                    FOCUS AREAS
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {sectionData.section3.items.map((item, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#F7FAFC' }}>
+                        <span style={{ color: '#E53E3E' }}>→</span>
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
