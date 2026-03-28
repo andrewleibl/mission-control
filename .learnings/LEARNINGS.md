@@ -60,3 +60,65 @@ When merging components:
 - **Notes**: Renamed `weekStart`/`weekEnd` to `taskWeekStart`/`taskWeekEnd` in Task Board section
 
 ---
+
+## [LRN-20250328-001] localStorage Overwrites Initial React State
+
+**Logged**: 2026-03-28T11:51:00Z
+**Priority**: high
+**Status**: resolved
+**Area**: frontend
+
+### Summary
+When React state is initialized with hardcoded data but also has a `useEffect` that loads from `localStorage`, the localStorage value will overwrite the initial state on mount — even if localStorage is empty or has stale data.
+
+### Details
+**Scenario:** Adding new events to a retention calendar's initial state:
+```javascript
+const [events, setEvents] = useState<RetentionEvent[]>([
+  { id: "pj-weekly-001", ... },  // existing
+  { id: "hector-weekly-001", ... },  // NEW
+  { id: "ricardo-weekly-001", ... },  // NEW
+]);
+```
+
+**Problem:** A `useEffect` was loading from localStorage on mount:
+```javascript
+useEffect(() => {
+  const stored = localStorage.getItem('mc_retention_events_v2');
+  if (stored) setEvents(JSON.parse(stored));
+}, []);
+```
+
+The user had previously visited the page, so localStorage had an old events array (without the new events). This effect ran after mount and overwrote the hardcoded initial state, making the new events disappear.
+
+**The Fix:** Clear localStorage on mount to force use of the fresh initial state:
+```javascript
+useEffect(() => {
+  localStorage.removeItem('mc_retention_events_v2');
+  localStorage.removeItem('mc_retention_events_client_page');
+}, []);
+```
+
+**Better Long-Term Fix:** Merge strategy — check if events exist in storage that aren't in defaults, don't blindly replace.
+
+### Suggested Action
+When using localStorage persistence with React state:
+1. **Option A**: Clear old keys when you want fresh data to appear
+2. **Option B**: Merge instead of replace — add new defaults to existing storage
+3. **Option C**: Version your storage keys (`events_v1`, `events_v2`) when schema changes
+4. **Option D**: Use a "last updated" timestamp to decide which wins
+
+Never assume `useState(initial)` will be visible if `useEffect` modifies state on mount.
+
+### Metadata
+- Source: error
+- Related Files: /builds/mission-control/src/app/client-retention/page.tsx
+- Tags: react, localstorage, state, useeffect, hydration
+- Pattern-Key: state.localstorage-hydration-conflict
+
+### Resolution
+- **Resolved**: 2026-03-28T11:51:00Z
+- **Commit**: Fixed in place during session
+- **Notes**: Added localStorage.clear() on mount to force fresh initial state
+
+---

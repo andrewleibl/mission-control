@@ -39,6 +39,12 @@ Skills are reusable workflows and patterns, refined through each session:
 
 *Each skill captures proven patterns. Update after every major build.*
 
+**Learnings Log:** `.learnings/LEARNINGS.md` — Captured patterns from errors, user feedback, and workflow improvements.
+
+### Recent Skill Updates (Mar 28, 2026)
+
+**[LRN-20250328-001] localStorage vs Initial State** — React `useState` initialization can be overwritten by `useEffect` hydration from localStorage. When adding hardcoded data to initial state, either clear old storage keys or merge carefully. See learnings log for full pattern.
+
 ### Recent Skill Updates (Mar 27, 2026)
 
 **Loom Recording Interface** — Added complete `/loom-recording` page with:
@@ -50,6 +56,20 @@ Skills are reusable workflows and patterns, refined through each session:
 
 **Pattern Validated:** Unified edit controls > granular field editing
 **User Quote:** *"This layout is AWESOME. Save it, make sure to save the layout, the build, the workflow between us in the session, and get it all to the self improving skill. This is a big win getting this layout together."*
+
+---
+
+## Meta Ad Account Information — UPDATED March 27, 2026
+
+**Live Ad Account IDs and Business Portfolio IDs:**
+
+| Client | Ad Account ID | Business Portfolio ID | Status |
+|--------|---------------|----------------------|--------|
+| **PJ Sparks** | 78776600 | 1279361533454281 | Ready for API connection |
+| **Hector Huizar** | 1999744500951711 | 3912495572386412 | Ready for API connection |
+| **Ricardo Madera** | 1472634561111079 | 144907017965688 | Ready for API connection |
+
+**Next Step:** Configure Meta Marketing API with System User Token to enable live data pulls for Loom recordings and Mission Control dashboards.
 
 ---
 
