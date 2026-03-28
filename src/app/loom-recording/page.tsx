@@ -18,7 +18,7 @@ import {
 const mockCampaignData = {
   clientName: 'PJ Sparks',
   weekOf: 'March 23-27, 2026',
-  totalBudget: 210, // Weekly budget ($900/month ÷ 4.3 weeks)
+  totalBudget: 900, // Monthly budget
   spentThisWeek: 140.01,
   spentTotal: 550.66,
   leadsThisWeek: [0, 0, 0, 0, 1, 0, 0], // Mon-Sun (lead came Fri Mar 25)
@@ -69,7 +69,7 @@ function LoomRecordingContent() {
       targets: {
         leads: '2-3',
         cpl: '$70-90',
-        spend: '$150-180'
+        spend: '$210/week ($900/month)'
       }
     }
   })
