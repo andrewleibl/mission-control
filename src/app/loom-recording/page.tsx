@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { 
   Download, 
@@ -50,7 +50,7 @@ const bigThreeQuestions = [
   },
 ]
 
-export default function LoomRecordingPage() {
+function LoomRecordingContent() {
   const searchParams = useSearchParams()
   const clientId = searchParams.get('client') || 'hector-huizar'
   
@@ -466,11 +466,23 @@ export default function LoomRecordingPage() {
             💡 Loom Recording Tips
           </div>
           <div style={{ fontSize: '12px', color: '#718096', lineHeight: 1.6 }}>
-            Start with "Here's what I'm seeing" → show this dashboard → dive into the Big 3 → end with "Here's what to expect next week." 
+            Start with "Here's what I'm seeing" → show this dashboard → dive into the Big 3 → end with "Here's what to expect next week."
             Keep it under 2 minutes. Speed shows confidence.
           </div>
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoomRecordingPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ minHeight: '100vh', background: '#0D0D0D', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#718096' }}>
+        Loading...
+      </div>
+    }>
+      <LoomRecordingContent />
+    </Suspense>
   )
 }
