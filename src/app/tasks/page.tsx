@@ -1125,11 +1125,11 @@ export default function TasksPage() {
           {/* Calendar Views */}
           <div
             style={{
-              background: 'linear-gradient(180deg, #1A1A1A 0%, rgba(229, 62, 62, 0.03) 100%)',
+              background: 'linear-gradient(180deg, #1A1A1A 0%, rgba(229, 62, 62, 0.02) 100%)',
               borderRadius: '12px',
               padding: '20px',
-              border: '1px solid rgba(229, 62, 62, 0.08)',
-              boxShadow: 'inset 0 0 60px rgba(229, 62, 62, 0.03)',
+              border: '1px solid rgba(229, 62, 62, 0.05)',
+              boxShadow: 'inset 0 0 60px rgba(229, 62, 62, 0.02)',
             }}
           >
             {/* MONTH VIEW */}
