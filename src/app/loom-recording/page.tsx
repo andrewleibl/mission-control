@@ -11,9 +11,7 @@ import {
   Users, 
   Target, 
   MousePointer,
-  Edit3,
-  Check,
-  X
+  Edit3
 } from 'lucide-react'
 
 // Mock data - replace with real Meta Ads API data
@@ -32,23 +30,7 @@ const mockCampaignData = {
   ctrChange: 0.3, // percent
 }
 
-const bigThreeQuestions = [
-  {
-    id: 'whatChanged',
-    title: 'What Changed This Week?',
-    placeholder: 'Describe the adjustments made to targeting, creative, or budget...',
-  },
-  {
-    id: 'whatsWorking',
-    title: "What's Working?",
-    placeholder: 'Which ads, audiences, or strategies are driving results...',
-  },
-  {
-    id: 'nextWeek',
-    title: 'Next Week Focus',
-    placeholder: 'What are we testing, scaling, or optimizing...',
-  },
-]
+
 
 function LoomRecordingContent() {
   const searchParams = useSearchParams()
@@ -56,9 +38,9 @@ function LoomRecordingContent() {
   
   const [editingSection, setEditingSection] = useState<string | null>(null)
   const [answers, setAnswers] = useState<Record<string, string>>({
-    whatChanged: 'Switched to lookalike audience based on past converters. Increased budget by 20% on top performers.',
-    whatsWorking: 'Video creative #3 (barbershop testimonial) is crushing — 4.2% CTR, $67 CPL. Scaling to $40/day.',
-    nextWeek: 'Test new hook variations on winning creative. Launch retargeting for cart abandoners.',
+    whatChanged: 'Campaign is stable but underperforming on lead volume. 1 lead at $217 CPL is above target.',
+    whatsWorking: 'Changes attempted but market conditions shifted — need more aggressive fixes.',
+    nextWeek: 'Expect 2-3 day recovery period after implementing fixes, then stabilization.',
   })
   const [tempAnswer, setTempAnswer] = useState('')
 
@@ -363,108 +345,249 @@ function LoomRecordingContent() {
         </div>
 
         {/* Big 3 Questions */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', position: 'relative', zIndex: 1 }}>
-          {bigThreeQuestions.map((question) => (
-            <div 
-              key={question.id}
-              style={{ 
-                background: '#141414', 
-                borderRadius: '16px', 
-                padding: '24px',
-                border: '1px solid #2A2A2A',
-              }}
-            >
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'space-between',
-                marginBottom: '16px',
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', position: 'relative', zIndex: 1 }}>
+          {/* Section 1: How Is The Campaign Going? */}
+          <div style={{ background: '#141414', borderRadius: '16px', border: '1px solid #2A2A2A', overflow: 'hidden' }}>
+            {/* Status Badge */}
+            <div style={{ padding: '16px 20px 0', display: 'flex', justifyContent: 'flex-start' }}>
+              <span style={{ 
+                background: 'rgba(229, 62, 62, 0.15)', 
+                color: '#FC8181', 
+                fontSize: '11px', 
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                padding: '6px 12px',
+                borderRadius: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
               }}>
-                <div style={{ fontSize: '16px', fontWeight: 700 }}>{question.title}</div>
-                
-                {editingSection === question.id ? (
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button 
-                      onClick={saveEdit}
-                      style={{
-                        background: 'rgba(72, 187, 120, 0.1)',
-                        border: '1px solid rgba(72, 187, 120, 0.2)',
-                        borderRadius: '6px',
-                        padding: '8px',
-                        cursor: 'pointer',
-                        color: '#48BB78',
-                      }}
-                    >
-                      <Check size={16} />
-                    </button>
-                    <button 
-                      onClick={cancelEdit}
-                      style={{
-                        background: 'rgba(229, 62, 62, 0.1)',
-                        border: '1px solid rgba(229, 62, 62, 0.2)',
-                        borderRadius: '6px',
-                        padding: '8px',
-                        cursor: 'pointer',
-                        color: '#E53E3E',
-                      }}
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                ) : (
-                  <button 
-                    onClick={() => startEdit(question.id)}
-                    style={{
-                      background: 'transparent',
-                      border: '1px solid #3A3A3A',
-                      borderRadius: '6px',
-                      padding: '8px',
-                      cursor: 'pointer',
-                      color: '#718096',
-                      display: 'flex',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <Edit3 size={16} />
-                  </button>
-                )}
+                ▼ Needs Attention
+              </span>
+            </div>
+            
+            <div style={{ padding: '16px 20px 20px' }}>
+              {/* Title with Number */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                <div style={{
+                  width: '28px',
+                  height: '28px',
+                  background: 'linear-gradient(135deg, #E53E3E, #FC8181)',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  color: '#fff',
+                }}>1</div>
+                <span style={{ fontSize: '16px', fontWeight: 700 }}>How Is The Campaign Going?</span>
+                <button onClick={() => startEdit('whatChanged')} style={{ marginLeft: 'auto', background: 'transparent', border: 'none', color: '#718096', cursor: 'pointer' }}>
+                  <Edit3 size={16} />
+                </button>
               </div>
-
-              {editingSection === question.id ? (
+              
+              {/* Description */}
+              {editingSection === 'whatChanged' ? (
                 <textarea
                   value={tempAnswer}
                   onChange={(e) => setTempAnswer(e.target.value)}
-                  placeholder={question.placeholder}
                   style={{
                     width: '100%',
-                    minHeight: '100px',
+                    minHeight: '80px',
                     background: '#0D0D0D',
-                    border: '1px solid #3A3A3A',
+                    border: '1px solid #E53E3E',
                     borderRadius: '8px',
                     padding: '12px',
                     color: '#F7FAFC',
                     fontSize: '14px',
                     lineHeight: 1.6,
-                    resize: 'vertical',
-                    fontFamily: 'inherit',
+                    marginBottom: '16px',
                   }}
                 />
               ) : (
-                <div style={{ 
-                  background: '#0D0D0D', 
-                  borderRadius: '8px', 
-                  padding: '16px',
-                  minHeight: '60px',
-                  fontSize: '14px',
-                  lineHeight: 1.6,
-                  color: answers[question.id] ? '#F7FAFC' : '#718096',
-                  border: '1px solid #1A1A1A',
-                }}>
-                  {answers[question.id] || question.placeholder}
+                <p style={{ fontSize: '14px', color: '#A0AEC0', lineHeight: 1.6, marginBottom: '16px' }}>
+                  {answers.whatChanged}
+                </p>
+              )}
+              
+              {/* Fixes Section */}
+              <div style={{ marginBottom: '12px' }}>
+                <div style={{ fontSize: '11px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '10px' }}>
+                  ⚠ FIXES WE'RE IMPLEMENTING
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {['Pause lowest-performing creative (CTR < 1%)', 'Expand targeting radius by 5 miles', 'Test new hook angles in ad copy', 'Reduce budget on underperforming ad sets by 20%'].map((item, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#F7FAFC' }}>
+                      <span style={{ color: '#E53E3E' }}>→</span>
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {editingSection === 'whatChanged' && (
+                <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                  <button onClick={saveEdit} style={{ background: '#48BB78', border: 'none', borderRadius: '6px', padding: '8px 16px', color: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>Save</button>
+                  <button onClick={cancelEdit} style={{ background: 'transparent', border: '1px solid #3A3A3A', borderRadius: '6px', padding: '8px 16px', color: '#718096', cursor: 'pointer', fontSize: '13px' }}>Cancel</button>
                 </div>
               )}
             </div>
-          ))}
+          </div>
+
+          {/* Section 2: Changes Made This Week */}
+          <div style={{ background: '#141414', borderRadius: '16px', border: '1px solid #2A2A2A' }}>
+            <div style={{ padding: '20px' }}>
+              {/* Title with Number */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                <div style={{
+                  width: '28px',
+                  height: '28px',
+                  background: 'linear-gradient(135deg, #E53E3E, #FC8181)',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  color: '#fff',
+                }}>2</div>
+                <span style={{ fontSize: '16px', fontWeight: 700 }}>Changes Made This Week</span>
+                <button onClick={() => startEdit('whatsWorking')} style={{ marginLeft: 'auto', background: 'transparent', border: 'none', color: '#718096', cursor: 'pointer' }}>
+                  <Edit3 size={16} />
+                </button>
+              </div>
+              
+              {/* Description */}
+              {editingSection === 'whatsWorking' ? (
+                <textarea
+                  value={tempAnswer}
+                  onChange={(e) => setTempAnswer(e.target.value)}
+                  style={{
+                    width: '100%',
+                    minHeight: '80px',
+                    background: '#0D0D0D',
+                    border: '1px solid #E53E3E',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    color: '#F7FAFC',
+                    fontSize: '14px',
+                    lineHeight: 1.6,
+                    marginBottom: '16px',
+                  }}
+                />
+              ) : (
+                <p style={{ fontSize: '14px', color: '#A0AEC0', lineHeight: 1.6, marginBottom: '16px' }}>
+                  {answers.whatsWorking}
+                </p>
+              )}
+              
+              {/* Changes List */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {['Paused 2 creatives showing fatigue (CTR < 1.5%)', 'Adjusted budget allocation', 'Reviewed targeting parameters'].map((item, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#F7FAFC' }}>
+                    <span style={{ color: '#E53E3E' }}>→</span>
+                    {item}
+                  </div>
+                ))}
+              </div>
+              
+              {editingSection === 'whatsWorking' && (
+                <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                  <button onClick={saveEdit} style={{ background: '#48BB78', border: 'none', borderRadius: '6px', padding: '8px 16px', color: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>Save</button>
+                  <button onClick={cancelEdit} style={{ background: 'transparent', border: '1px solid #3A3A3A', borderRadius: '6px', padding: '8px 16px', color: '#718096', cursor: 'pointer', fontSize: '13px' }}>Cancel</button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Section 3: What To Expect Next Week */}
+          <div style={{ background: '#141414', borderRadius: '16px', border: '1px solid #2A2A2A' }}>
+            <div style={{ padding: '20px' }}>
+              {/* Title with Number */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                <div style={{
+                  width: '28px',
+                  height: '28px',
+                  background: 'linear-gradient(135deg, #E53E3E, #FC8181)',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  color: '#fff',
+                }}>3</div>
+                <span style={{ fontSize: '16px', fontWeight: 700 }}>What To Expect Next Week</span>
+                <button onClick={() => startEdit('nextWeek')} style={{ marginLeft: 'auto', background: 'transparent', border: 'none', color: '#718096', cursor: 'pointer' }}>
+                  <Edit3 size={16} />
+                </button>
+              </div>
+              
+              {/* Description */}
+              {editingSection === 'nextWeek' ? (
+                <textarea
+                  value={tempAnswer}
+                  onChange={(e) => setTempAnswer(e.target.value)}
+                  style={{
+                    width: '100%',
+                    minHeight: '80px',
+                    background: '#0D0D0D',
+                    border: '1px solid #E53E3E',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    color: '#F7FAFC',
+                    fontSize: '14px',
+                    lineHeight: 1.6,
+                    marginBottom: '16px',
+                  }}
+                />
+              ) : (
+                <p style={{ fontSize: '14px', color: '#A0AEC0', lineHeight: 1.6, marginBottom: '16px' }}>
+                  {answers.nextWeek}
+                </p>
+              )}
+              
+              {/* Target Metrics */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
+                <div style={{ background: '#0D0D0D', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '10px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Target Leads</div>
+                  <div style={{ fontSize: '20px', fontWeight: 700 }}>3-4</div>
+                </div>
+                <div style={{ background: '#0D0D0D', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '10px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Target CPL</div>
+                  <div style={{ fontSize: '20px', fontWeight: 700 }}>$80-100</div>
+                </div>
+                <div style={{ background: '#0D0D0D', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '10px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Target Spend</div>
+                  <div style={{ fontSize: '20px', fontWeight: 700 }}>$240-280</div>
+                </div>
+              </div>
+              
+              {/* Focus Areas */}
+              <div style={{ marginBottom: '12px' }}>
+                <div style={{ fontSize: '11px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '10px' }}>
+                  FOCUS AREAS
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {['Monitor daily', 'Aggressive creative rotation', 'Budget reallocation'].map((item, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#F7FAFC' }}>
+                      <span style={{ color: '#E53E3E' }}>→</span>
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {editingSection === 'nextWeek' && (
+                <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                  <button onClick={saveEdit} style={{ background: '#48BB78', border: 'none', borderRadius: '6px', padding: '8px 16px', color: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>Save</button>
+                  <button onClick={cancelEdit} style={{ background: 'transparent', border: '1px solid #3A3A3A', borderRadius: '6px', padding: '8px 16px', color: '#718096', cursor: 'pointer', fontSize: '13px' }}>Cancel</button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Recording Tips Footer */}
