@@ -134,6 +134,27 @@ export default function ClientRetentionPage() {
   const [formTime, setFormTime] = useState("09:00");
   const [formNotes, setFormNotes] = useState("");
 
+  // Load events from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('mc_retention_events_client_page');
+      if (stored) {
+        setEvents(JSON.parse(stored));
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  // Save events to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('mc_retention_events_client_page', JSON.stringify(events));
+    } catch {
+      // ignore
+    }
+  }, [events]);
+
   // ─── Calendar Logic ──────────────────────────────────────────────────────────
 
   const year = currentDate.getFullYear();
