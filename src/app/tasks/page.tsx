@@ -1570,6 +1570,36 @@ export default function TasksPage() {
                       ))}
                     </div>
                   </div>
+
+                  {/* Open for Loom Button */}
+                  {editingEvent.reportData.htmlReportUrl && (
+                    <div style={{ marginTop: '20px' }}>
+                      <a
+                        href={editingEvent.reportData.htmlReportUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '8px',
+                          background: 'linear-gradient(135deg, #E53E3E, #FC8181)',
+                          border: 'none',
+                          borderRadius: '8px',
+                          padding: '12px 20px',
+                          color: '#fff',
+                          fontSize: '14px',
+                          fontWeight: 600,
+                          textDecoration: 'none',
+                          cursor: 'pointer',
+                          width: '100%',
+                        }}
+                      >
+                        <Video size={18} />
+                        Open for Loom
+                      </a>
+                    </div>
+                  )}
                 </div>
               )}
 
