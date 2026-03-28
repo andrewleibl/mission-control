@@ -509,7 +509,7 @@ export default function TasksPage() {
             'Maintain $30/day budget through April'
           ]
         },
-        htmlReportUrl: '/loom-recording?client=pj-sparks&date=2026-03-27'
+        htmlReportUrl: '/loom-recording'
       }
     }
   ])
