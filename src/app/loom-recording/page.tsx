@@ -202,7 +202,7 @@ export default function LoomRecordingPage() {
               }} />
             </div>
             <div style={{ fontSize: '12px', color: '#718096' }}>
-              {((data.spentTotal / data.totalTotalBudget) * 100).toFixed(1)}% of budget used
+              {((data.spentTotal / data.totalBudget) * 100).toFixed(1)}% of budget used
             </div>
           </div>
 
