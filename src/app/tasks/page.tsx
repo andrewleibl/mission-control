@@ -458,55 +458,58 @@ export default function TasksPage() {
   const [retentionEvents, setRetentionEvents] = useState<RetentionEvent[]>([
     {
       id: 'pj-weekly-001',
-      title: 'PJ Weekly Report',
+      title: 'Weekly Report — Mar 23-27',
       client: 'PJ Sparks',
       type: 'report',
       date: '2026-03-27',
       time: '',
-      notes: 'Week of March 20-27, 2026',
+      notes: 'Week of March 23-27, 2026',
       completed: false,
       reportData: {
-        spend: 217.33,
+        spend: 140.01,
         leads: 1,
-        cpl: 217.33,
-        ctr: 0.91,
+        cpl: 140.01,
+        ctr: 1.06,
         leadsChange: 0,
-        cplChange: -1.5,
-        direction: 'negative',
+        cplChange: -29.0,
+        direction: 'positive',
         campaignStatus: {
-          summary: 'Campaign is stable but underperforming on lead volume. 1 lead at $217 CPL is above target.',
-          whatChanged: [
-            'Lead volume too low (1 lead/week)',
-            'High CPL indicates audience saturation',
-            'Creative fatigue likely setting in'
+          summary: 'Week showing improvement. CTR jumped 47% (0.72% → 1.06%) while spend decreased 34%. One lead came in on March 25th after 10-day gap from previous lead (March 15th).',
+          whatsWorking: [
+            'CTR trending upward — 47% improvement this week',
+            'CPL down from $196 to $140 (29% better)',
+            'Budget pacing improved — only spent $140 vs $213 last week',
+            'Creative fatigue recovery in progress'
           ],
           fixes: [
-            'Pause lowest-performing creative (CTR < 1%)',
-            'Expand targeting radius by 5 miles',
-            'Test new hook angles in ad copy',
-            'Reduce budget on underperforming ad sets by 20%'
+            'Continue monitoring creative performance daily',
+            'Maintain current targeting — showing signs of life',
+            'Test one new hook variation on top performer',
+            'Keep budget at $30/day through weekend'
           ]
         },
         changesThisWeek: [
-          'Paused 2 creatives showing fatigue (CTR < 1.5%)',
-          'Adjusted budget allocation',
-          'Reviewed targeting parameters'
+          'CTR improved from 0.72% to 1.06% (47% jump)',
+          'Reduced overspend — $140 vs $213 last week',
+          'Lead came in March 25th (10 days since last lead on March 15th)',
+          'Creative fatigue showing recovery signs'
         ],
-        changeImpact: 'Changes attempted but market conditions shifted — need more aggressive fixes.',
+        changeImpact: 'Creative adjustments working. CTR climbing while spend controlled. Need consistent lead flow — currently 1 lead per week target is 3-4.',
         nextWeek: {
-          expectation: 'Expect 2-3 day recovery period after implementing fixes, then stabilization.',
+          expectation: 'Continue momentum on CTR improvements. Target 2+ leads with sustained $140-160 weekly spend.',
           targets: [
-            'Target Leads: 3-4',
-            'Target CPL: $80-100',
-            'Target Spend: $240-280'
+            'Target Leads: 2-3 (up from 1)',
+            'Target CPL: $70-90 (continue improvement)',
+            'Target Spend: $150-180 weekly'
           ],
           focusAreas: [
-            'Monitor daily',
-            'Aggressive creative rotation',
-            'Budget reallocation'
+            'Monitor daily for second lead opportunity',
+            'Scale winning creative if CTR holds above 1%',
+            'Test new hook angle mid-week',
+            'Maintain $30/day budget through April'
           ]
         },
-        htmlReportUrl: 'https://mission-control-seven-brown.vercel.app/reports/pj-sparks-weekly.html'
+        htmlReportUrl: '/loom-recording?client=pj-sparks&date=2026-03-27'
       }
     }
   ])

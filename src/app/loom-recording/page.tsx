@@ -14,20 +14,20 @@ import {
   Edit3
 } from 'lucide-react'
 
-// Mock data - replace with real Meta Ads API data
+// PJ Sparks — Real Week of March 23-27, 2026
 const mockCampaignData = {
-  clientName: 'Hector Huizar',
-  weekOf: 'March 21-27, 2026',
-  totalBudget: 1500,
-  spentThisWeek: 487,
-  spentTotal: 1247,
-  leadsThisWeek: [3, 5, 2, 7, 4, 6, 4], // Mon-Sun
-  totalLeads: 127,
-  cplThisWeek: 81,
-  cplLastWeek: 95,
-  cplChange: -14.7, // percent
-  ctr: 2.4,
-  ctrChange: 0.3, // percent
+  clientName: 'PJ Sparks',
+  weekOf: 'March 23-27, 2026',
+  totalBudget: 210, // Weekly budget ($900/month ÷ 4.3 weeks)
+  spentThisWeek: 140.01,
+  spentTotal: 550.66,
+  leadsThisWeek: [0, 0, 0, 0, 1, 0, 0], // Mon-Sun (lead came Fri Mar 25)
+  totalLeads: 2, // Lifetime
+  cplThisWeek: 140.01,
+  cplLastWeek: 196.98, // Week of Mar 9-15
+  cplChange: -28.9, // percent improvement
+  ctr: 1.06,
+  ctrChange: 0.34, // percentage point improvement (0.72 → 1.06)
 }
 
 
@@ -38,36 +38,38 @@ function LoomRecordingContent() {
 
   const [editingSection, setEditingSection] = useState<string | null>(null)
 
-  // Section data with main text and list items
+  // PJ Sparks — Real Week of March 23-27, 2026
   const [sectionData, setSectionData] = useState({
     section1: {
-      mainText: 'Campaign is stable but underperforming on lead volume. 1 lead at $217 CPL is above target.',
+      mainText: 'Week showing improvement. CTR jumped 47% (0.72% → 1.06%) while spend decreased 34%. One lead came in on March 25th after 10-day gap from previous lead (March 15th).',
       items: [
-        'Pause lowest-performing creative (CTR < 1%)',
-        'Expand targeting radius by 5 miles',
-        'Test new hook angles in ad copy',
-        'Reduce budget on underperforming ad sets by 20%'
+        'Continue monitoring creative performance daily',
+        'Maintain current targeting — showing signs of life',
+        'Test one new hook variation on top performer',
+        'Keep budget at $30/day through weekend'
       ]
     },
     section2: {
-      mainText: 'Changes attempted but market conditions shifted - need more aggressive fixes.',
+      mainText: 'Creative adjustments working. CTR climbing while spend controlled. Need consistent lead flow — currently 1 lead per week target is 3-4.',
       items: [
-        'Paused 2 creatives showing fatigue (CTR < 1.5%)',
-        'Adjusted budget allocation',
-        'Reviewed targeting parameters'
+        'CTR improved from 0.72% to 1.06% (47% jump)',
+        'Reduced overspend — $140 vs $213 last week',
+        'Lead came in March 25th (10 days since last lead on March 15th)',
+        'Creative fatigue showing recovery signs'
       ]
     },
     section3: {
-      mainText: 'Expect 2-3 day recovery period after implementing fixes, then stabilization.',
+      mainText: 'Continue momentum on CTR improvements. Target 2+ leads with sustained $140-160 weekly spend.',
       items: [
-        'Monitor daily',
-        'Aggressive creative rotation',
-        'Budget reallocation'
+        'Monitor daily for second lead opportunity',
+        'Scale winning creative if CTR holds above 1%',
+        'Test new hook angle mid-week',
+        'Maintain $30/day budget through April'
       ],
       targets: {
-        leads: '3-4',
-        cpl: '$80-100',
-        spend: '$240-280'
+        leads: '2-3',
+        cpl: '$70-90',
+        spend: '$150-180'
       }
     }
   })
