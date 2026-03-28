@@ -1018,7 +1018,7 @@ export default function TasksPage() {
               flexWrap: 'wrap',
               gap: '16px',
               border: '1px solid rgba(229, 62, 62, 0.1)',
-              boxShadow: '0 0 40px rgba(229, 62, 62, 0.08)',
+              boxShadow: '0 0 40px rgba(229, 62, 62, 0.06)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -1129,7 +1129,7 @@ export default function TasksPage() {
               borderRadius: '12px',
               padding: '20px',
               border: '1px solid rgba(229, 62, 62, 0.08)',
-              boxShadow: 'inset 0 0 60px rgba(229, 62, 62, 0.04)',
+              boxShadow: 'inset 0 0 60px rgba(229, 62, 62, 0.03)',
             }}
           >
             {/* MONTH VIEW */}
