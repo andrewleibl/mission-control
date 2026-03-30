@@ -1,0 +1,203 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "Clutch Barber Supply",
+    "theme_version": "1.0.0",
+    "theme_author": "Straight Point Marketing",
+    "theme_documentation_url": "https://straightpointmarketing.com",
+    "theme_support_url": "mailto:andrew@straightpointmarketing.com"
+  },
+  {
+    "name": "Colors",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Background Colors"
+      },
+      {
+        "type": "color",
+        "id": "color_background",
+        "label": "Page background",
+        "default": "#0A0A0A"
+      },
+      {
+        "type": "color",
+        "id": "color_background_secondary",
+        "label": "Secondary background (header, footer)",
+        "default": "#111111"
+      },
+      {
+        "type": "color",
+        "id": "color_card_background",
+        "label": "Card background",
+        "default": "#1A1A1A"
+      },
+      {
+        "type": "header",
+        "content": "Text Colors"
+      },
+      {
+        "type": "color",
+        "id": "color_text",
+        "label": "Primary text",
+        "default": "#FFFFFF"
+      },
+      {
+        "type": "color",
+        "id": "color_text_muted",
+        "label": "Muted text",
+        "default": "#A0A0A0"
+      },
+      {
+        "type": "header",
+        "content": "Accent Colors"
+      },
+      {
+        "type": "color",
+        "id": "color_accent_primary",
+        "label": "Primary accent (buttons, badges)",
+        "default": "#E53E3E"
+      },
+      {
+        "type": "color",
+        "id": "color_accent_secondary",
+        "label": "Secondary accent (brand labels, highlights)",
+        "default": "#F6AD55"
+      },
+      {
+        "type": "color",
+        "id": "color_border",
+        "label": "Border color",
+        "default": "#2A2A2A"
+      }
+    ]
+  },
+  {
+    "name": "Typography",
+    "settings": [
+      {
+        "type": "font_picker",
+        "id": "font_heading",
+        "label": "Heading font",
+        "default": "dm_sans_n7"
+      },
+      {
+        "type": "font_picker",
+        "id": "font_body",
+        "label": "Body font",
+        "default": "dm_sans_n4"
+      },
+      {
+        "type": "range",
+        "id": "font_size_base",
+        "label": "Base font size (px)",
+        "min": 14,
+        "max": 20,
+        "step": 1,
+        "unit": "px",
+        "default": 16
+      }
+    ]
+  },
+  {
+    "name": "Social Media",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Social Media Links"
+      },
+      {
+        "type": "url",
+        "id": "social_instagram_link",
+        "label": "Instagram URL",
+        "info": "e.g. https://instagram.com/clutchbarbersupply"
+      },
+      {
+        "type": "url",
+        "id": "social_facebook_link",
+        "label": "Facebook URL"
+      },
+      {
+        "type": "url",
+        "id": "social_tiktok_link",
+        "label": "TikTok URL"
+      },
+      {
+        "type": "url",
+        "id": "social_youtube_link",
+        "label": "YouTube URL"
+      }
+    ]
+  },
+  {
+    "name": "Shipping & Cart",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Free Shipping"
+      },
+      {
+        "type": "number",
+        "id": "free_shipping_threshold",
+        "label": "Free shipping minimum order ($)",
+        "default": 300,
+        "info": "Set to 0 to disable the free shipping progress bar."
+      },
+      {
+        "type": "header",
+        "content": "Cart Settings"
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_drawer_enabled",
+        "label": "Enable slide-out cart drawer",
+        "default": true
+      }
+    ]
+  },
+  {
+    "name": "Store Info",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Physical Store Details"
+      },
+      {
+        "type": "text",
+        "id": "store_address_line1",
+        "label": "Address line 1",
+        "default": "113 South Center"
+      },
+      {
+        "type": "text",
+        "id": "store_address_line2",
+        "label": "City, State, ZIP",
+        "default": "Grand Prairie, TX"
+      },
+      {
+        "type": "text",
+        "id": "store_phone",
+        "label": "Phone number",
+        "default": "(214) 677-1059"
+      },
+      {
+        "type": "text",
+        "id": "store_hours",
+        "label": "Store hours",
+        "default": "Mon–Sat 10am–7pm · Sun 12pm–5pm"
+      },
+      {
+        "type": "image_picker",
+        "id": "favicon",
+        "label": "Favicon",
+        "info": "Upload a 32×32px PNG or ICO image."
+      },
+      {
+        "type": "image_picker",
+        "id": "logo",
+        "label": "Store logo",
+        "info": "Recommended: SVG or PNG with transparent background. Max height: 60px."
+      }
+    ]
+  }
+]

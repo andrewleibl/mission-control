@@ -1,0 +1,1047 @@
+/* ========================================
+   CLUTCH BARBER SUPPLY - COMPLETE HOMEPAGE CSS
+   Sections 1-9 with MAX COPPER GLOW
+   ======================================== */
+
+:root {
+  --clutch-bg: #05070c;
+  --clutch-bg-light: #091018;
+  --clutch-bg-lighter: #0d1822;
+  --clutch-text: #f5efe3;
+  --clutch-text-muted: #d1c7b3;
+  --clutch-text-dim: #9ca3af;
+  --clutch-border: #253242;
+  --clutch-accent: #c9894b;
+  --clutch-accent-hover: #d89a5c;
+}
+
+/* Section base styles */
+.clutch-home-section {
+  padding: 5rem 0;
+}
+
+.clutch-home-section__inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.clutch-home-section__header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.clutch-home-section__eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--clutch-accent);
+  margin-bottom: 0.75rem;
+  position: relative;
+  display: inline-block;
+}
+
+.clutch-home-section__eyebrow::after {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 2px;
+  background: var(--clutch-accent);
+  margin: 0.5rem auto 0;
+  border-radius: 1px;
+}
+
+.clutch-home-section__title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 1rem;
+  line-height: 1.1;
+}
+
+.clutch-home-section__subtitle {
+  font-size: 1.0625rem;
+  color: var(--clutch-text-muted);
+  max-width: 520px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Button styles */
+.clutch-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 2rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.01em;
+}
+
+.clutch-button--primary {
+  background: linear-gradient(135deg, var(--clutch-accent) 0%, #b87a3e 100%);
+  color: var(--clutch-bg);
+  box-shadow: 0 4px 14px rgba(201, 137, 75, 0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+.clutch-button--primary:hover {
+  background: linear-gradient(135deg, #d89a5c 0%, var(--clutch-accent) 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(201, 137, 75, 0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+.clutch-button--ghost {
+  background: rgba(255,255,255,0.05);
+  color: var(--clutch-text);
+  border: 1px solid rgba(255,255,255,0.15);
+  backdrop-filter: blur(4px);
+}
+
+.clutch-button--ghost:hover {
+  border-color: var(--clutch-accent);
+  background: rgba(201, 137, 75, 0.1);
+  color: var(--clutch-accent);
+  transform: translateY(-2px);
+}
+
+/* ========================================
+   SECTION 1: TOP NOTE
+   ======================================== */
+.clutch-top-note {
+  background: var(--clutch-bg);
+  border-bottom: 1px solid var(--clutch-border);
+  padding: 0.75rem 1rem;
+  text-align: center;
+}
+
+.clutch-top-note__inner {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.clutch-top-note__text {
+  font-size: 0.8125rem;
+  color: var(--clutch-text-muted);
+}
+
+.clutch-top-note__dot {
+  color: var(--clutch-accent);
+  margin: 0 0.5rem;
+}
+
+/* ========================================
+   SECTION 2: HEADER
+   ======================================== */
+.clutch-home-header {
+  background: var(--clutch-bg-light);
+  border-bottom: 1px solid var(--clutch-border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.clutch-home-header__bar {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+}
+
+.clutch-home-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.clutch-home-header__left,
+.clutch-home-header__right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.clutch-home-header__right {
+  justify-content: flex-end;
+}
+
+.clutch-home-header__logo {
+  flex-shrink: 0;
+}
+
+.clutch-home-header__logo img {
+  height: 48px;
+  width: auto;
+}
+
+.clutch-home-header__search input {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--clutch-border);
+  border-radius: 8px;
+  padding: 0.625rem 1rem;
+  color: var(--clutch-text);
+  font-size: 0.875rem;
+  width: 240px;
+}
+
+.clutch-home-header__search input::placeholder {
+  color: #6b7a8a;
+}
+
+.clutch-home-header__desktop-nav {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.clutch-home-header__desktop-nav a {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--clutch-text-muted);
+  transition: color 0.2s;
+}
+
+.clutch-home-header__desktop-nav a:hover {
+  color: var(--clutch-accent);
+}
+
+.clutch-home-header__cart {
+  position: relative;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--clutch-border);
+  border-radius: 8px;
+}
+
+.clutch-home-header__cart svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke: var(--clutch-text);
+  stroke-width: 1.5;
+  fill: none;
+}
+
+.clutch-home-header__badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  background: var(--clutch-accent);
+  color: var(--clutch-bg);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ========================================
+   SECTION 3: HERO - MAX COPPER GLOW
+   ======================================== */
+.clutch-home-hero {
+  position: relative;
+  min-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 1.5rem;
+  overflow: hidden;
+}
+
+.clutch-home-hero__media {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.clutch-home-hero__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.5;
+  filter: saturate(0.8) contrast(1.1);
+}
+
+.clutch-home-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: 
+    linear-gradient(180deg, rgba(5,7,12,0.6) 0%, rgba(9,16,24,0.5) 40%, rgba(5,7,12,0.75) 100%),
+    radial-gradient(ellipse at 85% 15%, rgba(201, 137, 75, 0.4) 0%, transparent 35%),
+    radial-gradient(ellipse at 15% 85%, rgba(201, 137, 75, 0.25) 0%, transparent 30%),
+    radial-gradient(ellipse at 50% 50%, rgba(201, 137, 75, 0.1) 0%, transparent 50%);
+}
+
+.clutch-home-hero__content {
+  position: relative;
+  z-index: 1;
+  max-width: 850px;
+}
+
+.clutch-home-hero__social-proof {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-bottom: 2rem;
+  padding: 0.625rem 1.25rem;
+  background: rgba(201, 137, 75, 0.1);
+  border: 1px solid rgba(201, 137, 75, 0.25);
+  border-radius: 50px;
+  backdrop-filter: blur(4px);
+}
+
+.clutch-home-hero__stars {
+  display: flex;
+  gap: 0.1875rem;
+}
+
+.clutch-home-hero__stars svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  fill: var(--clutch-accent);
+}
+
+.clutch-home-hero__social-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--clutch-text);
+}
+
+.clutch-home-hero h1 {
+  font-size: clamp(2.25rem, 6vw, 4rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin-bottom: 1.25rem;
+  text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.clutch-home-hero__subheading {
+  font-size: clamp(1.0625rem, 2vw, 1.375rem);
+  color: var(--clutch-text-muted);
+  margin-bottom: 2.5rem;
+  line-height: 1.6;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.clutch-home-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 3.5rem;
+}
+
+.clutch-home-hero__trust {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.clutch-home-hero__trust-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 0.875rem;
+  color: var(--clutch-text-muted);
+}
+
+.clutch-home-hero__trust-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clutch-home-hero__trust-icon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke: var(--clutch-accent);
+  stroke-width: 1.5;
+  fill: none;
+}
+
+/* ========================================
+   SECTION 4: BRANDS - MAX COPPER GLOW
+   ======================================== */
+.section-clutch-home-brands {
+  background: linear-gradient(180deg, var(--clutch-bg-light) 0%, var(--clutch-bg) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.section-clutch-home-brands::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  left: -30%;
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, rgba(201, 137, 75, 0.35) 0%, transparent 55%);
+  pointer-events: none;
+  filter: blur(80px);
+}
+
+.section-clutch-home-brands::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  right: -20%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(201, 137, 75, 0.22) 0%, transparent 50%);
+  pointer-events: none;
+  filter: blur(60px);
+}
+
+.clutch-home-brands__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 768px) {
+  .clutch-home-brands__grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+.clutch-home-brands__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 16/10;
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+  border: 1px solid var(--clutch-border);
+  border-radius: 20px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--clutch-text);
+  letter-spacing: -0.02em;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.clutch-home-brands__item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 50%, rgba(201, 137, 75, 0.1) 100%);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.clutch-home-brands__item::after {
+  content: 'Shop Now →';
+  position: absolute;
+  bottom: 1.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--clutch-accent);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.35s ease;
+}
+
+.clutch-home-brands__item:hover {
+  border-color: var(--clutch-accent);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 
+    0 20px 40px rgba(0,0,0,0.4),
+    0 0 0 1px rgba(201, 137, 75, 0.3),
+    inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
+.clutch-home-brands__item:hover::before { opacity: 1; }
+.clutch-home-brands__item:hover::after { opacity: 1; transform: translateY(0); }
+
+/* ========================================
+   SECTION 5: REVIEWS - MAX COPPER GLOW
+   ======================================== */
+.section-clutch-home-social-proof {
+  background: linear-gradient(180deg, var(--clutch-bg) 0%, var(--clutch-bg-lighter) 50%, var(--clutch-bg) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.section-clutch-home-social-proof::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: -15%;
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(201, 137, 75, 0.4) 0%, transparent 50%);
+  pointer-events: none;
+  filter: blur(100px);
+}
+
+.section-clutch-home-social-proof::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  right: -10%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(201, 137, 75, 0.25) 0%, transparent 45%);
+  pointer-events: none;
+  filter: blur(80px);
+}
+
+.clutch-home-reviews__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 640px) {
+  .clutch-home-reviews__grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 1024px) {
+  .clutch-home-reviews__grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.clutch-home-reviews__card {
+  padding: 1.75rem;
+  background: linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
+  border: 1px solid var(--clutch-border);
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.clutch-home-reviews__card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(201, 137, 75, 0.4);
+  box-shadow: 0 16px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.clutch-home-reviews__card::before {
+  content: '"';
+  position: absolute;
+  top: 1rem;
+  right: 1.25rem;
+  font-size: 3rem;
+  color: rgba(201, 137, 75, 0.15);
+  font-family: Georgia, serif;
+  line-height: 1;
+}
+
+.clutch-home-reviews__stars {
+  color: var(--clutch-accent);
+  font-size: 0.9375rem;
+  letter-spacing: 0.15em;
+  margin-bottom: 1rem;
+}
+
+.clutch-home-reviews__name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--clutch-text);
+}
+
+.clutch-home-reviews__quote {
+  font-size: 0.9375rem;
+  color: var(--clutch-text-muted);
+  line-height: 1.7;
+  font-style: italic;
+}
+
+/* ========================================
+   SECTION 6: FEATURED PRODUCTS - MAX COPPER GLOW
+   ======================================== */
+.section-clutch-home-featured-products {
+  background: linear-gradient(180deg, var(--clutch-bg) 0%, var(--clutch-bg-light) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.section-clutch-home-featured-products::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  right: -20%;
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(201, 137, 75, 0.35) 0%, transparent 50%);
+  pointer-events: none;
+  filter: blur(90px);
+}
+
+.section-clutch-home-featured-products::after {
+  content: '';
+  position: absolute;
+  bottom: -25%;
+  left: -15%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(201, 137, 75, 0.22) 0%, transparent 45%);
+  pointer-events: none;
+  filter: blur(70px);
+}
+
+.clutch-home-products__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 768px) {
+  .clutch-home-products__grid { grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+}
+
+.clutch-home-products__card {
+  background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+  border: 1px solid var(--clutch-border);
+  border-radius: 20px;
+  overflow: hidden;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.clutch-home-products__card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(201, 137, 75, 0.4);
+  box-shadow: 
+    0 24px 48px rgba(0,0,0,0.4),
+    0 0 0 1px rgba(201, 137, 75, 0.2),
+    inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
+.clutch-home-products__image-link {
+  display: block;
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.clutch-home-products__image-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(201, 137, 75, 0.1) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.clutch-home-products__card:hover .clutch-home-products__image-link::after { opacity: 1; }
+
+.clutch-home-products__image--placeholder {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--clutch-text-dim);
+  text-align: center;
+  padding: 1rem;
+}
+
+.clutch-home-products__body { padding: 1.25rem; }
+
+.clutch-home-products__brand {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--clutch-accent);
+  margin-bottom: 0.375rem;
+}
+
+.clutch-home-products__name {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+
+.clutch-home-products__price {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--clutch-text);
+  margin-bottom: 1rem;
+}
+
+.clutch-button--copper {
+  width: 100%;
+  background: transparent;
+  color: var(--clutch-accent);
+  border: 1px solid var(--clutch-accent);
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.75rem;
+  border-radius: 10px;
+  transition: all 0.25s ease;
+}
+
+.clutch-button--copper:hover {
+  background: var(--clutch-accent);
+  color: var(--clutch-bg);
+  box-shadow: 0 4px 12px rgba(201, 137, 75, 0.3);
+}
+
+/* ========================================
+   SECTION 7: TRUST BAR - MAX COPPER GLOW
+   ======================================== */
+.section-clutch-home-trust-bar {
+  background: linear-gradient(180deg, var(--clutch-bg-light) 0%, var(--clutch-bg-lighter) 100%);
+  border-top: 1px solid var(--clutch-border);
+  padding: 2.5rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.section-clutch-home-trust-bar::before {
+  content: '';
+  position: absolute;
+  top: -100%;
+  left: 30%;
+  width: 1000px;
+  height: 600px;
+  background: radial-gradient(ellipse, rgba(201, 137, 75, 0.35) 0%, transparent 50%);
+  pointer-events: none;
+  filter: blur(100px);
+}
+
+.section-clutch-home-trust-bar::after {
+  content: '';
+  position: absolute;
+  top: -80%;
+  right: -20%;
+  width: 500px;
+  height: 400px;
+  background: radial-gradient(ellipse, rgba(201, 137, 75, 0.2) 0%, transparent 45%);
+  pointer-events: none;
+  filter: blur(70px);
+}
+
+.clutch-home-trust-bar__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 768px) {
+  .clutch-home-trust-bar__grid { grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+}
+
+.clutch-home-trust-bar__item {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1rem;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--clutch-border);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.clutch-home-trust-bar__item:hover {
+  border-color: var(--clutch-accent);
+  background: rgba(201, 137, 75, 0.05);
+}
+
+.clutch-home-trust-bar__icon {
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(201, 137, 75, 0.1);
+  border-radius: 8px;
+}
+
+.clutch-home-trust-bar__icon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke: var(--clutch-accent);
+  stroke-width: 1.5;
+  fill: none;
+}
+
+.clutch-home-trust-bar__text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--clutch-text);
+  line-height: 1.4;
+}
+
+/* ========================================
+   SECTION 8: EMAIL SIGNUP - MAX COPPER GLOW
+   ======================================== */
+.section-clutch-home-email {
+  background: linear-gradient(135deg, var(--clutch-bg) 0%, var(--clutch-bg-light) 50%, var(--clutch-bg-lighter) 100%);
+  padding: 5rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.section-clutch-home-email::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -20%;
+  width: 900px;
+  height: 900px;
+  background: radial-gradient(circle, rgba(201, 137, 75, 0.45) 0%, transparent 50%);
+  pointer-events: none;
+  filter: blur(120px);
+}
+
+.section-clutch-home-email::after {
+  content: '';
+  position: absolute;
+  bottom: -60%;
+  right: -20%;
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(201, 137, 75, 0.3) 0%, transparent 45%);
+  pointer-events: none;
+  filter: blur(100px);
+}
+
+.clutch-home-email__content {
+  position: relative;
+  z-index: 1;
+  max-width: 560px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.clutch-home-email__title {
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.02em;
+}
+
+.clutch-home-email__subtitle {
+  font-size: 1rem;
+  color: var(--clutch-text-muted);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.clutch-home-email__form { margin-bottom: 1rem; }
+
+.clutch-home-email__input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 480px) {
+  .clutch-home-email__input-group { flex-direction: row; gap: 0.5rem; }
+}
+
+.clutch-home-email__input-group input {
+  flex: 1;
+  padding: 0.875rem 1rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--clutch-border);
+  border-radius: 10px;
+  color: var(--clutch-text);
+  font-size: 1rem;
+}
+
+.clutch-home-email__input-group input:focus {
+  outline: none;
+  border-color: var(--clutch-accent);
+  background: rgba(255,255,255,0.08);
+}
+
+.clutch-home-email__input-group input::placeholder { color: #6b7a8a; }
+
+.clutch-home-email__success {
+  color: #4ade80;
+  font-size: 0.9375rem;
+  margin-top: 1rem;
+}
+
+.clutch-home-email__disclaimer {
+  font-size: 0.75rem;
+  color: #6b7a8a;
+}
+
+/* ========================================
+   SECTION 9: FOOTER - with copper glow
+   ======================================== */
+.section-clutch-home-footer {
+  background: var(--clutch-bg);
+  border-top: 1px solid var(--clutch-border);
+  padding: 3rem 0 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.section-clutch-home-footer::before {
+  content: '';
+  position: absolute;
+  top: -100%;
+  left: -10%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(201, 137, 75, 0.2) 0%, transparent 50%);
+  pointer-events: none;
+  filter: blur(80px);
+}
+
+.section-clutch-home-footer::after {
+  content: '';
+  position: absolute;
+  top: -80%;
+  right: -10%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(201, 137, 75, 0.12) 0%, transparent 45%);
+  pointer-events: none;
+  filter: blur(60px);
+}
+
+.clutch-home-footer__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 768px) {
+  .clutch-home-footer__grid { grid-template-columns: repeat(3, 1fr); gap: 3rem; }
+}
+
+.clutch-home-footer__heading {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.clutch-home-footer__links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.clutch-home-footer__links a {
+  font-size: 0.875rem;
+  color: var(--clutch-text-dim);
+  transition: color 0.2s;
+}
+
+.clutch-home-footer__links a:hover { color: var(--clutch-accent); }
+
+.clutch-home-footer__bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  padding-top: 2rem;
+  border-top: 1px solid #1a2332;
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 640px) {
+  .clutch-home-footer__bottom { flex-direction: row; justify-content: space-between; }
+}
+
+.clutch-home-footer__social {
+  display: flex;
+  gap: 0.875rem;
+}
+
+.clutch-home-footer__social a {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--clutch-border);
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.clutch-home-footer__social a:hover {
+  border-color: var(--clutch-accent);
+  background: rgba(201, 137, 75, 0.1);
+}
+
+.clutch-home-footer__social svg {
+  width: 1rem;
+  height: 1rem;
+  stroke: var(--clutch-text-dim);
+  stroke-width: 1.5;
+  fill: none;
+  transition: stroke 0.2s;
+}
+
+.clutch-home-footer__social a:hover svg { stroke: var(--clutch-accent); }
+
+.clutch-home-footer__copyright {
+  font-size: 0.8125rem;
+  color: #6b7a8a;
+  text-align: center;
+}
+
+.clutch-home-footer__payment {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.clutch-home-footer__payment-icon {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #6b7a8a;
+  padding: 0.25rem 0.5rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--clutch-border);
+  border-radius: 4px;
+}
+
+/* Utility classes */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

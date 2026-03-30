@@ -1,4 +1,6 @@
-{% paginate collection.products by section.settings.products_per_page %}
+{% assign products_per_page = 12 %}
+{% assign current_page = request.query_string | split: 'page=' | last | split: '&' | first | default: 1 | plus: 0 %}
+{% if current_page < 1 %}{% assign current_page = 1 %}{% endif %}
 
 <div class="page-header">
   <h1>{{ collection.title }}</h1>
@@ -20,48 +22,105 @@
   <!-- Sidebar Filters -->
   <aside class="filters-sidebar">
     <h3>Filters</h3>
-    
-    {% if collection.all_tags.size > 0 %}
-      <div class="filter-group" id="categoryFilters">
-        <h4>Category</h4>
-        {% for tag in collection.all_tags %}
-          {% if tag contains 'category:' %}
-            {% assign category_name = tag | remove: 'category:' %}
-            <label class="filter-option">
-              <input type="checkbox" name="category" value="{{ category_name | handleize }}" data-tag="{{ category_name }}"> {{ category_name }}
-            </label>
-          {% endif %}
-        {% endfor %}
-      </div>
-    {% endif %}
-    
-    {% if collection.all_vendors.size > 0 %}
-      <div class="filter-group" id="brandFilters">
-        <h4>Brand</h4>
-        {% for vendor in collection.all_vendors %}
-          <label class="filter-option">
-            <input type="checkbox" name="brand" value="{{ vendor | url_encode }}" data-vendor="{{ vendor }}"> {{ vendor }}
-          </label>
-        {% endfor %}
-      </div>
-    {% endif %}
-    
+
+    <div class="filter-group" id="brandFilters">
+      <h4>Brand</h4>
+      <label class="filter-option">
+        <input type="checkbox" name="brand" value="andis" data-vendor="Andis"> Andis
+      </label>
+      <label class="filter-option">
+        <input type="checkbox" name="brand" value="babyliss-pro" data-vendor="Babyliss Pro"> Babyliss Pro
+      </label>
+      <label class="filter-option">
+        <input type="checkbox" name="brand" value="jrl" data-vendor="JRL"> JRL
+      </label>
+      <label class="filter-option">
+        <input type="checkbox" name="brand" value="wahl" data-vendor="Wahl"> Wahl
+      </label>
+      <label class="filter-option">
+        <input type="checkbox" name="brand" value="gamma-style-craft" data-vendor="Gamma | Style Craft"> Gamma | Style Craft
+      </label>
+      <label class="filter-option">
+        <input type="checkbox" name="brand" value="supreme" data-vendor="Supreme"> Supreme
+      </label>
+      <label class="filter-option">
+        <input type="checkbox" name="brand" value="level-3" data-vendor="Level 3"> Level 3
+      </label>
+      <label class="filter-option">
+        <input type="checkbox" name="brand" value="cocco-hair-pro" data-vendor="Cocco Hair Pro"> Cocco Hair Pro
+      </label>
+      <label class="filter-option">
+        <input type="checkbox" name="brand" value="oster" data-vendor="Oster"> Oster
+      </label>
+      <label class="filter-option">
+        <input type="checkbox" name="brand" value="tomb45" data-vendor="Tomb45"> Tomb45
+      </label>
+      <label class="filter-option">
+        <input type="checkbox" name="brand" value="vincent" data-vendor="Vincent"> Vincent
+      </label>
+      <label class="filter-option">
+        <input type="checkbox" name="brand" value="og-walker" data-vendor="OG Walker"> OG Walker
+      </label>
+      <label class="filter-option">
+        <input type="checkbox" name="brand" value="smash" data-vendor="Smash"> Smash
+      </label>
+      <label class="filter-option">
+        <input type="checkbox" name="brand" value="rolda" data-vendor="Rolda"> Rolda
+      </label>
+    </div>
+
+    <div class="filter-group" id="suppliesFilters">
+      <h4>Supplies</h4>
+      <label class="filter-option">
+        <input type="checkbox" name="category" value="clippers" data-category="Clippers"> Clippers
+      </label>
+      <label class="filter-option">
+        <input type="checkbox" name="category" value="trimmers" data-category="Trimmers"> Trimmers
+      </label>
+      <label class="filter-option">
+        <input type="checkbox" name="category" value="shavers" data-category="Shavers"> Shavers
+      </label>
+      <label class="filter-option">
+        <input type="checkbox" name="category" value="backpacks-trays" data-category="Backpacks | Trays"> Backpacks | Trays
+      </label>
+      <label class="filter-option">
+        <input type="checkbox" name="category" value="lights" data-category="Lights"> Lights
+      </label>
+      <label class="filter-option">
+        <input type="checkbox" name="category" value="accessories" data-category="Accessories"> Accessories
+      </label>
+      <label class="filter-option">
+        <input type="checkbox" name="category" value="capes" data-category="Capes"> Capes
+      </label>
+      <label class="filter-option">
+        <input type="checkbox" name="category" value="barber-chairs" data-category="Barber Chairs"> Barber Chairs
+      </label>
+    </div>
+
     <div class="filter-group">
       <h4>Price</h4>
-      <div class="price-range">
-        <input type="number" name="price_min" placeholder="$0" min="0">
-        <span>—</span>
-        <input type="number" name="price_max" placeholder="$500" max="500">
+      <div class="price-slider">
+        <div class="price-slider__track" id="priceTrack">
+          <div class="price-slider__range" id="priceRange"></div>
+          <div class="price-slider__handle" id="priceHandleMin" data-handle="min"></div>
+          <div class="price-slider__handle" id="priceHandleMax" data-handle="max"></div>
+        </div>
+        <div class="price-slider__labels">
+          <span class="price-slider__value" id="priceValueMin">$0</span>
+          <span class="price-slider__value" id="priceValueMax">$1400</span>
+        </div>
+        <input type="hidden" name="price_min" value="0" id="priceInputMin">
+        <input type="hidden" name="price_max" value="1400" id="priceInputMax">
       </div>
     </div>
-    
+
     <div class="filter-group">
       <h4>Availability</h4>
       <label class="filter-option">
         <input type="checkbox" name="availability" value="in_stock"> In Stock
       </label>
     </div>
-    
+
     <button class="clear-filters" onclick="clearAllFilters()">Clear All Filters</button>
   </aside>
 
@@ -87,7 +146,7 @@
     <!-- Products Grid -->
     <div class="products-grid" id="productsGrid">
       {% for product in collection.products %}
-        <div class="product-card" data-vendor="{{ product.vendor | handle }}" data-price="{{ product.price }}" data-available="{{ product.available }}">
+        <div class="product-card" data-vendor="{{ product.vendor | handle }}" data-price="{{ product.price }}" data-available="{{ product.available }}" data-tags="{% for tag in product.tags %}{{ tag | handleize }},{% endfor %}">
           <div class="product-card__image">
             {% if product.featured_image %}
               <img src="{{ product.featured_image | image_url: width: 400 }}" alt="{{ product.featured_image.alt | escape }}" loading="lazy">
@@ -110,157 +169,441 @@
       {% endfor %}
     </div>
     
-    {% if paginate.pages > 1 %}
-      <nav class="pagination" role="navigation" aria-label="Pagination">
-        {% if paginate.previous %}
-          <a href="{{ paginate.previous.url }}" class="pagination__prev" aria-label="Previous page">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M19 12H5M12 19l-7-7 7-7"/>
-            </svg>
-          </a>
-        {% else %}
-          <span class="pagination__prev pagination__disabled" aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M19 12H5M12 19l-7-7 7-7"/>
-            </svg>
-          </span>
-        {% endif %}
-
-        {% for part in paginate.parts %}
-          {% if part.is_link %}
-            <a href="{{ part.url }}" class="pagination__number" aria-label="Page {{ part.title }}">{{ part.title }}</a>
-          {% elsif part.title == paginate.current_page %}
-            <span class="pagination__number pagination__current" aria-current="page">{{ part.title }}</span>
-          {% else %}
-            <span class="pagination__ellipsis" aria-hidden="true">{{ part.title }}</span>
-          {% endif %}
-        {% endfor %}
-
-        {% if paginate.next %}
-          <a href="{{ paginate.next.url }}" class="pagination__next" aria-label="Next page">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
-          </a>
-        {% else %}
-          <span class="pagination__next pagination__disabled" aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
-          </span>
-        {% endif %}
-      </nav>
-    {% endif %}
+    <!-- Dynamic Pagination Container -->
+    <nav class="pagination" id="paginationContainer" role="navigation" aria-label="Pagination" style="display: none;">
+      <!-- Pagination injected by JavaScript -->
+    </nav>
   </div>
 </div>
 
-{% endpaginate %}
-
 <script>
-// Auto-apply filters from URL parameters
-(function() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const vendorParam = urlParams.get('vendor');
-  const categoryParam = urlParams.get('category');
-  
-  // Auto-check vendor filter if in URL
-  if (vendorParam) {
-    const vendorCheckbox = document.querySelector(`input[name="brand"][value="${vendorParam}"]`);
-    if (vendorCheckbox) {
-      vendorCheckbox.checked = true;
-      vendorCheckbox.parentElement.classList.add('active');
-    }
-  }
-  
-  // Auto-check category filter if in URL
-  if (categoryParam) {
-    const categoryCheckbox = document.querySelector(`input[name="category"][value="${categoryParam}"]`);
-    if (categoryCheckbox) {
-      categoryCheckbox.checked = true;
-      categoryCheckbox.parentElement.classList.add('active');
-    }
-  }
-})();
+// Store all products from the collection
+let allProducts = [];
+let filteredProducts = [];
+let currentPage = 1;
+const PRODUCTS_PER_PAGE = 12;
 
-// Filter functionality
+// Extract brand name from product title
+function extractBrandFromTitle(title) {
+  if (!title) return '';
+  const brands = ['Andis', 'Babyliss', 'JRL', 'Wahl', 'Gamma', 'Supreme', 'Level 3', 'Cocco', 'Oster', 'Tomb45', 'Vincent', 'OG Walker', 'Smash', 'Rolda'];
+  const titleLower = title.toLowerCase();
+  for (const brand of brands) {
+    if (titleLower.includes(brand.toLowerCase())) {
+      return brand;
+    }
+  }
+  return '';
+}
+
+// Collection handle from URL
+const collectionHandle = window.location.pathname.split('/').pop() || 'all';
+
+// Load all products from collection via AJAX
+async function loadAllProducts() {
+  try {
+    // Try to get products from the collection
+    let page = 1;
+    let hasMore = true;
+    allProducts = [];
+    
+    while (hasMore && page <= 10) { // Limit to 10 pages (250 products)
+      const response = await fetch(`/collections/${collectionHandle}/products.json?page=${page}&limit=250`);
+      if (!response.ok) throw new Error('Failed to load products');
+      
+      const data = await response.json();
+      if (data.products && data.products.length > 0) {
+        allProducts = allProducts.concat(data.products);
+        hasMore = data.products.length === 250;
+        page++;
+      } else {
+        hasMore = false;
+      }
+    }
+    
+    // Apply filters from URL on load
+    applyFiltersFromUrl();
+    
+  } catch (error) {
+    console.error('Error loading products:', error);
+    // Fallback: use products already in DOM
+    allProducts = extractProductsFromDom();
+    applyFiltersFromUrl();
+  }
+}
+
+// Extract products from existing DOM as fallback
+function extractProductsFromDom() {
+  const products = [];
+  document.querySelectorAll('.product-card').forEach(card => {
+    products.push({
+      id: card.dataset.productId,
+      vendor: card.dataset.vendor,
+      price: parseFloat(card.dataset.price),
+      available: card.dataset.available === 'true',
+      tags: (card.dataset.tags || '').split(',').filter(t => t),
+      title: card.querySelector('.product-card__name a')?.textContent || '',
+      image: card.querySelector('.product-card__image img')?.src || '',
+      url: card.querySelector('.product-card__name a')?.href || '',
+      variant_id: card.querySelector('.product-card__quick-add')?.getAttribute('onclick')?.match(/'([^']+)'/)?.[1] || ''
+    });
+  });
+  return products;
+}
+
+// Apply filters from URL on page load
+function applyFiltersFromUrl() {
+  const urlParams = new URLSearchParams(window.location.search);
+
+  // Get vendors from URL (handle both vendor and vendror param names)
+  const vendors = urlParams.getAll('vendor');
+  vendors.forEach(vendor => {
+    // Map vendor names to checkbox values
+    const vendorMap = {
+      'Wahl': 'wahl',
+      'wahl': 'wahl',
+      'Andis': 'andis',
+      'andis': 'andis',
+      'JRL': 'jrl',
+      'jrl': 'jrl',
+      'Gamma | Style Craft': 'gamma-style-craft',
+      'Gamma': 'gamma-style-craft',
+      'Babyliss Pro': 'babyliss-pro',
+      'Babyliss': 'babyliss-pro',
+      'Supreme Trimmers': 'supreme',
+      'Supreme': 'supreme',
+      'Level 3': 'level-3',
+      'Level': 'level-3',
+      'Oster': 'oster',
+      'Cocco Hair Pro': 'cocco-hair-pro',
+      'Cocco': 'cocco-hair-pro',
+      'Tomb45': 'tomb45',
+      'Vincent': 'vincent',
+      'OG Walker': 'og-walker',
+      'Smash': 'smash',
+      'Rolda': 'rolda'
+    };
+    const checkboxValue = vendorMap[vendor] || vendor.toLowerCase().replace(/\s+/g, '-');
+    const checkbox = document.querySelector(`input[name="brand"][value="${checkboxValue}"]`);
+    if (checkbox) {
+      checkbox.checked = true;
+      checkbox.parentElement.classList.add('active');
+    }
+  });
+  
+  // Get categories from URL
+  const categories = urlParams.getAll('category');
+  categories.forEach(cat => {
+    const checkbox = document.querySelector(`input[name="category"][value="${cat}"]`);
+    if (checkbox) {
+      checkbox.checked = true;
+      checkbox.parentElement.classList.add('active');
+    }
+  });
+  
+  // Get price range
+  const priceMin = urlParams.get('price_min');
+  const priceMax = urlParams.get('price_max');
+  if (priceMin) document.querySelector('input[name="price_min"]').value = priceMin;
+  if (priceMax) document.querySelector('input[name="price_max"]').value = priceMax;
+  
+  // Get availability
+  const available = urlParams.get('available');
+  if (available === 'true') {
+    const checkbox = document.querySelector('input[name="availability"]');
+    if (checkbox) {
+      checkbox.checked = true;
+      checkbox.parentElement.classList.add('active');
+    }
+  }
+  
+  // Get page
+  const page = parseInt(urlParams.get('page')) || 1;
+  currentPage = page;
+  
+  // Apply filters
+  applyClientSideFilters();
+}
+
+// Apply filters and render
+function applyClientSideFilters() {
+  const selectedBrands = Array.from(document.querySelectorAll('input[name="brand"]:checked')).map(cb => cb.value.toLowerCase());
+  const selectedCategories = Array.from(document.querySelectorAll('input[name="category"]:checked')).map(cb => cb.value.toLowerCase());
+  // Get price from slider inputs or fall back to number inputs
+  const minInput = document.getElementById('priceInputMin');
+  const maxInput = document.getElementById('priceInputMax');
+  const fallbackMin = document.querySelector('input[name="price_min"]');
+  const fallbackMax = document.querySelector('input[name="price_max"]');
+  const priceMinVal = minInput ? minInput.value : (fallbackMin ? fallbackMin.value : 0);
+  const priceMaxVal = maxInput ? maxInput.value : (fallbackMax ? fallbackMax.value : 1400);
+  // Convert price inputs from dollars to cents (Shopify stores price in cents)
+  const priceMin = (parseFloat(priceMinVal) || 0) * 100;
+  const priceMax = (parseFloat(priceMaxVal) || 1400) * 100;
+  const inStockOnly = document.querySelector('input[name="availability"]:checked');
+  
+  // Filter products
+  filteredProducts = allProducts.filter(product => {
+    const vendor = (product.vendor || '').toLowerCase();
+    const title = (product.title || '').toLowerCase();
+    const price = parseFloat(product.price) || 0;
+    // Handle available as boolean (could be true, "true", or variants array check)
+    let available = product.available === true || product.available === 'true';
+    // If product has variants, check if any are available
+    if (!available && product.variants && product.variants.length > 0) {
+      available = product.variants.some(v => v.available === true || v.available === 'true');
+    }
+    const tags = (product.tags || []).map(t => t.toLowerCase());
+    
+    // Brand filter - check title since vendor is "Clutch Barber Supply"
+    if (selectedBrands.length > 0) {
+      const brandNames = {
+        'andis': 'andis',
+        'babyliss-pro': 'babyliss',
+        'jrl': 'jrl',
+        'wahl': 'wahl',
+        'gamma-style-craft': 'gamma',
+        'supreme': 'supreme',
+        'level-3': 'level 3',
+        'cocco-hair-pro': 'cocco',
+        'oster': 'oster',
+        'tomb45': 'tomb45',
+        'vincent': 'vincent',
+        'og-walker': 'og walker',
+        'smash': 'smash',
+        'rolda': 'rolda'
+      };
+      const brandMatch = selectedBrands.some(brand => {
+        const searchTerm = brandNames[brand] || brand;
+        return title.includes(searchTerm);
+      });
+      if (!brandMatch) return false;
+    }
+    
+    // Category/Supplies filter - search title for trigger words like brand filter
+    if (selectedCategories.length > 0) {
+      const categoryMatch = selectedCategories.some(cat => {
+        // Special handling for accessories - check tags only
+        if (cat === 'accessories') {
+          return tags.some(tag => tag.includes('accessories') || tag.includes('accessory'));
+        }
+        // Handle Backpacks | Trays - search for either word
+        if (cat === 'backpacks-trays') {
+          return title.includes('backpack') || title.includes('tray');
+        }
+        // Map category values to search terms (like we did for brands)
+        const categoryTerms = {
+          'clippers': 'clipper',
+          'trimmers': 'trimmer',
+          'shavers': 'shaver',
+          'lights': 'light',
+          'capes': 'cape',
+          'barber-chairs': 'barber chair'
+        };
+        const searchTerm = categoryTerms[cat] || cat;
+        return title.includes(searchTerm);
+      });
+      if (!categoryMatch) return false;
+    }
+
+    // Price filter
+    if (price < priceMin || price > priceMax) {
+      return false;
+    }
+    
+    // Availability filter
+    if (inStockOnly && !available) {
+      return false;
+    }
+    
+    return true;
+  });
+  
+  // Render current page
+  renderProductsPage();
+  
+  // Update UI
+  updateActiveFilterPills();
+  updateResultsCount();
+  renderPagination();
+  updateUrlParams();
+}
+
+// Render products for current page
+function renderProductsPage() {
+  const grid = document.getElementById('productsGrid');
+  if (!grid) return;
+  
+  const startIndex = (currentPage - 1) * PRODUCTS_PER_PAGE;
+  const endIndex = startIndex + PRODUCTS_PER_PAGE;
+  const pageProducts = filteredProducts.slice(startIndex, endIndex);
+  
+  // Build HTML
+  let html = '';
+  pageProducts.forEach(product => {
+    // Get price from variants or product
+    let price = 0;
+    let variantId = '';
+    if (product.variants && product.variants.length > 0) {
+      price = parseFloat(product.variants[0].price) * 100; // Convert dollars to cents
+      variantId = product.variants[0].id;
+    } else if (product.price) {
+      price = parseFloat(product.price);
+    }
+    
+    const priceFormatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price / 100);
+    
+    // Get image from images array or image.src
+    let imageUrl = '';
+    if (product.images && product.images.length > 0) {
+      imageUrl = product.images[0].src;
+    } else if (product.image) {
+      imageUrl = product.image.src || product.image;
+    }
+    
+    // Build product URL
+    const productUrl = '/products/' + (product.handle || '');
+    
+    // Extract brand from title since vendor is "Clutch Barber Supply"
+    const brandFromTitle = extractBrandFromTitle(product.title);
+    
+    html += `
+      <div class="product-card" data-vendor="${brandFromTitle || ''}" data-price="${price}" data-available="${product.available || false}">
+        <div class="product-card__image">
+          ${imageUrl ? `<img src="${imageUrl}" alt="${product.title}" loading="lazy">` : `<span style="color: var(--clutch-text-dim); font-size: 0.875rem;">${product.title}</span>`}
+          <button class="product-card__quick-add" onclick="addToCart('${variantId}')">Quick Add</button>
+        </div>
+        <div class="product-card__info">
+          <div class="product-card__brand">${brandFromTitle || ''}</div>
+          <div class="product-card__name"><a href="${productUrl}">${product.title}</a></div>
+          <div class="product-card__price">
+            <span class="product-card__price-current">${priceFormatted}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+  
+  grid.innerHTML = html;
+}
+
+// Render pagination
+function renderPagination() {
+  const container = document.getElementById('paginationContainer');
+  if (!container) return;
+  
+  const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
+  
+  if (totalPages <= 1) {
+    container.style.display = 'none';
+    return;
+  }
+  
+  container.style.display = 'flex';
+  
+  let html = '';
+  
+  // Previous button
+  if (currentPage > 1) {
+    html += `<a href="#" class="pagination__prev" onclick="goToPage(${currentPage - 1}); return false;" aria-label="Previous page">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    </a>`;
+  } else {
+    html += `<span class="pagination__prev pagination__disabled" aria-hidden="true">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    </span>`;
+  }
+  
+  // Page numbers
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === currentPage) {
+      html += `<span class="pagination__number pagination__current" aria-current="page">${i}</span>`;
+    } else {
+      html += `<a href="#" class="pagination__number" onclick="goToPage(${i}); return false;" aria-label="Page ${i}">${i}</a>`;
+    }
+  }
+  
+  // Next button
+  if (currentPage < totalPages) {
+    html += `<a href="#" class="pagination__next" onclick="goToPage(${currentPage + 1}); return false;" aria-label="Next page">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>`;
+  } else {
+    html += `<span class="pagination__next pagination__disabled" aria-hidden="true">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </span>`;
+  }
+  
+  container.innerHTML = html;
+}
+
+// Go to specific page
+window.goToPage = function(page) {
+  currentPage = page;
+  renderProductsPage();
+  renderPagination();
+  updateUrlParams();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// Update results count
+function updateResultsCount() {
+  const countEl = document.querySelector('.results-count');
+  if (countEl) {
+    countEl.textContent = `Showing ${filteredProducts.length} of ${allProducts.length} products`;
+  }
+}
+
+// Update active filter pills
+function updateActiveFilterPills() {
+  const container = document.getElementById('activeFilters');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  document.querySelectorAll('.filter-option input[type="checkbox"]:checked').forEach(checkbox => {
+    const label = checkbox.parentElement.textContent.trim();
+    const pill = document.createElement('span');
+    pill.className = 'filter-pill';
+    pill.innerHTML = `${label} <button type="button">×</button>`;
+    
+    pill.querySelector('button').addEventListener('click', function() {
+      checkbox.checked = false;
+      checkbox.parentElement.classList.remove('active');
+      currentPage = 1; // Reset to first page
+      applyClientSideFilters();
+    });
+    
+    container.appendChild(pill);
+  });
+}
+
+// Update URL params
+function updateUrlParams() {
+  const url = new URL(window.location.href);
+  const params = new URLSearchParams();
+  
+  const selectedBrands = Array.from(document.querySelectorAll('input[name="brand"]:checked')).map(cb => cb.value);
+  selectedBrands.forEach(brand => params.append('vendor', brand));
+  
+  const selectedCategories = Array.from(document.querySelectorAll('input[name="category"]:checked')).map(cb => cb.value);
+  selectedCategories.forEach(cat => params.append('category', cat));
+  
+  const priceMin = document.querySelector('input[name="price_min"]').value;
+  const priceMax = document.querySelector('input[name="price_max"]').value;
+  if (priceMin) params.set('price_min', priceMin);
+  if (priceMax) params.set('price_max', priceMax);
+  
+  const inStock = document.querySelector('input[name="availability"]:checked');
+  if (inStock) params.set('available', 'true');
+  
+  if (currentPage > 1) params.set('page', currentPage);
+  
+  window.history.replaceState({}, '', url.pathname + (params.toString() ? '?' + params.toString() : ''));
+}
+
+// Set up filter listeners
 (function() {
   const filterCheckboxes = document.querySelectorAll('.filter-option input[type="checkbox"]');
-  const priceInputs = document.querySelectorAll('.price-range input');
-  const activeFiltersContainer = document.getElementById('activeFilters');
-  const productCards = document.querySelectorAll('.product-card');
-  
-  function updateActiveFilters() {
-    activeFiltersContainer.innerHTML = '';
-    
-    filterCheckboxes.forEach(checkbox => {
-      if (checkbox.checked) {
-        const label = checkbox.parentElement.textContent.trim();
-        const pill = document.createElement('span');
-        pill.className = 'filter-pill';
-        pill.innerHTML = `${label} <button type="button">×</button>`;
-        
-        pill.querySelector('button').addEventListener('click', function() {
-          checkbox.checked = false;
-          checkbox.parentElement.classList.remove('active');
-          applyFilters();
-          // Update URL to remove filter
-          updateUrl();
-        });
-        
-        activeFiltersContainer.appendChild(pill);
-      }
-    });
-  }
-  
-  function applyFilters() {
-    const activeVendors = Array.from(document.querySelectorAll('input[name="brand"]:checked')).map(cb => decodeURIComponent(cb.value));
-    const activeCategories = Array.from(document.querySelectorAll('input[name="category"]:checked')).map(cb => cb.dataset.tag);
-    const inStockOnly = document.querySelector('input[name="availability"]:checked');
-    const priceMin = parseFloat(document.querySelector('input[name="price_min"]').value) || 0;
-    const priceMax = parseFloat(document.querySelector('input[name="price_max"]').value) || Infinity;
-    
-    productCards.forEach(card => {
-      const vendor = decodeURIComponent(card.dataset.vendor);
-      const price = parseFloat(card.dataset.price);
-      const available = card.dataset.available === 'true';
-      
-      let visible = true;
-      
-      if (activeVendors.length > 0 && !activeVendors.some(v => vendor.includes(v) || v.includes(vendor))) visible = false;
-      if (activeCategories.length > 0) {
-        // Check if product has matching category tag
-        const productTags = card.dataset.tags ? card.dataset.tags.split(',') : [];
-        const hasCategory = activeCategories.some(cat => productTags.some(tag => tag.toLowerCase().includes(cat.toLowerCase())));
-        if (!hasCategory) visible = false;
-      }
-      if (inStockOnly && !available) visible = false;
-      if (price < priceMin || price > priceMax) visible = false;
-      
-      card.style.display = visible ? '' : 'none';
-    });
-    
-    updateActiveFilters();
-  }
-  
-  function updateUrl() {
-    const url = new URL(window.location);
-    const activeVendors = Array.from(document.querySelectorAll('input[name="brand"]:checked')).map(cb => cb.value);
-    const activeCategories = Array.from(document.querySelectorAll('input[name="category"]:checked')).map(cb => cb.value);
-    
-    if (activeVendors.length > 0) {
-      url.searchParams.set('vendor', activeVendors[0]);
-    } else {
-      url.searchParams.delete('vendor');
-    }
-    
-    if (activeCategories.length > 0) {
-      url.searchParams.set('category', activeCategories[0]);
-    } else {
-      url.searchParams.delete('category');
-    }
-    
-    window.history.replaceState({}, '', url);
-  }
   
   filterCheckboxes.forEach(checkbox => {
     checkbox.addEventListener('change', function() {
@@ -269,35 +612,412 @@
       } else {
         this.parentElement.classList.remove('active');
       }
-      applyFilters();
-      updateUrl();
+      currentPage = 1; // Reset to first page when filter changes
+      applyClientSideFilters();
     });
   });
   
+  // Price inputs
+  let priceTimeout;
+  const priceInputs = document.querySelectorAll('.price-range input');
   priceInputs.forEach(input => {
-    input.addEventListener('change', applyFilters);
+    input.addEventListener('input', function() {
+      clearTimeout(priceTimeout);
+      priceTimeout = setTimeout(() => {
+        currentPage = 1;
+        applyClientSideFilters();
+      }, 500);
+    });
+  });
+})();
+
+// Clear all filters
+window.clearAllFilters = function() {
+  document.querySelectorAll('.filter-option input[type="checkbox"]').forEach(cb => {
+    cb.checked = false;
+    cb.parentElement.classList.remove('active');
+  });
+  document.querySelectorAll('.price-range input').forEach(input => input.value = '');
+  currentPage = 1;
+  applyClientSideFilters();
+};
+
+// Mobile filter toggle
+window.toggleMobileFilters = function() {
+  document.querySelector('.filters-sidebar').classList.add('mobile-visible');
+};
+
+// Add to cart
+window.addToCart = async function(variantId) {
+  if (!variantId) {
+    alert('Unable to add to cart');
+    return;
+  }
+  try {
+    const response = await fetch('/cart/add.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: [{ id: variantId, quantity: 1 }] })
+    });
+    
+    if (response.ok) {
+      const cart = await fetch('/cart.js').then(r => r.json());
+      const badge = document.querySelector('.clutch-header__badge');
+      if (badge) badge.textContent = cart.item_count;
+      alert('Added to cart!');
+    }
+  } catch (error) {
+    console.error('Error adding to cart:', error);
+  }
+};
+
+// Load products on page load
+document.addEventListener('DOMContentLoaded', loadAllProducts);
+
+// Auto-apply filters from URL parameters on page load
+(function() {
+  const urlParams = new URLSearchParams(window.location.search);
+
+  // Handle multiple vendors
+  const vendorParam = urlParams.get('vendor');
+  if (vendorParam) {
+    const vendors = vendorParam.split(',');
+    vendors.forEach(vendor => {
+      const vendorCheckbox = document.querySelector(`input[name="brand"][value="${vendor.trim()}"]`);
+      if (vendorCheckbox) {
+        vendorCheckbox.checked = true;
+        vendorCheckbox.parentElement.classList.add('active');
+      }
+    });
+  }
+
+  // Handle category filters
+  const categoryParam = urlParams.get('category');
+  if (categoryParam) {
+    const categories = categoryParam.split(',');
+    categories.forEach(cat => {
+      const categoryCheckbox = document.querySelector(`input[name="category"][value="${cat.trim()}"]`);
+      if (categoryCheckbox) {
+        categoryCheckbox.checked = true;
+        categoryCheckbox.parentElement.classList.add('active');
+      }
+    });
+  }
+
+  // Handle price range
+  const priceMin = urlParams.get('price_min');
+  const priceMax = urlParams.get('price_max');
+  if (priceMin) document.querySelector('input[name="price_min"]').value = priceMin;
+  if (priceMax) document.querySelector('input[name="price_max"]').value = priceMax;
+
+  // Handle availability
+  const available = urlParams.get('available');
+  if (available === 'true') {
+    const availCheckbox = document.querySelector('input[name="availability"]');
+    if (availCheckbox) {
+      availCheckbox.checked = true;
+      availCheckbox.parentElement.classList.add('active');
+    }
+  }
+
+  // Apply filters on load
+  applyClientSideFilters();
+})();
+
+// Apply filters client-side (no page reload)
+function applyClientSideFilters() {
+  const selectedBrands = Array.from(document.querySelectorAll('input[name="brand"]:checked')).map(cb => cb.value.toLowerCase());
+  const selectedCategories = Array.from(document.querySelectorAll('input[name="category"]:checked')).map(cb => cb.value.toLowerCase());
+  // Slider values are in dollars, convert to cents (Shopify prices are in cents)
+  const priceMinDollars = parseFloat(document.querySelector('input[name="price_min"]').value) || 0;
+  const priceMaxDollars = parseFloat(document.querySelector('input[name="price_max"]').value) || 1400;
+  const priceMin = priceMinDollars * 100; // Convert to cents
+  const priceMax = priceMaxDollars * 100; // Convert to cents
+  const inStockOnly = document.querySelector('input[name="availability"]:checked');
+
+  // Filter the products array for pagination
+  filteredProducts = allProducts.filter(product => {
+    const vendor = (product.vendor || '').toLowerCase();
+    const title = (product.title || '').toLowerCase();
+    // Shopify API returns price in dollars (e.g., "79.99"), convert to cents
+    let priceDollars = parseFloat(product.price) || 0;
+    if (!priceDollars && product.variants && product.variants[0]) {
+      priceDollars = parseFloat(product.variants[0].price) || 0;
+    }
+    const price = priceDollars * 100; // Convert dollars to cents
+    const available = product.available === true || product.available === 'true';
+    const tags = (product.tags || []).map(t => t.toLowerCase());
+    
+    let visible = true;
+    
+    // Brand filter - check title since vendor is "Clutch Barber Supply"
+    if (selectedBrands.length > 0) {
+      const brandNames = {
+        'andis': 'andis',
+        'babyliss-pro': 'babyliss',
+        'jrl': 'jrl',
+        'wahl': 'wahl',
+        'gamma-style-craft': 'gamma',
+        'supreme': 'supreme',
+        'level-3': 'level 3',
+        'cocco-hair-pro': 'cocco',
+        'oster': 'oster',
+        'tomb45': 'tomb45',
+        'vincent': 'vincent',
+        'og-walker': 'og walker',
+        'smash': 'smash',
+        'rolda': 'rolda'
+      };
+      const brandMatch = selectedBrands.some(brand => {
+        const searchTerm = brandNames[brand] || brand;
+        return title.includes(searchTerm);
+      });
+      if (!brandMatch) visible = false;
+    }
+    
+    // Category filter
+    if (visible && selectedCategories.length > 0) {
+      const categoryMatch = selectedCategories.some(cat => {
+        if (cat === 'accessories') {
+          return tags.some(tag => tag.includes('accessories') || tag.includes('accessory'));
+        }
+        if (cat === 'backpacks-trays') {
+          return title.includes('backpack') || title.includes('tray');
+        }
+        const categoryTerms = {
+          'clippers': 'clipper',
+          'trimmers': 'trimmer',
+          'shavers': 'shaver',
+          'lights': 'light',
+          'capes': 'cape',
+          'barber-chairs': 'barber chair'
+        };
+        const searchTerm = categoryTerms[cat] || cat;
+        return title.includes(searchTerm);
+      });
+      if (!categoryMatch) visible = false;
+    }
+    
+    // Price filter
+    if (visible && (price < priceMin || price > priceMax)) {
+      visible = false;
+    }
+    
+    // Availability filter - check both product and variant availability
+    if (visible && inStockOnly) {
+      // Check if any variant is available
+      let anyAvailable = available;
+      if (!anyAvailable && product.variants && product.variants.length > 0) {
+        anyAvailable = product.variants.some(v => v.available === true);
+      }
+      if (!anyAvailable) {
+        visible = false;
+      }
+    }
+    
+    return visible;
+  });
+
+  // Render current page
+  currentPage = 1; // Reset to first page when filters change
+  renderProductsPage();
+  renderPagination();
+  updateActiveFilterPills();
+  updateResultsCount(filteredProducts.length, allProducts.length);
+  updateUrlParams();
+}
+
+// Update active filter pills display
+function updateActiveFilterPills() {
+  const container = document.getElementById('activeFilters');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  // Add pills for checked filters
+  document.querySelectorAll('.filter-option input[type="checkbox"]:checked').forEach(checkbox => {
+    const label = checkbox.parentElement.textContent.trim();
+    const pill = document.createElement('span');
+    pill.className = 'filter-pill';
+    pill.innerHTML = `${label} <button type="button">×</button>`;
+    
+    pill.querySelector('button').addEventListener('click', function() {
+      checkbox.checked = false;
+      checkbox.parentElement.classList.remove('active');
+      applyClientSideFilters();
+    });
+    
+    container.appendChild(pill);
+  });
+}
+
+// Update results count
+function updateResultsCount(visible, total) {
+  const countEl = document.querySelector('.results-count');
+  if (countEl) {
+    countEl.textContent = `Showing ${visible} of ${total} products`;
+  }
+}
+
+// Update URL params (for sharing/bookmarks)
+function updateUrlParams() {
+  const url = new URL(window.location.href);
+  const params = new URLSearchParams();
+
+  const selectedBrands = Array.from(document.querySelectorAll('input[name="brand"]:checked')).map(cb => cb.value);
+  if (selectedBrands.length > 0) {
+    params.set('vendor', selectedBrands.join(','));
+  }
+
+  const selectedCategories = Array.from(document.querySelectorAll('input[name="category"]:checked')).map(cb => cb.value);
+  if (selectedCategories.length > 0) {
+    params.set('category', selectedCategories.join(','));
+  }
+
+  const priceMin = document.querySelector('input[name="price_min"]').value;
+  const priceMax = document.querySelector('input[name="price_max"]').value;
+  if (priceMin) params.set('price_min', priceMin);
+  if (priceMax) params.set('price_max', priceMax);
+
+  const inStock = document.querySelector('input[name="availability"]:checked');
+  if (inStock) params.set('available', 'true');
+
+  const currentSort = new URLSearchParams(window.location.search).get('sort_by');
+  if (currentSort) params.set('sort_by', currentSort);
+
+  window.history.replaceState({}, '', url.pathname + (params.toString() ? '?' + params.toString() : ''));
+}
+
+// Set up filter change listeners
+(function() {
+  const filterCheckboxes = document.querySelectorAll('.filter-option input[type="checkbox"]');
+  
+  filterCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+      if (this.checked) {
+        this.parentElement.classList.add('active');
+      } else {
+        this.parentElement.classList.remove('active');
+      }
+      applyClientSideFilters();
+    });
   });
   
-  window.clearAllFilters = function() {
-    filterCheckboxes.forEach(cb => {
-      cb.checked = false;
-      cb.parentElement.classList.remove('active');
+  // Price inputs - filter on change (with debounce)
+  let priceTimeout;
+  const priceInputs = document.querySelectorAll('.price-range input');
+  priceInputs.forEach(input => {
+    input.addEventListener('input', function() {
+      clearTimeout(priceTimeout);
+      priceTimeout = setTimeout(applyClientSideFilters, 500);
     });
-    priceInputs.forEach(input => input.value = '');
-    applyFilters();
-    // Clear URL params
-    const url = new URL(window.location);
-    url.search = '';
-    window.history.replaceState({}, '', url);
-  };
-  
-  window.toggleMobileFilters = function() {
-    document.querySelector('.filters-sidebar').classList.toggle('mobile-visible');
-  };
-  
-  // Run filters on load (for URL params)
-  applyFilters();
+  });
 })();
+
+// Clear all filters
+window.clearAllFilters = function() {
+  document.querySelectorAll('.filter-option input[type="checkbox"]').forEach(cb => {
+    cb.checked = false;
+    cb.parentElement.classList.remove('active');
+  });
+  document.querySelectorAll('.price-range input').forEach(input => input.value = '');
+  
+  // Show all products
+  document.querySelectorAll('.product-card').forEach(card => {
+    card.style.display = '';
+  });
+  
+  updateActiveFilterPills();
+  updateResultsCount(document.querySelectorAll('.product-card').length, document.querySelectorAll('.product-card').length);
+  
+  // Clear URL
+  const url = new URL(window.location);
+  url.search = '';
+  window.history.replaceState({}, '', url.toString());
+};
+
+// Mobile filter toggle
+window.toggleMobileFilters = function() {
+  document.querySelector('.filters-sidebar').classList.add('mobile-visible');
+};
+
+// Close mobile filters
+window.closeMobileFilters = function() {
+  document.querySelector('.filters-sidebar').classList.remove('mobile-visible');
+};
+
+// Go to specific page
+window.goToPage = function(page) {
+  currentPage = page;
+  renderProductsPage();
+  renderPagination();
+  updateUrlParams();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// Render pagination
+function renderPagination() {
+  const container = document.getElementById('paginationContainer');
+  if (!container) return;
+  
+  const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
+  
+  if (totalPages <= 1) {
+    container.style.display = 'none';
+    return;
+  }
+  
+  container.style.display = 'flex';
+  
+  let html = '';
+  
+  // Previous button
+  if (currentPage > 1) {
+    html += `<a href="#" class="pagination__prev" onclick="goToPage(${currentPage - 1}); return false;" aria-label="Previous page">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+    </a>`;
+  } else {
+    html += `<span class="pagination__prev pagination__disabled" aria-hidden="true">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+    </span>`;
+  }
+  
+  // Page numbers - show limited range
+  let startPage = Math.max(1, currentPage - 2);
+  let endPage = Math.min(totalPages, startPage + 4);
+  if (endPage - startPage < 4) {
+    startPage = Math.max(1, endPage - 4);
+  }
+  
+  for (let i = startPage; i <= endPage; i++) {
+    if (i === currentPage) {
+      html += `<span class="pagination__number pagination__current" aria-current="page">${i}</span>`;
+    } else {
+      html += `<a href="#" class="pagination__number" onclick="goToPage(${i}); return false;" aria-label="Page ${i}">${i}</a>`;
+    }
+  }
+  
+  // Next button
+  if (currentPage < totalPages) {
+    html += `<a href="#" class="pagination__next" onclick="goToPage(${currentPage + 1}); return false;" aria-label="Next page">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+    </a>`;
+  } else {
+    html += `<span class="pagination__next pagination__disabled" aria-hidden="true">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+    </span>`;
+  }
+  
+  container.innerHTML = html;
+}
 
 // Add to cart functionality
 async function addToCart(variantId) {
@@ -309,18 +1029,142 @@ async function addToCart(variantId) {
     });
     
     if (response.ok) {
-      // Update cart count
       const cart = await fetch('/cart.js').then(r => r.json());
       const badge = document.querySelector('.clutch-header__badge');
       if (badge) badge.textContent = cart.item_count;
-      
-      // Optional: Show success message
       alert('Added to cart!');
     }
   } catch (error) {
     console.error('Error adding to cart:', error);
   }
 }
+
+// Initialize price slider
+document.addEventListener('DOMContentLoaded', function() {
+  const track = document.getElementById('priceTrack');
+  const range = document.getElementById('priceRange');
+  const handleMin = document.getElementById('priceHandleMin');
+  const handleMax = document.getElementById('priceHandleMax');
+  const valueMin = document.getElementById('priceValueMin');
+  const valueMax = document.getElementById('priceValueMax');
+  const inputMin = document.getElementById('priceInputMin');
+  const inputMax = document.getElementById('priceInputMax');
+
+  if (!track || !handleMin || !handleMax) return;
+
+  const minPrice = 0;
+  const maxPrice = 1400;
+  let currentMin = 0;
+  let currentMax = 1400;
+  let isDragging = false;
+  let currentHandle = null;
+
+  function updateSlider() {
+    const minPercent = ((currentMin - minPrice) / (maxPrice - minPrice)) * 100;
+    const maxPercent = ((currentMax - minPrice) / (maxPrice - minPrice)) * 100;
+
+    handleMin.style.left = minPercent + '%';
+    handleMax.style.left = maxPercent + '%';
+    range.style.left = minPercent + '%';
+    range.style.width = (maxPercent - minPercent) + '%';
+
+    valueMin.textContent = '$' + currentMin;
+    valueMax.textContent = '$' + currentMax;
+    inputMin.value = currentMin;
+    inputMax.value = currentMax;
+  }
+
+  function getPriceFromPosition(clientX) {
+    const rect = track.getBoundingClientRect();
+    const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    return Math.round(percent * (maxPrice - minPrice) + minPrice);
+  }
+
+  handleMin.addEventListener('mousedown', function(e) {
+    isDragging = true;
+    currentHandle = 'min';
+    e.preventDefault();
+  });
+
+  handleMax.addEventListener('mousedown', function(e) {
+    isDragging = true;
+    currentHandle = 'max';
+    e.preventDefault();
+  });
+
+  track.addEventListener('mousedown', function(e) {
+    if (e.target === handleMin || e.target === handleMax) return;
+    
+    const price = getPriceFromPosition(e.clientX);
+    const midPoint = (currentMin + currentMax) / 2;
+    
+    if (price < midPoint) {
+      currentMin = price;
+      currentHandle = 'min';
+    } else {
+      currentMax = price;
+      currentHandle = 'max';
+    }
+    
+    isDragging = true;
+    updateSlider();
+    applyClientSideFilters();
+  });
+
+  document.addEventListener('mousemove', function(e) {
+    if (!isDragging) return;
+    
+    let price = getPriceFromPosition(e.clientX);
+    
+    if (currentHandle === 'min') {
+      currentMin = Math.max(minPrice, Math.min(price, currentMax - 10));
+    } else {
+      currentMax = Math.min(maxPrice, Math.max(price, currentMin + 10));
+    }
+    
+    updateSlider();
+    applyClientSideFilters(); // Real-time filtering
+  });
+
+  document.addEventListener('mouseup', function() {
+    isDragging = false;
+  });
+
+  // Touch events for mobile
+  handleMin.addEventListener('touchstart', function(e) {
+    isDragging = true;
+    currentHandle = 'min';
+    e.preventDefault();
+  });
+
+  handleMax.addEventListener('touchstart', function(e) {
+    isDragging = true;
+    currentHandle = 'max';
+    e.preventDefault();
+  });
+
+  document.addEventListener('touchmove', function(e) {
+    if (!isDragging) return;
+    
+    let price = getPriceFromPosition(e.touches[0].clientX);
+    
+    if (currentHandle === 'min') {
+      currentMin = Math.max(minPrice, Math.min(price, currentMax - 10));
+    } else {
+      currentMax = Math.min(maxPrice, Math.max(price, currentMin + 10));
+    }
+    
+    updateSlider();
+    applyClientSideFilters(); // Real-time filtering on mobile
+  });
+
+  document.addEventListener('touchend', function() {
+    isDragging = false;
+  });
+
+  // Initialize
+  updateSlider();
+});
 </script>
 
 {% schema %}
@@ -328,13 +1172,8 @@ async function addToCart(variantId) {
   "name": "Collection Template",
   "settings": [
     {
-      "type": "range",
-      "id": "products_per_page",
-      "min": 8,
-      "max": 48,
-      "step": 4,
-      "default": 12,
-      "label": "Products per page"
+      "type": "paragraph",
+      "content": "Collection with AJAX loading for filtering across all products. 12 products per page with dynamic pagination."
     }
   ]
 }

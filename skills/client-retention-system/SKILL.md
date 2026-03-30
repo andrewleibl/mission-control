@@ -290,6 +290,136 @@ Creates concrete expectations. "Target Leads: 3-4", "Target CPL: $80-100", "Targ
 **Download Button Placement:**
 Top-right corner (icon only, no text) follows standard UX pattern. Keeps header clean while making functionality discoverable.
 
+## Lead Pipeline Dashboard (NEW — Mar 28, 2026)
+
+**Problem:** 70% of leads are unqualified. Andrew wastes time calling all leads. Clients only see 30% that book — don't see full funnel volume. **Retention risk + time drain.**
+
+**Solution:** Mission Control-style dashboard where clients see ALL leads categorized by qualification status.
+
+### The "Lead Waterfall" Model
+
+**Core Concept:**
+- **Andrew handles:** HOT leads (all 3 criteria ✓) → book estimates
+- **Client handles:** WARM leads (1-2 criteria) → nurture for later
+- **Archive:** COLD leads (disqualified) → context saved for future
+
+**Client Promise:**
+> "You're not buying leads. You're buying certainty. I look at every lead, ask 3 questions, and tell you exactly who to call and who to nurture. You just show up."
+
+### Dashboard Structure
+
+**Single-Link Access:**
+- URL: `mission-control.com/pipeline/[client-slug]`
+- No login required (obfuscated slug for security)
+- Optional: 4-digit PIN
+- Real-time updates via 60-second polling
+
+**Three Views:**
+
+| View | Tag | Criteria | Action |
+|------|-----|----------|--------|
+| **HOT** | 🔥 | Budget ✓ + Timeline ✓ + Location ✓ | Andrew calls, books estimate |
+| **WARM** | 🟡 | 1-2 criteria met | Client follows up with notes |
+| **COLD** | ⚪ | 0 criteria met | Archive, revisit later |
+
+**Lead Card Design:**
+```
+┌────────────────────────────┐
+│ 🔥 HOT LEAD                │
+│ Mike Johnson               │
+│ $3,500 budget | April     │
+│ Grand Prairie              │
+│                            │
+│ 📞 (214) 555-0192          │
+│ 💬 "Ready for estimate"    │
+└────────────────────────────┘
+```
+
+### Data Flow
+
+```
+Lead hits GHL
+    ↓
+Auto-text sends 3 questions to prospect
+    ↓
+Prospect replies
+    ↓
+Auto-tag in GHL (Hot/Warm/Cold)
+    ↓
+Dashboard polls GHL API (60s)
+    ↓
+Client view updates
+    ↓
+Andrew calls HOT leads
+    ↓
+Client gets notification: "3 new warm leads in your queue"
+```
+
+### Offer: "The Pipeline Subscription"
+
+**30-Day Trial:**
+- **Price:** $1,200 upfront
+- **Guarantee:** 5 booked estimates in 30 days
+- **Risk Reversal:** $100 back per missed estimate
+- **What they get:**
+  - Andrew handles HOT leads (speed-to-lead, calls, books)
+  - Dashboard access showing ALL leads
+  - WARM/COLD leads delivered with context (budget, timeline, location notes)
+
+**Month 2+:**
+- Discuss ongoing relationship
+- Likely: $800/month for 5+ estimates + dashboard
+
+**Why This Works:**
+- Client sees **volume** (47 leads this month, not just 5 estimates)
+- Client sees **system** (not random leads, organized pipeline)
+- Andrew focuses on **high-intent only** (HOT leads)
+- **Retention anchor:** Hard to cancel when you're handing them a nurture list
+
+### Technical Spec
+
+**Stack:**
+- Next.js 16 (Mission Control codebase)
+- TypeScript
+- GHL API integration
+- 60-second polling mechanism
+
+**File Structure:**
+```
+app/pipeline/
+  ├── [slug]/page.tsx       # Client-facing dashboard
+  ├── admin/page.tsx        # Andrew's management view
+  ├── layout.tsx            # Shared layout, security check
+components/
+  ├── LeadCard.tsx          # Individual lead display
+  ├── LeadColumn.tsx        # Hot/Warm/Cold columns
+  ├── LastUpdated.tsx       # Polling indicator
+lib/
+  ├── ghl-api.ts            # GHL integration
+  ├── slug-auth.ts          # URL slug validation
+```
+
+**Security:**
+- Obfuscated URLs (random 8-char slug)
+- Optional 4-digit PIN (stored in cookie)
+- Rate limiting (100 requests/hour per slug)
+
+**Key Learning:**
+Client retention requires **volume visibility**, not just results. When clients see the full funnel (47 leads → 5 estimates → 12 warm for follow-up), they understand the value. Dashboard makes invisible work visible.
+
+### Build Notes (For Hephaestus)
+
+**When building:**
+1. Start with GHL API connection (read leads, filter by tags)
+2. Build client slug system (who sees what)
+3. Create three-column kanban view (Hot/Warm/Cold)
+4. Add polling mechanism (60s interval)
+5. Style with Mission Control aesthetic (dark, copper accents)
+
+**Reference files:**
+- `/builds/mission-control/src/app/client-retention/` — calendar patterns
+- `/builds/mission-control/src/app/loom-recording/` — card design patterns
+
 ## Implementation Checklist
 
 - [ ] Define client list and campaign details
@@ -299,3 +429,6 @@ Top-right corner (icon only, no text) follows standard UX pattern. Keeps header 
 - [ ] Set up automated reminder system
 - [ ] Deploy calendar dashboard
 - [ ] Train team on Poor Results Protocol
+- [ ] **NEW:** Build Lead Pipeline Dashboard (Hot/Warm/Cold views)
+- [ ] **NEW:** Set up GHL auto-tagging for lead qualification
+- [ ] **NEW:** Create client onboarding flow for dashboard access

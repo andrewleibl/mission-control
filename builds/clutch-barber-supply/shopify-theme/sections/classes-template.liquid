@@ -1,61 +1,38 @@
+{% comment %} Classes Section - Simplified {% endcomment %}
 <div class="page-header">
-  <h1>{{ section.settings.title }}</h1>
-  <p class="page-subtitle">{{ section.settings.subtitle }}</p>
+  <h1>Classes</h1>
+  <p>Learn from the best. Hands-on training with industry professionals.</p>
 </div>
 
 <section class="classes-section">
   <div class="classes-container">
     {% for block in section.blocks %}
       <div class="class-card" {{ block.shopify_attributes }}>
+        {% if block.settings.date_badge != blank %}
+          <span class="class-date-badge">{{ block.settings.date_badge }}</span>
+        {% endif %}
+        
         <div class="class-image">
           {% if block.settings.image != blank %}
             <img src="{{ block.settings.image | image_url: width: 800 }}" alt="{{ block.settings.title }}" loading="lazy">
           {% else %}
-            <div class="class-image-placeholder">{{ block.settings.title }}</div>
-          {% endif %}
-          {% if block.settings.badge != blank %}
-            <span class="class-badge">{{ block.settings.badge }}</span>
+            <div class="class-image-placeholder">Class Image</div>
           {% endif %}
         </div>
         
         <div class="class-content">
           <div class="class-meta">
-            <span class="class-date">{{ block.settings.date }}</span>
+            <span class="class-type">{{ block.settings.class_type }}</span>
             <span class="class-separator">•</span>
             <span class="class-time">{{ block.settings.time }}</span>
           </div>
           
           <h2 class="class-title">{{ block.settings.title }}</h2>
-          <p class="class-instructor">Instructor: {{ block.settings.instructor }}</p>
+          <p class="class-description">{{ block.settings.description }}</p>
           
-          <div class="class-description">
-            {{ block.settings.description }}
-          </div>
-          
-          <div class="class-details">
-            <div class="class-detail">
-              <span class="detail-label">Duration:</span>
-              <span class="detail-value">{{ block.settings.duration }}</span>
-            </div>
-            <div class="class-detail">
-              <span class="detail-label">Location:</span>
-              <span class="detail-value">{{ block.settings.location }}</span>
-            </div>
-            <div class="class-detail">
-              <span class="detail-label">Price:</span>
-              <span class="detail-value class-price">{{ block.settings.price }}</span>
-            </div>
-            <div class="class-detail">
-              <span class="detail-label">Spots:</span>
-              <span class="detail-value class-spots">{{ block.settings.spots_remaining }} remaining</span>
-            </div>
-          </div>
-          
-          <div class="class-actions">
-            <a href="{{ block.settings.button_link }}" class="clutch-button clutch-button--primary">{{ block.settings.button_text }}</a>
-            {% if block.settings.secondary_link != blank %}
-              <a href="{{ block.settings.secondary_link }}" class="class-secondary-link">{{ block.settings.secondary_text }}</a>
-            {% endif %}
+          <div class="class-footer">
+            <span class="class-price">{{ block.settings.price }}</span>
+            <a href="{{ block.settings.product_link }}" class="class-link">Product Page →</a>
           </div>
         </div>
       </div>
@@ -64,16 +41,9 @@
 </section>
 
 <style>
-.page-subtitle {
-  text-align: center;
-  color: var(--clutch-text-muted);
-  font-size: 1.125rem;
-  margin-top: -1rem;
-  margin-bottom: 3rem;
-}
-
 .classes-section {
-  padding: 2rem 0 5rem;
+  padding: 2rem 0 6rem;
+  background: var(--clutch-bg);
 }
 
 .classes-container {
@@ -82,7 +52,7 @@
   padding: 0 1.5rem;
   display: grid;
   grid-template-columns: 1fr;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 @media (min-width: 900px) {
@@ -92,22 +62,37 @@
 }
 
 .class-card {
-  background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+  position: relative;
+  background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
   border: 1px solid var(--clutch-border);
-  border-radius: 24px;
+  border-radius: 20px;
   overflow: hidden;
   transition: all 0.35s ease;
 }
 
 .class-card:hover {
-  transform: translateY(-8px);
+  transform: translateY(-6px);
   border-color: rgba(201, 137, 75, 0.4);
-  box-shadow: 0 24px 48px rgba(0,0,0,0.4);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+
+.class-date-badge {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 10;
+  padding: 0.5rem 1rem;
+  background: var(--clutch-accent);
+  color: var(--clutch-bg);
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .class-image {
-  position: relative;
-  aspect-ratio: 16/9;
+  aspect-ratio: 1/1.1;
   background: var(--clutch-bg-lighter);
   overflow: hidden;
 }
@@ -125,38 +110,26 @@
   align-items: center;
   justify-content: center;
   color: var(--clutch-text-dim);
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-.class-badge {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  padding: 0.5rem 1rem;
-  background: var(--clutch-accent);
-  color: var(--clutch-bg);
-  border-radius: 50px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
+  font-size: 0.9375rem;
 }
 
 .class-content {
-  padding: 1.75rem;
+  padding: 1.5rem;
 }
 
 .class-meta {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 1rem;
-  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.8125rem;
 }
 
-.class-date {
+.class-type {
   color: var(--clutch-accent);
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .class-separator {
@@ -168,105 +141,63 @@
 }
 
 .class-title {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
-  line-height: 1.2;
-}
-
-.class-instructor {
-  font-size: 0.9375rem;
-  color: var(--clutch-text-muted);
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
 }
 
 .class-description {
   color: var(--clutch-text-muted);
-  line-height: 1.6;
-  margin-bottom: 1.5rem;
-}
-
-.class-details {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.75rem;
-  padding: 1.25rem;
-  background: rgba(255,255,255,0.03);
-  border-radius: 12px;
-  margin-bottom: 1.5rem;
-}
-
-.class-detail {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.detail-label {
-  font-size: 0.75rem;
-  color: var(--clutch-text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.detail-value {
   font-size: 0.9375rem;
-  font-weight: 600;
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+}
+
+.class-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 1rem;
+  border-top: 1px solid var(--clutch-border);
 }
 
 .class-price {
+  font-size: 1.25rem;
+  font-weight: 700;
   color: var(--clutch-accent);
 }
 
-.class-spots {
-  color: #22c55e;
-}
-
-.class-spots:contains("0") {
-  color: #ef4444;
-}
-
-.class-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.class-secondary-link {
-  text-align: center;
+.class-link {
   color: var(--clutch-text-muted);
   font-size: 0.875rem;
+  text-decoration: none;
   transition: color 0.2s;
 }
 
-.class-secondary-link:hover {
+.class-link:hover {
   color: var(--clutch-accent);
 }
 </style>
 
 {% schema %}
 {
-  "name": "Classes",
-  "settings": [
-    {
-      "type": "text",
-      "id": "title",
-      "default": "Barber Classes",
-      "label": "Page Title"
-    },
-    {
-      "type": "textarea",
-      "id": "subtitle",
-      "default": "Learn from the best. Hands-on training with industry professionals.",
-      "label": "Page Subtitle"
-    }
-  ],
+  "name": "Classes Section",
+  "tag": "section",
+  "class": "section",
   "max_blocks": 2,
+  "settings": [],
   "blocks": [
     {
       "type": "class",
       "name": "Class",
       "settings": [
+        {
+          "type": "text",
+          "id": "date_badge",
+          "default": "APRIL 12",
+          "label": "Date Badge"
+        },
         {
           "type": "image_picker",
           "id": "image",
@@ -274,51 +205,27 @@
         },
         {
           "type": "text",
-          "id": "badge",
-          "default": "Upcoming",
-          "label": "Badge Text"
-        },
-        {
-          "type": "text",
-          "id": "title",
-          "default": "Advanced Fading Techniques",
-          "label": "Class Title"
-        },
-        {
-          "type": "text",
-          "id": "instructor",
-          "default": "John Smith",
-          "label": "Instructor Name"
-        },
-        {
-          "type": "textarea",
-          "id": "description",
-          "default": "Master the art of seamless fades and blends. Perfect for barbers looking to elevate their craft.",
-          "label": "Description"
-        },
-        {
-          "type": "text",
-          "id": "date",
-          "default": "March 30, 2026",
-          "label": "Date"
+          "id": "class_type",
+          "default": "IN-PERSON",
+          "label": "Class Type"
         },
         {
           "type": "text",
           "id": "time",
-          "default": "9:00 AM - 3:00 PM",
+          "default": "9AM - 3PM",
           "label": "Time"
         },
         {
           "type": "text",
-          "id": "duration",
-          "default": "6 hours",
-          "label": "Duration"
+          "id": "title",
+          "default": "TDLR CE Shear Class",
+          "label": "Class Title"
         },
         {
-          "type": "text",
-          "id": "location",
-          "default": "Clutch Barber Supply - Dallas",
-          "label": "Location"
+          "type": "textarea",
+          "id": "description",
+          "default": "Master the art of seamless fades and blends with professional instruction. Perfect for barbers looking to elevate their craft with precision cutting and clipper control techniques.",
+          "label": "Description"
         },
         {
           "type": "text",
@@ -327,63 +234,16 @@
           "label": "Price"
         },
         {
-          "type": "text",
-          "id": "spots_remaining",
-          "default": "8",
-          "label": "Spots Remaining"
-        },
-        {
-          "type": "text",
-          "id": "button_text",
-          "default": "Register Now",
-          "label": "Button Text"
-        },
-        {
           "type": "url",
-          "id": "button_link",
-          "label": "Button Link"
-        },
-        {
-          "type": "text",
-          "id": "secondary_text",
-          "default": "Learn more →",
-          "label": "Secondary Link Text"
-        },
-        {
-          "type": "url",
-          "id": "secondary_link",
-          "label": "Secondary Link"
+          "id": "product_link",
+          "label": "Product Page Link"
         }
       ]
     }
   ],
-  "default": {
-    "settings": {
-      "title": "Barber Classes",
-      "subtitle": "Learn from the best. Hands-on training with industry professionals."
-    },
-    "blocks": {
-      "class": {
-        "type": "class",
-        "settings": {
-          "title": "Advanced Fading Techniques",
-          "instructor": "John Smith",
-          "description": "Master the art of seamless fades and blends. Perfect for barbers looking to elevate their craft.",
-          "date": "March 30, 2026",
-          "time": "9:00 AM - 3:00 PM",
-          "duration": "6 hours",
-          "location": "Clutch Barber Supply - Dallas",
-          "price": "$299",
-          "spots_remaining": "8",
-          "button_text": "Register Now",
-          "secondary_text": "Learn more →"
-        }
-      }
-    }
-  },
   "presets": [
     {
-      "name": "Classes"
+      "name": "Classes Section"
     }
   ]
 }

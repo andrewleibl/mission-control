@@ -355,3 +355,56 @@ Built complete Client Retention Protocol + Mission Control Calendar integration.
 - Featured Products section
 - CTA / Newsletter section
 - Footer
+
+---
+
+## Active Builds — Lead Pipeline Dashboard (CONCEPT — Mar 28, 2026)
+
+**Status:** Concept captured, ready for build
+**Location:** `/builds/mission-control/src/app/pipeline/`
+**Skill:** `/skills/client-retention-system/SKILL.md` (Lead Pipeline Dashboard section)
+
+### Problem Solved
+- **70% of leads are unqualified** (fail 1-3 criteria: budget, timeline, location)
+- Andrew currently calls ALL leads, wasting time
+- Clients only see 30% that become estimates — don't see full funnel
+- **Retention risk:** Clients cancel because they don't see lead volume being generated
+
+### Solution: Lead Pipeline Dashboard
+**Mission Control-style dashboard** — single-link access, no GHL login
+
+**Three Views:**
+| View | Tag | Criteria | Action |
+|------|-----|----------|--------|
+| **HOT** | 🔥 | All 3 criteria ✓ | Andrew calls, books estimate |
+| **WARM** | 🟡 | 1-2 criteria met | Client follows up |
+| **COLD** | ⚪ | 0 criteria met | Archive for later |
+
+**Data Flow:**
+```
+Lead hits GHL → Auto-text to prospect (3 questions)
+              → Auto-tag (Hot/Warm/Cold)
+              → Dashboard polls GHL API (60s)
+              → Client sees updated leads
+```
+
+### Offer: "The Pipeline Subscription"
+**30-Day Trial:**
+- **Price:** $1,200 upfront
+- **Guarantee:** 5 booked estimates in 30 days
+- **Risk Reversal:** $100 back per missed estimate
+- **What they get:** HOT leads handled by Andrew, WARM/COLD leads to dashboard with context
+
+**Month 2+:** Discuss ongoing ($800/month likely)
+
+### Technical Spec
+- **Stack:** Next.js 16 + TypeScript + GHL API
+- **Security:** Obfuscated URLs + optional 4-digit PIN
+- **Real-time:** 60-second polling
+- **Files to create:**
+  - `pipeline/[slug]/page.tsx` — Client dashboard
+  - `pipeline/admin/page.tsx` — Andrew's view
+  - `lib/ghl-api.ts` — GHL integration
+
+### Next Step
+Spawn Hephaestus to build MVP dashboard when Andrew gives go-ahead.

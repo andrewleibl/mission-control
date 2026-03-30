@@ -1,4 +1,4 @@
-<section class="clutch-home-hero">
+<section class="clutch-home-hero" data-section-id="{{ section.id }}" data-section-type="hero">
   <div class="clutch-home-hero__media">
     {% if section.settings.image != blank %}
       <img src="{{ section.settings.image | image_url: width: 1920 }}" alt="{{ section.settings.image.alt | escape }}" class="clutch-home-hero__image" loading="eager">
@@ -7,7 +7,7 @@
     {% endif %}
     <div class="clutch-home-hero__overlay"></div>
   </div>
-  
+
   <div class="clutch-home-hero__content">
     <div class="clutch-home-hero__social-proof">
       <span class="clutch-home-hero__stars">
@@ -17,15 +17,15 @@
       </span>
       <span class="clutch-home-hero__social-text">{{ section.settings.social_proof_text }}</span>
     </div>
-    
+
     <h1>{{ section.settings.heading }}</h1>
     <p class="clutch-home-hero__subheading">{{ section.settings.subheading }}</p>
-    
+
     <div class="clutch-home-hero__actions">
       <a href="{{ section.settings.primary_button_link }}" class="clutch-button clutch-button--primary">{{ section.settings.primary_button_text }}</a>
       <a href="{{ section.settings.secondary_button_link }}" class="clutch-button clutch-button--ghost">{{ section.settings.secondary_button_text }}</a>
     </div>
-    
+
     <div class="clutch-home-hero__trust">
       <div class="clutch-home-hero__trust-item">
         <span class="clutch-home-hero__trust-icon">
@@ -52,6 +52,7 @@
 {% schema %}
 {
   "name": "Hero",
+  "class": "section-hero",
   "settings": [
     {
       "type": "image_picker",
@@ -103,7 +104,8 @@
   ],
   "presets": [
     {
-      "name": "Hero"
+      "name": "Hero",
+      "category": "Image"
     }
   ]
 }

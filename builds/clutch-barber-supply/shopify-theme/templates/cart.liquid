@@ -1,1 +1,448 @@
-{% section 'cart-template' %}
+{% comment %}
+  Clutch Barber Supply - Cart Template
+  Conversion-optimized with trust signals, social proof, and upsells
+{% endcomment %}
+
+<section class="cart-section">
+  <div class="cart-container">
+    
+    {% comment %} Header with trust signal {% endcomment %}
+    <div class="cart-header">
+      <h1 class="cart-title">Your Cart</h1>
+      <div class="cart-trust-pill">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1L2 4v4c0 3.87 2.56 7.48 6 8.37 3.44-.89 6-4.5 6-8.37V4L8 1z" stroke="currentColor" stroke-width="1.5"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.5"/></svg>
+        <span>Secure Checkout</span>
+      </div>
+    </div>
+
+    {% if cart.item_count > 0 %}
+      
+      {% assign threshold = 30000 %}
+      {% assign remaining = threshold | minus: cart.total_price %}
+      {% assign percent = cart.total_price | times: 100 | divided_by: threshold %}
+      
+      {% comment %} Free Shipping Progress Bar {% endcomment %}
+      <div class="cart-shipping-bar" data-free-shipping-threshold="30000">
+        <div class="shipping-bar-content">
+          {% if cart.total_price >= threshold %}
+            <div class="shipping-message shipping-unlocked">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2a8 8 0 100 16 8 8 0 000-16z" stroke="currentColor" stroke-width="1.5"/><path d="M6 10l3 3 5-6" stroke="currentColor" stroke-width="1.5"/></svg>
+              <span>🎉 You've unlocked FREE shipping!</span>
+            </div>
+          {% else %}
+            <div class="shipping-message">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2l2.5 5h5l-4 3.5 1.5 5L10 12l-5 3.5 1.5-5L2.5 7h5L10 2z" stroke="currentColor" stroke-width="1.5"/></svg>
+              <span>Add <strong>{{ remaining | money }}</strong> more for FREE shipping</span>
+            </div>
+          {% endif %}
+        </div>
+        
+        <div class="shipping-progress">
+          <div class="shipping-progress-fill" style="width: {{ percent | at_most: 100 }}%"></div>
+        </div>
+        
+        <div class="shipping-thresholds">
+          <span>$0</span>
+          <span class="threshold-marker" style="left: {{ percent | at_most: 100 }}%">${{ cart.total_price | divided_by: 100 }}</span>
+          <span>FREE</span>
+        </div>
+      </div>
+
+      <div class="cart-layout">
+        {% comment %} Left Column: Cart Items {% endcomment %}
+        <div class="cart-main">
+          
+          <form action="{{ routes.cart_url }}" method="post" class="cart-form" novalidate>
+            <div class="cart-items">
+              {% for item in cart.items %}
+                <div class="cart-item" data-line="{{ forloop.index }}">
+                  
+                  {% comment %} Product Image {% endcomment %}
+                  <div class="cart-item-image">
+                    {% if item.image %}
+                      <img src="{{ item.image | image_url: width: 120 }}" 
+                           alt="{{ item.title | escape }}"
+                           width="120" height="120"
+                           loading="lazy">
+                    {% else %}
+                      <div class="cart-item-image-placeholder">
+                        <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="8" fill="rgba(255,255,255,0.05)"/><text x="20" y="25" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">NO IMG</text></svg>
+                      </div>
+                    {% endif %}
+                  </div>
+
+                  {% comment %} Product Details {% endcomment %}
+                  <div class="cart-item-details">
+                    <div class="cart-item-header">
+                      <h3 class="cart-item-title">
+                        <a href="{{ item.url }}">{{ item.product.title }}</a>
+                      </h3>
+                      
+                      <a href="{{ item.url_to_remove }}" class="cart-item-remove" aria-label="Remove {{ item.product.title }}">
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 5h12M7 5V3a2 2 0 012-2h0a2 2 0 012 2v2m-7 4v7a2 2 0 002 2h4a2 2 0 002-2V9M10 9v6M8 9v6" stroke="currentColor" stroke-width="1.5"/></svg>
+                      </a>
+                    </div>
+
+                    {% if item.variant.title != 'Default Title' %}
+                      <p class="cart-item-variant">{{ item.variant.title }}</p>
+                    {% endif %}
+
+                    <div class="cart-item-price-row">
+                      <div class="cart-item-price">
+                        {% if item.original_price != item.final_price %}
+                          <span class="cart-item-price-original">{{ item.original_price | money }}</span>
+                        {% endif %}
+                        <span class="cart-item-price-final">{{ item.final_price | money }}</span>
+                      </div>
+                      
+                      {% if item.original_line_price != item.final_line_price %}
+                        <span class="cart-item-savings">Save {{ item.original_line_price | minus: item.final_line_price | money }}</span>
+                      {% endif %}
+                    </div>
+
+                    <div class="cart-item-actions">
+                      <div class="cart-quantity">
+                        <button type="button" class="cart-quantity-btn cart-quantity-minus" data-line="{{ forloop.index }}" aria-label="Decrease quantity">
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10" stroke="currentColor" stroke-width="1.5"/></svg>
+                        </button>
+                        <input type="number" name="updates[]" value="{{ item.quantity }}" min="0" 
+                               class="cart-quantity-input" aria-label="Quantity"
+                               id="qty-{{ forloop.index }}">
+                        <button type="button" class="cart-quantity-btn cart-quantity-plus" data-line="{{ forloop.index }}" aria-label="Increase quantity">
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M7 2v10" stroke="currentColor" stroke-width="1.5"/></svg>
+                        </button>
+                      </div>
+
+                      <span class="cart-item-line-price">{{ item.final_line_price | money }}</span>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+
+            <div class="cart-trust-bar">
+              <div class="trust-item">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.5"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.5"/></svg>
+                <span>Secure Checkout</span>
+              </div>
+              <div class="trust-item">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 14l2 2 6-6" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/></svg>
+                <span>30-Day Returns</span>
+              </div>
+              <div class="trust-item">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 13h6l-1 9 9-11h-6l1-9z" stroke="currentColor" stroke-width="1.5"/></svg>
+                <span>Fast Shipping</span>
+              </div>
+            </div>
+
+            <a href="/collections/all" class="cart-continue">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12l-4-4 4-4" stroke="currentColor" stroke-width="1.5"/></svg>
+              Continue Shopping
+            </a>
+          </form>
+
+          {% comment %} Cart Upsells - Complete Your Setup {% endcomment %}
+          {% assign cart_handles = cart.items | map: 'product' | map: 'handle' %}
+          {% assign upsell_count = 0 %}
+          
+          {% for prod in collections.all.products limit: 50 %}
+            {% if upsell_count < 3 %}
+              {% unless cart_handles contains prod.handle %}
+                {% if prod.available %}
+                  {% if upsell_count == 0 %}
+          <div class="cart-upsell">
+            <div class="upsell-header">
+              <h3 class="upsell-title">Complete Your Setup</h3>
+              <p class="upsell-subtitle">Barbers also grabbed</p>
+            </div>
+            <div class="upsell-products">
+                  {% endif %}
+              <div class="upsell-product" data-variant-id="{{ prod.selected_or_first_available_variant.id }}">
+                <a href="{{ prod.url }}" class="upsell-image">
+                  {% if prod.featured_image %}
+                    <img src="{{ prod.featured_image | image_url: width: 120 }}" alt="{{ prod.title | escape }}" width="60" height="60" loading="lazy">
+                  {% else %}
+                    <div class="upsell-image-placeholder">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="4" stroke="currentColor" stroke-width="1.5" opacity="0.5"/></svg>
+                    </div>
+                  {% endif %}
+                </a>
+                <div class="upsell-info">
+                  <a href="{{ prod.url }}" class="upsell-product-title">{{ prod.title }}</a>
+                  <p class="upsell-product-price">
+                    {% if prod.compare_at_price > prod.price %}
+                      <span class="upsell-compare">{{ prod.compare_at_price | money }}</span>
+                    {% endif %}
+                    {{ prod.price | money }}
+                  </p>
+                </div>
+                <button type="button" class="upsell-add" data-variant-id="{{ prod.selected_or_first_available_variant.id }}" aria-label="Add {{ prod.title | escape }} to cart">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M8 3v10" stroke="currentColor" stroke-width="1.5"/></svg>
+                </button>
+              </div>
+                  {% assign upsell_count = upsell_count | plus: 1 %}
+                {% endif %}
+              {% endunless %}
+            {% endif %}
+          {% endfor %}
+          
+          {% if upsell_count > 0 %}
+            </div>
+          </div>
+          {% endif %}
+          
+          <div class="cart-upsell" data-upsell-products='{{ upsell_products_json }}'>
+            <div class="upsell-header">
+              <h3 class="upsell-title">Complete Your Setup</h3>
+              <p class="upsell-subtitle">Barbers also grabbed</p>
+            </div>
+            <div class="upsell-products" id="upsell-container"></div>
+          </div>
+        </div>
+
+        {% comment %} Right Column: Order Summary {% endcomment %}
+        <div class="cart-sidebar">
+          <div class="cart-summary">
+            <h2 class="summary-title">Order Summary</h2>
+            
+            {% if cart.total_discount > 0 %}
+              <div class="summary-savings-banner">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2l2.5 5h5l-4 3.5 1.5 5L10 12l-5 3.5 1.5-5L2.5 7h5L10 2z" stroke="currentColor" stroke-width="1.5"/></svg>
+                <span>You're saving {{ cart.total_discount | money }}!</span>
+              </div>
+            {% endif %}
+
+            <div class="summary-row">
+              <span>Subtotal</span>
+              <span>{{ cart.items_subtotal_price | money }}</span>
+            </div>
+            
+            {% if cart.total_discount > 0 %}
+              <div class="summary-row summary-discount">
+                <span>Discounts</span>
+                <span>-{{ cart.total_discount | money }}</span>
+              </div>
+            {% endif %}
+
+            <div class="summary-row">
+              <span>Shipping</span>
+              {% if cart.total_price >= threshold %}
+                <span class="shipping-free">FREE</span>
+              {% else %}
+                <span class="shipping-calculated">Calculated at checkout</span>
+              {% endif %}
+            </div>
+
+            <div class="summary-row">
+              <span>Taxes</span>
+              <span class="tax-calculated">Calculated at checkout</span>
+            </div>
+
+            <div class="summary-divider"></div>
+
+            <div class="summary-row summary-total">
+              <span>Estimated Total</span>
+              <span class="summary-total-amount">{{ cart.total_price | money }}</span>
+            </div>
+
+            <div class="cart-social-proof" id="social-proof-counter">
+              <div class="social-proof-pulse"></div>
+              <p><strong><span data-buyer-count>--</span> barbers</strong> bought from Clutch today</p>
+            </div>
+
+            <div class="cart-checkout">
+              <button type="submit" name="checkout" class="checkout-btn checkout-btn-primary">
+                <span>Proceed to Checkout</span>
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 9h10m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="1.5"/></svg>
+              </button>
+              
+              {% if additional_checkout_buttons %}
+                <div class="checkout-divider">
+                  <span>or</span>
+                </div>
+                <div class="checkout-express">
+                  {{ content_for_additional_checkout_buttons }}
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="cart-info-accordion">
+              <details class="info-item">
+                <summary>
+                  <span>Shipping Information</span>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5"/></svg>
+                </summary>
+                <div class="info-content">
+                  <ul>
+                    <li><strong>Free shipping</strong> on orders over $300 (Continental US only)</li>
+                    <li>Orders ship within 1-2 business days. Same-day shipping available for orders placed before 2:00 PM CST</li>
+                    <li>Standard shipping (3-7 days): $9.99 | In-store pickup available in Grand Prairie, TX</li>
+                  </ul>
+                </div>
+              </details>
+              
+              <details class="info-item">
+                <summary>
+                  <span>Returns & Refunds</span>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5"/></svg>
+                </summary>
+                <div class="info-content">
+                  <ul>
+                    <li><strong>30-day defective product returns only</strong> — we only accept returns for defective or damaged items</li>
+                    <li>All sales are final on clippers, trimmers and all other products unless defective</li>
+                    <li>Contact <a href="mailto:viceliatinde20@gmail.com">viceliatinde20@gmail.com</a> to start a return for defective items</li>
+                  </ul>
+                </div>
+              </details>
+              
+              <details class="info-item">
+                <summary>
+                  <span>Contact Us</span>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5"/></svg>
+                </summary>
+                <div class="info-content">
+                  <ul>
+                    <li><strong>Email:</strong> <a href="mailto:viceliatinde20@gmail.com">viceliatinde20@gmail.com</a> — We reply within 24 hours</li>
+                    <li><strong>Phone:</strong> <a href="tel:+12146771059">(214) 677-1059</a> — Mon–Fri 9am–6pm, Sat 9am–12pm CST</li>
+                    <li><strong>Store:</strong> 113 South Center, Grand Prairie, TX 75050</li>
+                  </ul>
+                </div>
+              </details>
+            </div>
+
+            <div class="cart-payment-methods">
+              <p>We accept:</p>
+              <div class="payment-icons">
+                <div class="payment-icon">VISA</div>
+                <div class="payment-icon">MC</div>
+                <div class="payment-icon">AMEX</div>
+                <div class="payment-icon">DISC</div>
+                <div class="payment-icon">PayPal</div>
+                <div class="payment-icon">Apple</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cart-sticky-mobile">
+        <div class="sticky-content">
+          <div class="sticky-total">
+            <span class="sticky-label">Total:</span>
+            <span class="sticky-amount">{{ cart.total_price | money }}</span>
+          </div>
+          <button type="submit" name="checkout" class="sticky-checkout-btn">
+            Checkout
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h8m0 0l-3-3m3 3l-3 3" stroke="currentColor" stroke-width="1.5"/></svg>
+          </button>
+        </div>
+      </div>
+
+    {% else %}
+      <div class="cart-empty">
+        <div class="empty-icon">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none"><path d="M16 16h4l4 24h24l4-24h-4M24 48a4 4 0 100 8 4 4 0 000-8zm20 0a4 4 0 100 8 4 4 0 000-8z" stroke="currentColor" stroke-width="2"/><path d="M20 16l4-8h16l4 8" stroke="currentColor" stroke-width="2"/></svg>
+        </div>
+        <h2 class="empty-title">Your cart is empty</h2>
+        <p class="empty-text">Time to stock up on the tools that make you money.</p>
+        <a href="/collections/all" class="empty-btn">Shop Now</a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<script>
+(function() {
+  // Quantity buttons
+  document.querySelectorAll('.cart-quantity-btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      var line = this.getAttribute('data-line');
+      var input = document.getElementById('qty-' + line);
+      var currentVal = parseInt(input.value) || 0;
+      var newVal;
+      
+      if (this.classList.contains('cart-quantity-minus')) {
+        newVal = Math.max(0, currentVal - 1);
+      } else {
+        newVal = currentVal + 1;
+      }
+      
+      input.value = newVal;
+      
+      if (newVal === 0) {
+        if (confirm('Remove this item from your cart?')) {
+          input.closest('form').submit();
+        } else {
+          input.value = currentVal;
+        }
+      } else {
+        input.closest('form').submit();
+      }
+    });
+  });
+  
+  // Accordion auto-close
+  document.querySelectorAll('.cart-info-accordion details').forEach(function(detail) {
+    detail.addEventListener('toggle', function() {
+      if (this.open) {
+        document.querySelectorAll('.cart-info-accordion details').forEach(function(other) {
+          if (other !== detail) other.removeAttribute('open');
+        });
+      }
+    });
+  });
+  
+  // Time-based social proof counter
+  function randomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+  
+  function getBuyerCount() {
+    var hour = new Date().getHours();
+    if (hour >= 0 && hour < 7) return randomInt(7, 20);
+    if (hour >= 7 && hour < 12) return randomInt(20, 32);
+    if (hour >= 12 && hour < 19) return randomInt(32, 55);
+    return randomInt(56, 66);
+  }
+  
+  var countEl = document.querySelector('[data-buyer-count]');
+  if (countEl) countEl.textContent = getBuyerCount();
+  
+  // Upsell add to cart buttons
+  document.querySelectorAll('.upsell-add').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      var variantId = this.getAttribute('data-variant-id');
+      var originalContent = this.innerHTML;
+      
+      this.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="animation: spin 1s linear infinite;"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="30" stroke-dashoffset="10"/></svg>';
+      this.disabled = true;
+      
+      fetch('/cart/add.js', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: [{ id: variantId, quantity: 1 }] })
+      })
+      .then(function(response) {
+        if (!response.ok) throw new Error('Add failed');
+        return response.json();
+      })
+      .then(function(data) {
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="2"/></svg>';
+        btn.style.background = '#22c55e';
+        setTimeout(function() { window.location.reload(); }, 600);
+      })
+      .catch(function(error) {
+        btn.innerHTML = originalContent;
+        btn.disabled = false;
+      });
+    });
+  });
+  
+  // Add spin animation
+  var style = document.createElement('style');
+  style.textContent = '@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }';
+  document.head.appendChild(style);
+})();
+</script>
