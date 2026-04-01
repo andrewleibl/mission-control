@@ -23,6 +23,13 @@
   <aside class="filters-sidebar">
     <h3>Filters</h3>
 
+    <div class="filter-group">
+      <h4>Availability</h4>
+      <label class="filter-option">
+        <input type="checkbox" name="availability" value="in_stock"> In Stock Only
+      </label>
+    </div>
+
     <div class="filter-group" id="brandFilters">
       <h4>Brand</h4>
       <label class="filter-option">
@@ -114,13 +121,6 @@
       </div>
     </div>
 
-    <div class="filter-group">
-      <h4>Availability</h4>
-      <label class="filter-option">
-        <input type="checkbox" name="availability" value="in_stock"> In Stock
-      </label>
-    </div>
-
     <button class="clear-filters" onclick="clearAllFilters()">Clear All Filters</button>
   </aside>
 
@@ -153,7 +153,7 @@
             {% else %}
               <span style="color: var(--clutch-text-dim); font-size: 0.875rem;">{{ product.title }}</span>
             {% endif %}
-            <button class="product-card__quick-add" onclick="addToCart('{{ product.selected_or_first_available_variant.id }}')">Quick Add</button>
+            <button class="product-card__quick-add" data-variant-id="{{ product.selected_or_first_available_variant.id }}">Quick Add</button>
           </div>
           <div class="product-card__info">
             <div class="product-card__brand">{{ product.vendor }}</div>
@@ -470,7 +470,7 @@ function renderProductsPage() {
       <div class="product-card" data-vendor="${brandFromTitle || ''}" data-price="${price}" data-available="${product.available || false}">
         <div class="product-card__image">
           ${imageUrl ? `<img src="${imageUrl}" alt="${product.title}" loading="lazy">` : `<span style="color: var(--clutch-text-dim); font-size: 0.875rem;">${product.title}</span>`}
-          <button class="product-card__quick-add" onclick="addToCart('${variantId}')">Quick Add</button>
+          <button class="product-card__quick-add" data-variant-id="${variantId}">Quick Add</button>
         </div>
         <div class="product-card__info">
           <div class="product-card__brand">${brandFromTitle || ''}</div>
@@ -888,6 +888,62 @@ function updateUrlParams() {
   window.history.replaceState({}, '', url.pathname + (params.toString() ? '?' + params.toString() : ''));
 }
 
+// Read URL params and apply filters on page load
+function applyUrlFilters() {
+  const urlParams = new URLSearchParams(window.location.search);
+  
+  // Apply vendor filter from URL
+  const vendorParam = urlParams.get('vendor');
+  if (vendorParam) {
+    const vendors = vendorParam.split(',');
+    vendors.forEach(vendor => {
+      const checkbox = document.querySelector(`input[data-vendor="${vendor}"]`);
+      if (checkbox) {
+        checkbox.checked = true;
+        checkbox.parentElement.classList.add('active');
+      }
+    });
+  }
+  
+  // Apply category filter from URL
+  const categoryParam = urlParams.get('category');
+  if (categoryParam) {
+    const categories = categoryParam.split(',');
+    categories.forEach(cat => {
+      const checkbox = document.querySelector(`input[data-category="${cat}"]`);
+      if (checkbox) {
+        checkbox.checked = true;
+        checkbox.parentElement.classList.add('active');
+      }
+    });
+  }
+  
+  // Apply price filters from URL
+  const priceMin = urlParams.get('price_min');
+  const priceMax = urlParams.get('price_max');
+  if (priceMin) {
+    const inputMin = document.getElementById('priceInputMin');
+    if (inputMin) inputMin.value = priceMin;
+  }
+  if (priceMax) {
+    const inputMax = document.getElementById('priceInputMax');
+    if (inputMax) inputMax.value = priceMax;
+  }
+  
+  // Apply availability filter from URL
+  const availableParam = urlParams.get('available');
+  if (availableParam === 'true') {
+    const checkbox = document.querySelector('input[name="availability"]');
+    if (checkbox) {
+      checkbox.checked = true;
+      checkbox.parentElement.classList.add('active');
+    }
+  }
+  
+  // Now apply the filters
+  applyClientSideFilters();
+}
+
 // Set up filter change listeners
 (function() {
   const filterCheckboxes = document.querySelectorAll('.filter-option input[type="checkbox"]');
@@ -902,6 +958,9 @@ function updateUrlParams() {
       applyClientSideFilters();
     });
   });
+  
+  // Apply URL filters on page load
+  applyUrlFilters();
   
   // Price inputs - filter on change (with debounce)
   let priceTimeout;
@@ -1019,9 +1078,18 @@ function renderPagination() {
   container.innerHTML = html;
 }
 
-// Add to cart functionality
-async function addToCart(variantId) {
+// Add to cart functionality - Enhanced with visual feedback
+window.addToCart = async function(variantId, btnElement) {
+  const originalText = btnElement ? btnElement.textContent : 'Quick Add';
+  
   try {
+    // Show loading state
+    if (btnElement) {
+      btnElement.textContent = 'Adding...';
+      btnElement.disabled = true;
+      btnElement.style.opacity = '0.7';
+    }
+    
     const response = await fetch('/cart/add.js', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1029,13 +1097,57 @@ async function addToCart(variantId) {
     });
     
     if (response.ok) {
+      // Get updated cart
       const cart = await fetch('/cart.js').then(r => r.json());
-      const badge = document.querySelector('.clutch-header__badge');
-      if (badge) badge.textContent = cart.item_count;
-      alert('Added to cart!');
+      
+      // Update cart badge in header
+      const cartLink = document.querySelector('.clutch-home-header__cart');
+      if (cartLink) {
+        // Remove existing badge if any
+        const existingBadge = cartLink.querySelector('.cart-badge');
+        if (existingBadge) existingBadge.remove();
+        
+        // Add new badge with item count
+        if (cart.item_count > 0) {
+          const badgeEl = document.createElement('span');
+          badgeEl.className = 'cart-badge';
+          badgeEl.textContent = cart.item_count;
+          cartLink.appendChild(badgeEl);
+        }
+      }
+      
+      // Update button to success state
+      if (btnElement) {
+        btnElement.textContent = 'Added to Cart!';
+        btnElement.style.background = '#22c55e';
+        btnElement.style.borderColor = '#22c55e';
+        btnElement.style.color = '#fff';
+        btnElement.style.opacity = '1';
+        
+        // Reset button after 2 seconds
+        setTimeout(() => {
+          btnElement.textContent = originalText;
+          btnElement.style.background = '';
+          btnElement.style.borderColor = '';
+          btnElement.style.color = '';
+          btnElement.disabled = false;
+        }, 2000);
+      }
+    } else {
+      throw new Error('Add to cart failed');
     }
   } catch (error) {
     console.error('Error adding to cart:', error);
+    if (btnElement) {
+      btnElement.textContent = 'Error';
+      btnElement.style.background = '#ef4444';
+      setTimeout(() => {
+        btnElement.textContent = originalText;
+        btnElement.style.background = '';
+        btnElement.disabled = false;
+        btnElement.style.opacity = '1';
+      }, 2000);
+    }
   }
 }
 
@@ -1164,6 +1276,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Initialize
   updateSlider();
+});
+
+// Event delegation for Quick Add buttons
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.product-card__quick-add');
+  if (btn) {
+    const variantId = btn.getAttribute('data-variant-id');
+    if (variantId) {
+      addToCart(variantId, btn);
+    }
+  }
 });
 </script>
 

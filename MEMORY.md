@@ -15,6 +15,52 @@
 
 - PJ Sparks: refund window passed — no longer eligible
 - Ricardo Madera: wants to compare $500 ad spend vs last month
+- Vicelia: Shopify redesign, HIGH PRIORITY → **COMPLETED March 31, 2026**
+
+---
+
+## Completed Builds — Clutch Barber Supply (March 31, 2026)
+
+**Status:** ✅ LIVE - Theme deployed and approved
+**Location:** `/builds/clutch-barber-supply/`
+
+### What Was Built
+- **Homepage:** Hero with 4.8 rating, brand grid (9 brands), reviews section
+- **Collection/Shop:** Client-side filtering (brand, category, price, availability), mobile filter panel
+- **Product Page:** Image gallery, description, variant picker, add to cart
+- **Cart Page:** Trust bar with icons, shipping calculator, reviews, suggestions
+- **Brand Linking:** Homepage/Footer brand clicks auto-filter collection page
+
+### Technical Challenges Solved
+1. **Mobile Product Image Overflow** — `aspect-ratio: 1` created 495px square on mobile. Fixed with `aspect-ratio: auto !important`
+2. **Collection Products Not Loading** — JavaScript array empty. Fixed with DOM extraction fallback
+3. **Brand Filter Auto-Apply** — URL parameter matching against wrong attribute. Fixed with `data-vendor` selector
+
+### Key Learnings Captured
+- See `.learnings/LEARNINGS.md` entries:
+  - `[LRN-20250330-001]` Mobile CSS aspect-ratio trap
+  - `[LRN-20250330-002]` Collection page DOM fallback
+  - `[LRN-20250330-003]` Brand filter URL matching
+
+### Files Delivered
+| File | Location |
+|------|----------|
+| Theme ZIP | `clutch-theme-WORKING.zip` (2.3MB) |
+| Session Log | `memory/2026-03-30.md` |
+
+---
+
+## Active Clients — Billing Details (Mar 2026)
+
+| Client | Business | Signed | Ads Live | Renewal | Collected | Remaining |
+|---|---|---|---|---|---|---|
+| Hector Huizar | Valley of the Sun Landscape | 2/11/26 | 3/10/26 | 4/10/26 | $785 | $0 |
+| PJ Sparks | We Do Hardscape | 2/27/26 | 3/9/26 | 4/9/26 | $285 | $0 |
+| Ricardo Madera | Madera Landscape | 2/27/26 | 3/9/26 | 4/9/26 | $285 | $0 |
+| Vicelia Tinde | Clutch Barber Supply | — | — | — | $900 | $900 |
+
+- PJ Sparks: refund window passed — no longer eligible
+- Ricardo Madera: wants to compare $500 ad spend vs last month
 - Vicelia: Shopify redesign, HIGH PRIORITY
 
 ---

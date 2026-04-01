@@ -52,7 +52,7 @@
         {% comment %} Left Column: Cart Items {% endcomment %}
         <div class="cart-main">
           
-          <form action="{{ routes.cart_url }}" method="post" class="cart-form" novalidate>
+          <form action="{{ routes.cart_url }}" method="post" class="cart-form" id="cart-form" novalidate>
             <div class="cart-items">
               {% for item in cart.items %}
                 <div class="cart-item" data-line="{{ forloop.index }}">
@@ -135,29 +135,82 @@
               </div>
             </div>
 
-            <a href="/collections/all" class="cart-continue">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12l-4-4 4-4" stroke="currentColor" stroke-width="1.5"/></svg>
-              Continue Shopping
-            </a>
+            {% comment %} Cart Reviews - Randomized Social Proof {% endcomment %}
+            <div class="cart-reviews" id="cart-reviews">
+              <div class="cart-reviews__header">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                <span>What Barbers Are Saying</span>
+              </div>
+              <div class="cart-reviews__list" id="reviews-pool">
+                {% comment %} Review 1 {% endcomment %}
+                <div class="cart-review" style="display: none;">
+                  <div class="cart-review__stars">★★★★★</div>
+                  <p class="cart-review__quote">"Man I'm glad I stopped by the shop today it's hard finding a good barber supply store but let me tell you this shop has everything you can ever want and need with great prices this shop a 10/10"</p>
+                  <div class="cart-review__author">— Erik Deleon</div>
+                </div>
+                {% comment %} Review 2 {% endcomment %}
+                <div class="cart-review" style="display: none;">
+                  <div class="cart-review__stars">★★★★★</div>
+                  <p class="cart-review__quote">"Be careful when walking in to Clutch Barber supply. It's like walking in to Target, you can never walk out with just one thing. I love that they have just about EVERYTHING here!"</p>
+                  <div class="cart-review__author">— Scarlett Salas</div>
+                </div>
+                {% comment %} Review 3 {% endcomment %}
+                <div class="cart-review" style="display: none;">
+                  <div class="cart-review__stars">★★★★★</div>
+                  <p class="cart-review__quote">"Bought 2 barber chairs here for my business. And this is by far the best barber supply store I've been to. Definitely recommend!"</p>
+                  <div class="cart-review__author">— dtx.outlaws</div>
+                </div>
+                {% comment %} Review 4 {% endcomment %}
+                <div class="cart-review" style="display: none;">
+                  <div class="cart-review__stars">★★★★★</div>
+                  <p class="cart-review__quote">"Great atmosphere great store with all of your barber needs and if you can't find it in store don't you worry they will come in clutch and get it for you"</p>
+                  <div class="cart-review__author">— Fernando Perez</div>
+                </div>
+                {% comment %} Review 5 {% endcomment %}
+                <div class="cart-review" style="display: none;">
+                  <div class="cart-review__stars">★★★★★</div>
+                  <p class="cart-review__quote">"The name is official for the exceptional service They provide me with all my Barber accessories"</p>
+                  <div class="cart-review__author">— derrick dumas</div>
+                </div>
+                {% comment %} Review 6 {% endcomment %}
+                <div class="cart-review" style="display: none;">
+                  <div class="cart-review__stars">★★★★★</div>
+                  <p class="cart-review__quote">"Wonderful customer service! Best barber supply hands down! Pricing is perfect and well stocked! Highly recommend!"</p>
+                  <div class="cart-review__author">— Sabrina Reina</div>
+                </div>
+                {% comment %} Review 7 {% endcomment %}
+                <div class="cart-review" style="display: none;">
+                  <div class="cart-review__stars">★★★★★</div>
+                  <p class="cart-review__quote">"Excellent service. They stay up to date with all the new products and tools. They also have mobile units that deliver directly to the local barbershops."</p>
+                  <div class="cart-review__author">— Galeedon Banks</div>
+                </div>
+                {% comment %} Review 8 {% endcomment %}
+                <div class="cart-review" style="display: none;">
+                  <div class="cart-review__stars">★★★★★</div>
+                  <p class="cart-review__quote">"Amazing customer service just went in a few moments ago because one of the clippers came out a little defective that I bought a month or so ago they checked it out gave me a brand new one!"</p>
+                  <div class="cart-review__author">— Jess Orduna</div>
+                </div>
+              </div>
+            </div>
           </form>
 
-          {% comment %} Cart Upsells - Complete Your Setup {% endcomment %}
+          {% comment %} Cart Upsells - Complete Your Setup (10 products, JS picks random 3) {% endcomment %}
           {% assign cart_handles = cart.items | map: 'product' | map: 'handle' %}
           {% assign upsell_count = 0 %}
           
           {% for prod in collections.all.products limit: 50 %}
-            {% if upsell_count < 3 %}
+            {% if upsell_count < 10 %}
               {% unless cart_handles contains prod.handle %}
                 {% if prod.available %}
                   {% if upsell_count == 0 %}
-          <div class="cart-upsell">
+          <div class="cart-upsell" id="upsell-section">
             <div class="upsell-header">
               <h3 class="upsell-title">Complete Your Setup</h3>
               <p class="upsell-subtitle">Barbers also grabbed</p>
             </div>
-            <div class="upsell-products">
+            <div class="upsell-products" id="upsell-pool">
                   {% endif %}
-              <div class="upsell-product" data-variant-id="{{ prod.selected_or_first_available_variant.id }}">
+              <div class="upsell-product" data-variant-id="{{ prod.selected_or_first_available_variant.id }}" style="display: none;">
                 <a href="{{ prod.url }}" class="upsell-image">
                   {% if prod.featured_image %}
                     <img src="{{ prod.featured_image | image_url: width: 120 }}" alt="{{ prod.title | escape }}" width="60" height="60" loading="lazy">
@@ -191,13 +244,10 @@
           </div>
           {% endif %}
           
-          <div class="cart-upsell" data-upsell-products='{{ upsell_products_json }}'>
-            <div class="upsell-header">
-              <h3 class="upsell-title">Complete Your Setup</h3>
-              <p class="upsell-subtitle">Barbers also grabbed</p>
-            </div>
-            <div class="upsell-products" id="upsell-container"></div>
-          </div>
+          <a href="/collections/all" class="cart-continue">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12l-4-4 4-4" stroke="currentColor" stroke-width="1.5"/></svg>
+            Continue Shopping
+          </a>
         </div>
 
         {% comment %} Right Column: Order Summary {% endcomment %}
@@ -251,7 +301,7 @@
             </div>
 
             <div class="cart-checkout">
-              <button type="submit" name="checkout" class="checkout-btn checkout-btn-primary">
+              <button type="submit" name="checkout" form="cart-form" class="checkout-btn checkout-btn-primary">
                 <span>Proceed to Checkout</span>
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 9h10m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="1.5"/></svg>
               </button>
@@ -409,6 +459,28 @@
   var countEl = document.querySelector('[data-buyer-count]');
   if (countEl) countEl.textContent = getBuyerCount();
   
+  // Randomize upsell products - shuffle and show 3 random ones
+  (function() {
+    var pool = document.getElementById('upsell-pool');
+    if (!pool) return;
+    
+    var products = Array.from(pool.querySelectorAll('.upsell-product'));
+    if (products.length === 0) return;
+    
+    // Shuffle array
+    for (var i = products.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var temp = products[i];
+      products[i] = products[j];
+      products[j] = temp;
+    }
+    
+    // Show first 3, keep rest hidden
+    products.forEach(function(prod, index) {
+      prod.style.display = index < 3 ? '' : 'none';
+    });
+  })();
+  
   // Upsell add to cart buttons
   document.querySelectorAll('.upsell-add').forEach(function(btn) {
     btn.addEventListener('click', function(e) {
@@ -444,5 +516,27 @@
   var style = document.createElement('style');
   style.textContent = '@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }';
   document.head.appendChild(style);
+  
+  // Randomize cart reviews - show 3 random reviews
+  (function() {
+    var reviewsContainer = document.getElementById('reviews-pool');
+    if (!reviewsContainer) return;
+    
+    var reviews = Array.from(reviewsContainer.querySelectorAll('.cart-review'));
+    if (reviews.length === 0) return;
+    
+    // Fisher-Yates shuffle
+    for (var i = reviews.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var temp = reviews[i];
+      reviews[i] = reviews[j];
+      reviews[j] = temp;
+    }
+    
+    // Show first 3, hide others
+    reviews.forEach(function(review, index) {
+      review.style.display = index < 3 ? 'block' : 'none';
+    });
+  })();
 })();
 </script>

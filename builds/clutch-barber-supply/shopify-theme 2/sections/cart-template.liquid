@@ -7,7 +7,23 @@
 
 {% if cart.item_count > 0 %}
   <div class="cart-layout">
-    <form action="{{ routes.cart_url }}" method="post" novalidate>
+    <form action="{{ routes.cart_url }}" method="post" novalidate id="cart-form">
+      <!-- Trust Bar -->
+      <div class="cart-trust-bar">
+        <div class="cart-trust-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          <span>Secure Checkout</span>
+        </div>
+        <div class="cart-trust-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 13l4 4L19 7"/></svg>
+          <span>Free Shipping $300+</span>
+        </div>
+        <div class="cart-trust-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          <span>Fast Delivery</span>
+        </div>
+      </div>
+      
       <div class="cart-items">
         {% for item in cart.items %}
           <div class="cart-item">
@@ -40,7 +56,7 @@
       
       <div class="cart-actions">
         <button type="submit" name="update" class="update-btn">Update Cart</button>
-        <button type="submit" name="checkout" class="checkout-btn">Proceed to Checkout</button>
+        <a href="/checkout" class="checkout-btn" id="checkout-btn">Proceed to Checkout</a>
       </div>
     </form>
     
@@ -103,6 +119,42 @@
 </style>
 
 <script>
+// Cart functionality
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('[Clutch Cart] Initializing checkout button fix...');
+  
+  // Ensure checkout button works
+  const checkoutBtn = document.getElementById('checkout-btn');
+  const cartForm = document.getElementById('cart-form');
+  
+  if (checkoutBtn && cartForm) {
+    console.log('[Clutch Cart] Checkout button found, attaching handler');
+    
+    // Remove any inline styles that might block clicks
+    checkoutBtn.style.pointerEvents = 'auto';
+    checkoutBtn.style.position = 'relative';
+    checkoutBtn.style.zIndex = '9999';
+    
+    checkoutBtn.addEventListener('click', function(e) {
+      console.log('[Clutch Cart] Checkout button clicked');
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Direct navigation to checkout
+      window.location.href = '/checkout';
+    });
+    
+    // Also handle touch events for mobile
+    checkoutBtn.addEventListener('touchend', function(e) {
+      console.log('[Clutch Cart] Checkout button touched');
+      e.preventDefault();
+      window.location.href = '/checkout';
+    });
+  } else {
+    console.error('[Clutch Cart] Button or form not found:', {checkoutBtn, cartForm});
+  }
+});
+
 async function updateCartItem(key, quantity) {
   if (quantity < 0) quantity = 0;
   

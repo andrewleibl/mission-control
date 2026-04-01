@@ -1,0 +1,237 @@
+{% comment %}
+  Product Recommendations Section
+  - Shows "Add for Free Shipping" progress bar
+  - Shows "Commonly Bought Together" bundle
+  - Pulls data from product metafields
+{% endcomment %}
+
+{% assign current_price = product.price | divided_by: 100.0 %}
+{% assign free_shipping_threshold = 300 %}
+{% assign gap = free_shipping_threshold | minus: current_price %}
+
+<section class="recommendations-split">
+  <div class="recommendations-split__inner">
+    
+    {% comment %} Free Shipping Upsell Column {% endcomment %}
+    <div class="recommendations-col">
+      <div class="shipping-upsell">
+        <div class="shipping-upsell__header">
+          <h3>Add for Free Shipping</h3>
+          <div class="shipping-progress">
+            <div class="shipping-progress__bar">
+              {% assign progress_percent = current_price | divided_by: free_shipping_threshold | times: 100 %}
+              <div class="shipping-progress__fill" style="width: {{ progress_percent | at_most: 100 }}%;"></div>
+            </div>
+            <p class="shipping-progress__text">
+              {% if gap > 0 %}
+                You're <strong>${{ gap | round: 2 }}</strong> away from free shipping
+              {% else %}
+                <strong>🎉 You qualify for free shipping!</strong>
+              {% endif %}
+            </p>
+          </div>
+        </div>
+        
+        {% comment %} Find upsell product from metafield or fallback {% endcomment %}
+        {% assign upsell_product = product.metafields.custom.common_pair.value %}
+        
+        {% if upsell_product %}
+          <div class="shipping-upsell__product">
+            <div class="upsell-product__image-wrapper">
+              <img src="{{ upsell_product.featured_image | image_url: width: 120 }}" 
+                   alt="{{ upsell_product.title | escape }}"
+                   class="upsell-product__image"
+                   loading="lazy">
+            </div>
+            <div class="upsell-product__info">
+              <div class="upsell-product__brand">{{ upsell_product.vendor }}</div>
+              <div class="upsell-product__name">{{ upsell_product.title }}</div>
+              <div class="upsell-product__price">{{ upsell_product.price | money }}</div>
+              <button class="upsell-product__btn" 
+                      data-variant-id="{{ upsell_product.selected_or_first_available_variant.id }}"
+                      onclick="addToCartAndUpdate(this)">
+                Add to Cart
+              </button>
+            </div>
+          </div>
+          
+          {% comment %} Contextual message based on category {% endcomment %}
+          {% assign category = product.type | downcase %}
+          {% if category contains 'clipper' %}
+            <p class="shipping-upsell__note">Perfect pair — use the {{ product.vendor }} clipper for bulk, {{ upsell_product.vendor }} trimmer for detail work</p>
+          {% elsif category contains 'trimmer' %}
+            <p class="shipping-upsell__note">Complete your setup with matching blades and accessories</p>
+          {% else %}
+            <p class="shipping-upsell__note">Barbers also buy this with their {{ product.vendor }} tools</p>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+
+    {% comment %} Commonly Bought Together Column {% endcomment %}
+    <div class="recommendations-col">
+      <div class="bought-together">
+        <h3>Commonly Bought Together</h3>
+        
+        {% if upsell_product %}
+          <div class="bundle-products">
+            {% comment %} Current Product {% endcomment %}
+            <div class="bundle-product bundle-product--current">
+              <span class="bundle-product__badge">This Item</span>
+              <div class="bundle-product__image-wrapper">
+                <img src="{{ product.featured_image | image_url: width: 150 }}" 
+                     alt="{{ product.title | escape }}"
+                     class="bundle-product__image"
+                     loading="lazy">
+              </div>
+              <div class="bundle-product__info">
+                <div class="bundle-product__brand">{{ product.vendor }}</div>
+                <div class="bundle-product__name">{{ product.title }}</div>
+                <div class="bundle-product__price">{{ product.price | money }}</div>
+              </div>
+            </div>
+            
+            <div class="bundle-plus">+</div>
+            
+            {% comment %} Paired Product {% endcomment %}
+            <div class="bundle-product">
+              <div class="bundle-product__image-wrapper">
+                <img src="{{ upsell_product.featured_image | image_url: width: 150 }}" 
+                     alt="{{ upsell_product.title | escape }}"
+                     class="bundle-product__image"
+                     loading="lazy">
+              </div>
+              <div class="bundle-product__info">
+                <div class="bundle-product__brand">{{ upsell_product.vendor }}</div>
+                <div class="bundle-product__name">{{ upsell_product.title }}</div>
+                <div class="bundle-product__price">{{ upsell_product.price | money }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bundle-total">
+            <span>
+              Bundle Total: <strong>{{ product.price | plus: upsell_product.price | money }}</strong>
+              {% assign savings = product.compare_at_price | plus: upsell_product.compare_at_price | minus: product.price | minus: upsell_product.price %}
+              {% if savings > 0 %}
+                <span class="bundle-save">Save {{ savings | money }}</span>
+              {% endif %}
+            </span>
+            <button class="bundle-add-btn" 
+                    data-product-1="{{ product.selected_or_first_available_variant.id }}"
+                    data-product-2="{{ upsell_product.selected_or_first_available_variant.id }}"
+                    onclick="addBundleToCart(this)">
+              Add Both to Cart
+            </button>
+          </div>
+        {% else %}
+          {% comment %} Fallback: Show category-based suggestions {% endcomment %}
+          <div class="bought-together__fallback">
+            <p>Complete your {{ product.vendor }} setup with matching accessories.</p>
+            <a href="/collections/all" class="bundle-add-btn">Shop Accessories</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    
+  </div>
+</section>
+
+<script>
+// Add single product to cart and update UI
+function addToCartAndUpdate(button) {
+  const variantId = button.dataset.variantId;
+  button.disabled = true;
+  button.textContent = 'Adding...';
+  
+  fetch('/cart/add.js', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: variantId, quantity: 1 })
+  })
+  .then(response => response.json())
+  .then(data => {
+    button.textContent = 'Added!';
+    button.classList.add('added');
+    
+    // Update cart count
+    fetch('/cart.js')
+      .then(r => r.json())
+      .then(cart => {
+        const cartBadge = document.querySelector('.clutch-header__badge');
+        if (cartBadge) cartBadge.textContent = cart.item_count;
+      });
+    
+    // Reset button after 2 seconds
+    setTimeout(() => {
+      button.disabled = false;
+      button.textContent = 'Add to Cart';
+      button.classList.remove('added');
+    }, 2000);
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    button.textContent = 'Error';
+    button.disabled = false;
+  });
+}
+
+// Add both products to cart
+function addBundleToCart(button) {
+  const product1 = button.dataset.product1;
+  const product2 = button.dataset.product2;
+  button.disabled = true;
+  button.textContent = 'Adding...';
+  
+  Promise.all([
+    fetch('/cart/add.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: product1, quantity: 1 })
+    }),
+    fetch('/cart/add.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: product2, quantity: 1 })
+    })
+  ])
+  .then(() => {
+    window.location.href = '/cart';
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    button.textContent = 'Error';
+    button.disabled = false;
+  });
+}
+</script>
+
+{% schema %}
+{
+  "name": "Product Recommendations",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Free Shipping Settings"
+    },
+    {
+      "type": "number",
+      "id": "free_shipping_threshold",
+      "label": "Free Shipping Threshold ($)",
+      "default": 300
+    },
+    {
+      "type": "text",
+      "id": "upsell_note",
+      "label": "Upsell Context Message",
+      "default": "Perfect pair — complete your setup with this matching tool",
+      "info": "Shown below the upsell product"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product Recommendations"
+    }
+  ]
+}
+{% endschema %}

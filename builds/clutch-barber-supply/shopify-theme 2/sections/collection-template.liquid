@@ -19,7 +19,10 @@
 <div class="collection-layout">
   <!-- Sidebar Filters -->
   <aside class="filters-sidebar">
-    <h3>Filters</h3>
+    <div class="filters-sidebar__header">
+      <h3>Filters</h3>
+      <button class="filters-sidebar__close" onclick="toggleMobileFilters()" aria-label="Close filters">×</button>
+    </div>
     
     {% if collection.all_tags.size > 0 %}
       <div class="filter-group" id="categoryFilters">
@@ -292,8 +295,38 @@
   };
   
   window.toggleMobileFilters = function() {
-    document.querySelector('.filters-sidebar').classList.toggle('mobile-visible');
+    const sidebar = document.querySelector('.filters-sidebar');
+    const isOpening = !sidebar.classList.contains('mobile-visible');
+    
+    sidebar.classList.toggle('mobile-visible');
+    
+    // Add/remove body class for overlay backdrop
+    if (isOpening) {
+      document.body.classList.add('filters-open');
+      setTimeout(() => {
+        document.addEventListener('click', closeMobileFiltersOnClickOutside);
+      }, 100);
+    } else {
+      document.body.classList.remove('filters-open');
+      document.removeEventListener('click', closeMobileFiltersOnClickOutside);
+    }
   };
+  
+  // Close mobile filters when clicking outside
+  function closeMobileFiltersOnClickOutside(e) {
+    const sidebar = document.querySelector('.filters-sidebar');
+    const toggleBtn = document.querySelector('.mobile-filter-toggle');
+    
+    // Don't close if clicking inside sidebar or on toggle button
+    if (sidebar.contains(e.target) || toggleBtn.contains(e.target)) {
+      return;
+    }
+    
+    // Close the sidebar and remove overlay
+    sidebar.classList.remove('mobile-visible');
+    document.body.classList.remove('filters-open');
+    document.removeEventListener('click', closeMobileFiltersOnClickOutside);
+  }
   
   // Run filters on load (for URL params)
   applyFilters();
