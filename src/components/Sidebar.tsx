@@ -5,16 +5,9 @@ import { usePathname } from 'next/navigation'
 const navItems = [
   { href: '/tasks', label: 'Task Board', icon: '⬛' },
   { href: '/calendar', label: 'Calendar', icon: '📅' },
-<<<<<<< HEAD
-  { href: '/notes', label: 'Notes & Ideas', icon: '📝' },
-  { href: '/sales', label: 'Sales Pipeline', icon: '💰' },
-  { href: '/callers', label: 'Caller Performance', icon: '📞' },
-=======
   { href: '/client-retention', label: 'Retention', icon: '🤝' },
->>>>>>> 2878498 (Add client retention page)
   { href: '/docs', label: 'Docs', icon: '📄' },
   { href: '/clients', label: 'Clients', icon: '👥' },
-  { href: '/dashboard/meta-ads', label: 'Meta Ads', icon: '🎯' },
   { href: '/chat', label: 'Chat', icon: '💬' },
   { href: '/usage', label: 'Usage & Cost', icon: '📊' },
 ]
@@ -102,3 +95,4 @@ export default function Sidebar() {
     </aside>
   )
 }
+// Built Wed Apr  1 23:24:06 CDT 2026
