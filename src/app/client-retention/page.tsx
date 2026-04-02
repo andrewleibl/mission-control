@@ -1885,15 +1885,6 @@ export default function ClientRetentionPage() {
                 <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#A0AEC0", marginBottom: "6px" }}>
                   Client
                 </label>
-<<<<<<< HEAD
-                <input
-                  type="text"
-                  value={formClient}
-                  onChange={(e) => setFormClient(e.target.value)}
-                  placeholder="e.g., Hector Huizar"
-                  style={{
-                    width: "100%",
-=======
                 <select
                   value={formClient}
                   onChange={(e) => setFormClient(e.target.value)}
@@ -1901,18 +1892,22 @@ export default function ClientRetentionPage() {
                     width: "100%",
                     minWidth: "100%",
                     boxSizing: "border-box",
->>>>>>> 2878498 (Add client retention page)
+                    display: "block",
                     background: "#0D0D0D",
                     border: "1px solid #3A3A3A",
                     borderRadius: "8px",
-                    padding: "10px 12px",
+                    padding: "10px 36px 10px 12px",
                     color: "#F7FAFC",
                     fontSize: "14px",
-<<<<<<< HEAD
-                  }}
-                />
-=======
                     cursor: "pointer",
+                    height: "42px",
+                    lineHeight: "20px",
+                    WebkitAppearance: "none",
+                    MozAppearance: "none",
+                    appearance: "none",
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23718096' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "right 12px center",
                   }}
                 >
                   <option value="" disabled>Select a client...</option>
@@ -1921,7 +1916,6 @@ export default function ClientRetentionPage() {
                   <option value="PJ">PJ</option>
                   <option value="Vicelia">Vicelia</option>
                 </select>
->>>>>>> 2878498 (Add client retention page)
               </div>
 
               <div>
