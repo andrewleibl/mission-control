@@ -120,8 +120,6 @@ export default function ClientRetentionPage() {
         },
         htmlReportUrl: "/loom-recording"
       }
-<<<<<<< HEAD
-=======
     },
     {
       id: "hector-weekly-001",
@@ -234,7 +232,6 @@ export default function ClientRetentionPage() {
         },
         htmlReportUrl: "/loom-recording"
       }
->>>>>>> 2878498 (Add client retention page)
     }
   ]);
   const [showModal, setShowModal] = useState(false);
@@ -249,14 +246,6 @@ export default function ClientRetentionPage() {
   const [formTime, setFormTime] = useState("09:00");
   const [formNotes, setFormNotes] = useState("");
 
-<<<<<<< HEAD
-  // Load events from localStorage on mount
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('mc_retention_events_client_page');
-      if (stored) {
-        setEvents(JSON.parse(stored));
-=======
   // Load events from localStorage on mount, or use defaults if empty
   useEffect(() => {
     try {
@@ -266,7 +255,6 @@ export default function ClientRetentionPage() {
         if (parsed.length > 0) {
           setEvents(parsed);
         }
->>>>>>> 2878498 (Add client retention page)
       }
     } catch {
       // ignore
@@ -276,11 +264,7 @@ export default function ClientRetentionPage() {
   // Save events to localStorage whenever they change
   useEffect(() => {
     try {
-<<<<<<< HEAD
-      localStorage.setItem('mc_retention_events_client_page', JSON.stringify(events));
-=======
       localStorage.setItem('mc_retention_events_v2', JSON.stringify(events));
->>>>>>> 2878498 (Add client retention page)
     } catch {
       // ignore
     }
@@ -1140,8 +1124,6 @@ export default function ClientRetentionPage() {
           }}
           onClick={() => setShowModal(false)}
         >
-<<<<<<< HEAD
-=======
           {/* Red Glow Backdrop */}
           <div
             style={{
@@ -1157,26 +1139,16 @@ export default function ClientRetentionPage() {
               filter: "blur(80px)",
             }}
           />
->>>>>>> 2878498 (Add client retention page)
           <div
             style={{
               background: "#1A1A1A",
               borderRadius: "12px",
-<<<<<<< HEAD
-              padding: "24px",
-=======
               padding: "24px 24px 0 24px",
->>>>>>> 2878498 (Add client retention page)
               width: "100%",
               maxWidth: "480px",
               maxHeight: "90vh",
               overflow: "auto",
               margin: "20px",
-<<<<<<< HEAD
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-=======
               position: "relative",
               zIndex: 1001,
               border: "1px solid rgba(229, 62, 62, 0.2)",
@@ -1191,7 +1163,6 @@ export default function ClientRetentionPage() {
                 cursor: pointer;
               }
             `}</style>
->>>>>>> 2878498 (Add client retention page)
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
               <h3 style={{ fontSize: "18px", fontWeight: 700, color: "#F7FAFC" }}>
                 {editingEvent ? "Edit Event" : "Add Event"}
@@ -1204,15 +1175,9 @@ export default function ClientRetentionPage() {
               </button>
             </div>
 
-<<<<<<< HEAD
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              {/* ─── WEEKLY REPORT BIG THREE BREAKDOWN ─── */}
-              {editingEvent?.type === "report" && editingEvent?.reportData && (
-=======
             <div style={{ display: "flex", flexDirection: "column", gap: "16px", width: "85%", margin: "0 auto", paddingBottom: "24px" }}>
               {/* ─── WEEKLY REPORT BIG THREE BREAKDOWN ─── */}
               {(editingEvent?.type === "report" || editingEvent?.type === "loom") && editingEvent?.reportData && (
->>>>>>> 2878498 (Add client retention page)
                 <div
                   style={{
                     background: "#0D0D0D",
@@ -1246,11 +1211,7 @@ export default function ClientRetentionPage() {
                       <span style={{ color: "#E53E3E" }}>📊</span> Weekly Report Breakdown
                     </h4>
                     <a
-<<<<<<< HEAD
-                      href={editingEvent.reportData.htmlReportUrl}
-=======
                       href={`${editingEvent.reportData.htmlReportUrl}?client=${editingEvent.client.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
->>>>>>> 2878498 (Add client retention page)
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{
@@ -1316,16 +1277,12 @@ export default function ClientRetentionPage() {
                           ${editingEvent.reportData.spend.toFixed(0)}
                         </div>
                         <div style={{ fontSize: "11px", color: "#718096", marginTop: "4px" }}>
-<<<<<<< HEAD
-                          of $285 budget
-=======
                           {(() => {
                             const spendTarget = editingEvent.reportData.nextWeek?.targets?.[2] || '';
                             const match = spendTarget.match(/\$([\d,]+)/);
                             const budget = match ? match[1] : '210';
                             return `of $${budget} budget`;
                           })()}
->>>>>>> 2878498 (Add client retention page)
                         </div>
                       </div>
 
@@ -1407,11 +1364,7 @@ export default function ClientRetentionPage() {
                           ${editingEvent.reportData.cpl.toFixed(0)}
                         </div>
                         <div style={{ fontSize: "11px", color: "#718096", marginTop: "4px" }}>
-<<<<<<< HEAD
-                          target: $80-100
-=======
                           target: {editingEvent.reportData.nextWeek?.targets?.[1]?.replace('Target CPL: ', '') || '$40-60'}
->>>>>>> 2878498 (Add client retention page)
                         </div>
                       </div>
                     </div>
@@ -1890,24 +1843,17 @@ export default function ClientRetentionPage() {
                   onChange={(e) => setFormClient(e.target.value)}
                   style={{
                     width: "100%",
-                    minWidth: "100%",
                     boxSizing: "border-box",
                     display: "block",
                     background: "#0D0D0D",
                     border: "1px solid #3A3A3A",
                     borderRadius: "8px",
-                    padding: "10px 36px 10px 12px",
+                    padding: "10px 12px",
                     color: "#F7FAFC",
                     fontSize: "14px",
                     cursor: "pointer",
                     height: "42px",
                     lineHeight: "20px",
-                    WebkitAppearance: "none",
-                    MozAppearance: "none",
-                    appearance: "none",
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23718096' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-                    backgroundRepeat: "no-repeat",
-                    backgroundPosition: "right 12px center",
                   }}
                 >
                   <option value="" disabled>Select a client...</option>
@@ -1938,57 +1884,6 @@ export default function ClientRetentionPage() {
                 />
               </div>
 
-<<<<<<< HEAD
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                <div>
-                  <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#A0AEC0", marginBottom: "6px" }}>
-                    Type
-                  </label>
-                  <select
-                    value={formType}
-                    onChange={(e) => setFormType(e.target.value as any)}
-                    style={{
-                      width: "100%",
-                      background: "#0D0D0D",
-                      border: "1px solid #3A3A3A",
-                      borderRadius: "8px",
-                      padding: "10px 12px",
-                      color: "#F7FAFC",
-                      fontSize: "14px",
-                    }}
-                  >
-                    <option value="loom">Loom Video</option>
-                    <option value="biweekly">Bi-Weekly Call</option>
-                    <option value="text">Text</option>
-                    <option value="report">Weekly Report</option>
-                    <option value="start">Start of Campaign</option>
-                    <option value="end">End of Campaign</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#A0AEC0", marginBottom: "6px" }}>
-                    Time
-                  </label>
-                  <input
-                    type="time"
-                    value={formTime}
-                    onChange={(e) => setFormTime(e.target.value)}
-                    style={{
-                      width: "100%",
-                      background: "#0D0D0D",
-                      border: "1px solid #3A3A3A",
-                      borderRadius: "8px",
-                      padding: "10px 12px",
-                      color: "#F7FAFC",
-                      fontSize: "14px",
-                    }}
-                  />
-                </div>
-              </div>
-
-=======
->>>>>>> 2878498 (Add client retention page)
               <div>
                 <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#A0AEC0", marginBottom: "6px" }}>
                   Notes
@@ -2011,11 +1906,7 @@ export default function ClientRetentionPage() {
                 />
               </div>
 
-<<<<<<< HEAD
-              <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
-=======
               <div style={{ display: "flex", gap: "12px", marginTop: "8px", marginBottom: "0" }}>
->>>>>>> 2878498 (Add client retention page)
                 {editingEvent && (
                   <button
                     onClick={() => deleteEvent(editingEvent.id)}
