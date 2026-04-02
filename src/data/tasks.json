@@ -1,5 +1,6 @@
 [
   {
+<<<<<<< HEAD
     "id": "t1",
     "title": "Review caller recordings",
     "description": "Listen to call recordings from both callers, score performance, leave written feedback.",
@@ -153,5 +154,122 @@
     "createdAt": "2026-03-25T18:56:00Z",
     "status": "inprogress",
     "tags": ["recurring-weekly", "retention", "vicelia"]
+=======
+    "id": "t-001",
+    "title": "Daily caller meeting",
+    "description": "Morning sync with cold callers — review call recordings, KPIs, and roleplay objections",
+    "column": "Recurring",
+    "assignee": "Andrew",
+    "label": "Agency",
+    "createdAt": "2026-03-10T09:00:00Z"
+  },
+  {
+    "id": "t-002",
+    "title": "Review ad performance",
+    "description": "Check Meta Ads Manager for CPL, CTR, and ROAS across all active landscaping campaigns",
+    "column": "Recurring",
+    "assignee": "Andrew",
+    "label": "Agency",
+    "createdAt": "2026-03-10T09:30:00Z"
+  },
+  {
+    "id": "t-003",
+    "title": "Set up cold SMS outreach",
+    "description": "Configure SMS account with 1,500/day capacity, warm up sender, load first city list",
+    "column": "Backlog",
+    "assignee": "Andrew",
+    "label": "Agency",
+    "createdAt": "2026-03-14T10:00:00Z"
+  },
+  {
+    "id": "t-004",
+    "title": "Document agency SOPs",
+    "description": "Convert in-head onboarding, lead qual, and follow-up processes into step-by-step docs",
+    "column": "Backlog",
+    "assignee": "Andrew",
+    "label": "Agency",
+    "createdAt": "2026-03-13T11:00:00Z"
+  },
+  {
+    "id": "t-005",
+    "title": "Build pro barber account tier for Clutch",
+    "description": "Design a wholesale/pro tier for licensed barbers — separate pricing, gated signup flow",
+    "column": "Backlog",
+    "assignee": "Poseidon",
+    "label": "Clutch",
+    "createdAt": "2026-03-15T08:00:00Z"
+  },
+  {
+    "id": "t-006",
+    "title": "Clutch Barber Supply website redesign",
+    "description": "$900 remaining. Conversion-first, mobile-first Shopify build. Target: live by April.",
+    "column": "In Progress",
+    "assignee": "Andrew",
+    "label": "Clutch",
+    "createdAt": "2026-03-01T09:00:00Z"
+  },
+  {
+    "id": "t-007",
+    "title": "Train cold callers",
+    "description": "Daily live coaching sessions with Caller 2 — targeting 1-2 bookings/day within 2 weeks",
+    "column": "In Progress",
+    "assignee": "Andrew",
+    "label": "Agency",
+    "createdAt": "2026-03-10T09:00:00Z"
+  },
+  {
+    "id": "t-008",
+    "title": "Mission Control dashboard",
+    "description": "Full Next.js command center — clients, tasks, calendar, chat, usage stats, and live activity",
+    "column": "In Progress",
+    "assignee": "Poseidon",
+    "label": "Dashboard",
+    "createdAt": "2026-03-15T07:00:00Z"
+  },
+  {
+    "id": "t-009",
+    "title": "New offer pitch framework",
+    "description": "15-min sales call structure with word-for-word pitch, objection handling guide, and close sequence",
+    "column": "Review",
+    "assignee": "Andrew",
+    "label": "Agency",
+    "createdAt": "2026-03-14T12:00:00Z"
+  },
+  {
+    "id": "t-010",
+    "title": "Caller onboarding SOP",
+    "description": "Week 1 day-by-day plan, GHL dispositions, quality standards, and performance benchmarks",
+    "column": "Review",
+    "assignee": "Poseidon",
+    "label": "Agency",
+    "createdAt": "2026-03-14T13:00:00Z"
+  },
+  {
+    "id": "t-011",
+    "title": "Cold caller script",
+    "description": "Full script with 6 objections covered, voicemail template, call cadence, and GHL guide",
+    "column": "Done",
+    "assignee": "Poseidon",
+    "label": "Agency",
+    "createdAt": "2026-03-14T08:00:00Z"
+  },
+  {
+    "id": "t-012",
+    "title": "SMS outreach sequence",
+    "description": "5-touch, 10-day sequence with response handling logic and DNC compliance rules",
+    "column": "Done",
+    "assignee": "Poseidon",
+    "label": "Agency",
+    "createdAt": "2026-03-14T09:00:00Z"
+  },
+  {
+    "id": "t-013",
+    "title": "Conversion audit",
+    "description": "Full CRO breakdown of clutchbarbersupply.com with prioritized strategy roadmap",
+    "column": "Done",
+    "assignee": "Poseidon",
+    "label": "Clutch",
+    "createdAt": "2026-03-15T10:00:00Z"
+>>>>>>> 2878498 (Add client retention page)
   }
 ]

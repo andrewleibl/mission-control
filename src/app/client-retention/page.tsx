@@ -120,6 +120,121 @@ export default function ClientRetentionPage() {
         },
         htmlReportUrl: "/loom-recording"
       }
+<<<<<<< HEAD
+=======
+    },
+    {
+      id: "hector-weekly-001",
+      title: "Weekly Breakdown Loom",
+      client: "Hector Huizar",
+      type: "loom",
+      date: "2026-03-28",
+      time: "10:00",
+      notes: "Weekly performance breakdown for Valley of the Sun Landscape. Mar 19-25: 7 leads, $202.56 spent.",
+      completed: false,
+      reportData: {
+        spend: 202.56,
+        leads: 7,
+        cpl: 28.94,
+        ctr: 0.71,
+        leadsChange: 133,
+        cplChange: -56,
+        direction: "positive",
+        campaignStatus: {
+          summary: "Excellent week — 7 leads generated, highest volume in past month. CPL dropped to $28.94 (down from $65.49), more than 50% improvement. Campaign found its rhythm.",
+          whatsWorking: [
+            "Lead volume jumped to 7 (from 3 last week)",
+            "CPL nearly cut in half — $28.94 vs $65.49",
+            "CTR holding steady at 0.71%",
+            "Consistent $30/day budget pacing"
+          ],
+          fixes: [
+            "Maintain current creative set — performing well",
+            "Keep $30/day budget through next week",
+            "Monitor for any fatigue signs around day 5-6",
+            "Prepare backup creative if volume dips"
+          ]
+        },
+        changesThisWeek: [
+          "Lead volume increased 133% (3 → 7 leads)",
+          "CPL improved 56% ($65.49 → $28.94)",
+          "Reached 3,348 people, 6,218 impressions",
+          "Campaign entering optimal performance phase"
+        ],
+        changeImpact: "Campaign has broken through previous plateau. The 7-lead week shows the targeting and creative are now aligned. This is the performance level we want to maintain.",
+        nextWeek: {
+          expectation: "Stabilize at 5-7 leads per week with CPL under $35. Watch for any drop-off as we enter week 4 of this campaign.",
+          targets: [
+            "Target Leads: 5-7 (maintain momentum)",
+            "Target CPL: $25-35 (stay efficient)",
+            "Target Spend: $210-250 weekly"
+          ],
+          focusAreas: [
+            "Monitor daily for lead consistency",
+            "Watch CTR — if it drops below 0.6%, rotate creative",
+            "Maintain budget at $30/day",
+            "Document what's working for future campaigns"
+          ]
+        },
+        htmlReportUrl: "/loom-recording"
+      }
+    },
+    {
+      id: "ricardo-weekly-001",
+      title: "Weekly Breakdown Loom",
+      client: "Ricardo Madera",
+      type: "loom",
+      date: "2026-03-28",
+      time: "11:00",
+      notes: "Weekly performance breakdown for Madera Landscape. Mar 19-25: 2 leads, both on Mar 25th.",
+      completed: false,
+      reportData: {
+        spend: 86.86,
+        leads: 2,
+        cpl: 43.43,
+        ctr: 0.93,
+        leadsChange: 0,
+        cplChange: 79,
+        direction: "negative",
+        campaignStatus: {
+          summary: "Solid week with 2 leads. Both came through on Mar 25th — strong finish to the week. CPL at $43 is manageable but up from prior weeks.",
+          whatsWorking: [
+            "2 leads generated — consistent volume",
+            "Both leads same day (Mar 25th) — strong Friday push",
+            "CTR up to 0.93% — engagement improving",
+            "Reach of 2,148 — solid audience penetration"
+          ],
+          fixes: [
+            "CPL at $43 (up from $24 last week) — trend to watch",
+            "Concentrated on single day — need more distribution",
+            "Monitor if $43 CPL becomes new baseline",
+            "Test creative variations to bring costs down"
+          ]
+        },
+        changesThisWeek: [
+          "Mar 19-24: 0 leads",
+          "Mar 25: 2 leads",
+          "Total: 2 leads, $86.86 spent",
+          "CPL: $43.43 (vs $24.33 prior week)"
+        ],
+        changeImpact: "2 leads with strong Friday finish. CPL elevated but acceptable. Watch for consistency and distribution next week.",
+        nextWeek: {
+          expectation: "Stabilize at 2-3 leads per week with CPL back under $35. Watch for consistency.",
+          targets: [
+            "Target Leads: 2-3",
+            "Target CPL: $30-35 (down from $43)",
+            "Target Spend: $210/week"
+          ],
+          focusAreas: [
+            "Target 2-3 leads distributed across the week",
+            "Bring CPL back to $30-35 range",
+            "Monitor daily pacing — avoid single-day clustering",
+            "Maintain $30/day budget"
+          ]
+        },
+        htmlReportUrl: "/loom-recording"
+      }
+>>>>>>> 2878498 (Add client retention page)
     }
   ]);
   const [showModal, setShowModal] = useState(false);
@@ -134,12 +249,24 @@ export default function ClientRetentionPage() {
   const [formTime, setFormTime] = useState("09:00");
   const [formNotes, setFormNotes] = useState("");
 
+<<<<<<< HEAD
   // Load events from localStorage on mount
   useEffect(() => {
     try {
       const stored = localStorage.getItem('mc_retention_events_client_page');
       if (stored) {
         setEvents(JSON.parse(stored));
+=======
+  // Load events from localStorage on mount, or use defaults if empty
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('mc_retention_events_v2');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.length > 0) {
+          setEvents(parsed);
+        }
+>>>>>>> 2878498 (Add client retention page)
       }
     } catch {
       // ignore
@@ -149,7 +276,11 @@ export default function ClientRetentionPage() {
   // Save events to localStorage whenever they change
   useEffect(() => {
     try {
+<<<<<<< HEAD
       localStorage.setItem('mc_retention_events_client_page', JSON.stringify(events));
+=======
+      localStorage.setItem('mc_retention_events_v2', JSON.stringify(events));
+>>>>>>> 2878498 (Add client retention page)
     } catch {
       // ignore
     }
@@ -1009,19 +1140,58 @@ export default function ClientRetentionPage() {
           }}
           onClick={() => setShowModal(false)}
         >
+<<<<<<< HEAD
+=======
+          {/* Red Glow Backdrop */}
+          <div
+            style={{
+              position: "fixed",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: "600px",
+              height: "600px",
+              background: "radial-gradient(circle, rgba(229, 62, 62, 0.35) 0%, transparent 60%)",
+              pointerEvents: "none",
+              zIndex: 999,
+              filter: "blur(80px)",
+            }}
+          />
+>>>>>>> 2878498 (Add client retention page)
           <div
             style={{
               background: "#1A1A1A",
               borderRadius: "12px",
+<<<<<<< HEAD
               padding: "24px",
+=======
+              padding: "24px 24px 0 24px",
+>>>>>>> 2878498 (Add client retention page)
               width: "100%",
               maxWidth: "480px",
               maxHeight: "90vh",
               overflow: "auto",
               margin: "20px",
+<<<<<<< HEAD
             }}
             onClick={(e) => e.stopPropagation()}
           >
+=======
+              position: "relative",
+              zIndex: 1001,
+              border: "1px solid rgba(229, 62, 62, 0.2)",
+              boxShadow: "0 0 60px rgba(229, 62, 62, 0.15), inset 0 0 40px rgba(229, 62, 62, 0.05)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* White calendar icon styles */}
+            <style>{`
+              input[type="date"]::-webkit-calendar-picker-indicator {
+                filter: invert(1);
+                cursor: pointer;
+              }
+            `}</style>
+>>>>>>> 2878498 (Add client retention page)
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
               <h3 style={{ fontSize: "18px", fontWeight: 700, color: "#F7FAFC" }}>
                 {editingEvent ? "Edit Event" : "Add Event"}
@@ -1034,9 +1204,15 @@ export default function ClientRetentionPage() {
               </button>
             </div>
 
+<<<<<<< HEAD
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               {/* ─── WEEKLY REPORT BIG THREE BREAKDOWN ─── */}
               {editingEvent?.type === "report" && editingEvent?.reportData && (
+=======
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px", width: "85%", margin: "0 auto", paddingBottom: "24px" }}>
+              {/* ─── WEEKLY REPORT BIG THREE BREAKDOWN ─── */}
+              {(editingEvent?.type === "report" || editingEvent?.type === "loom") && editingEvent?.reportData && (
+>>>>>>> 2878498 (Add client retention page)
                 <div
                   style={{
                     background: "#0D0D0D",
@@ -1070,7 +1246,11 @@ export default function ClientRetentionPage() {
                       <span style={{ color: "#E53E3E" }}>📊</span> Weekly Report Breakdown
                     </h4>
                     <a
+<<<<<<< HEAD
                       href={editingEvent.reportData.htmlReportUrl}
+=======
+                      href={`${editingEvent.reportData.htmlReportUrl}?client=${editingEvent.client.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
+>>>>>>> 2878498 (Add client retention page)
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{
@@ -1136,7 +1316,16 @@ export default function ClientRetentionPage() {
                           ${editingEvent.reportData.spend.toFixed(0)}
                         </div>
                         <div style={{ fontSize: "11px", color: "#718096", marginTop: "4px" }}>
+<<<<<<< HEAD
                           of $285 budget
+=======
+                          {(() => {
+                            const spendTarget = editingEvent.reportData.nextWeek?.targets?.[2] || '';
+                            const match = spendTarget.match(/\$([\d,]+)/);
+                            const budget = match ? match[1] : '210';
+                            return `of $${budget} budget`;
+                          })()}
+>>>>>>> 2878498 (Add client retention page)
                         </div>
                       </div>
 
@@ -1218,7 +1407,11 @@ export default function ClientRetentionPage() {
                           ${editingEvent.reportData.cpl.toFixed(0)}
                         </div>
                         <div style={{ fontSize: "11px", color: "#718096", marginTop: "4px" }}>
+<<<<<<< HEAD
                           target: $80-100
+=======
+                          target: {editingEvent.reportData.nextWeek?.targets?.[1]?.replace('Target CPL: ', '') || '$40-60'}
+>>>>>>> 2878498 (Add client retention page)
                         </div>
                       </div>
                     </div>
@@ -1692,6 +1885,7 @@ export default function ClientRetentionPage() {
                 <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#A0AEC0", marginBottom: "6px" }}>
                   Client
                 </label>
+<<<<<<< HEAD
                 <input
                   type="text"
                   value={formClient}
@@ -1699,14 +1893,35 @@ export default function ClientRetentionPage() {
                   placeholder="e.g., Hector Huizar"
                   style={{
                     width: "100%",
+=======
+                <select
+                  value={formClient}
+                  onChange={(e) => setFormClient(e.target.value)}
+                  style={{
+                    width: "100%",
+                    minWidth: "100%",
+                    boxSizing: "border-box",
+>>>>>>> 2878498 (Add client retention page)
                     background: "#0D0D0D",
                     border: "1px solid #3A3A3A",
                     borderRadius: "8px",
                     padding: "10px 12px",
                     color: "#F7FAFC",
                     fontSize: "14px",
+<<<<<<< HEAD
                   }}
                 />
+=======
+                    cursor: "pointer",
+                  }}
+                >
+                  <option value="" disabled>Select a client...</option>
+                  <option value="Ricardo">Ricardo</option>
+                  <option value="Hector">Hector</option>
+                  <option value="PJ">PJ</option>
+                  <option value="Vicelia">Vicelia</option>
+                </select>
+>>>>>>> 2878498 (Add client retention page)
               </div>
 
               <div>
@@ -1729,6 +1944,7 @@ export default function ClientRetentionPage() {
                 />
               </div>
 
+<<<<<<< HEAD
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                 <div>
                   <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#A0AEC0", marginBottom: "6px" }}>
@@ -1777,6 +1993,8 @@ export default function ClientRetentionPage() {
                 </div>
               </div>
 
+=======
+>>>>>>> 2878498 (Add client retention page)
               <div>
                 <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#A0AEC0", marginBottom: "6px" }}>
                   Notes
@@ -1799,7 +2017,11 @@ export default function ClientRetentionPage() {
                 />
               </div>
 
+<<<<<<< HEAD
               <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
+=======
+              <div style={{ display: "flex", gap: "12px", marginTop: "8px", marginBottom: "0" }}>
+>>>>>>> 2878498 (Add client retention page)
                 {editingEvent && (
                   <button
                     onClick={() => deleteEvent(editingEvent.id)}

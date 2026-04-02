@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd'
 import * as Dialog from '@radix-ui/react-dialog'
 import seedTasksRaw from '@/data/tasks.json'
+<<<<<<< HEAD
 import {
   ChevronLeft,
   ChevronRight,
@@ -26,6 +27,8 @@ import {
   CheckCircle2,
   ArrowRight,
 } from 'lucide-react'
+=======
+>>>>>>> 2878498 (Add client retention page)
 
 type Task = {
   id: string
@@ -41,6 +44,7 @@ type Task = {
 
 const seedTasks = seedTasksRaw as Task[]
 
+<<<<<<< HEAD
 // ─── Client Retention Types ─────────────────────────────────────────────────
 
 interface ReportData {
@@ -81,6 +85,8 @@ interface RetentionEvent {
   reportData?: ReportData // Only for weekly reports
 }
 
+=======
+>>>>>>> 2878498 (Add client retention page)
 const COLUMNS: { key: Task['status']; label: string; color: string }[] = [
   { key: 'recurring', label: 'Recurring', color: '#9F7AEA' },
   { key: 'backlog', label: 'Backlog', color: '#4A5568' },
@@ -444,13 +450,18 @@ function TaskCard({ task, index }: TaskCardProps) {
 }
 
 export default function TasksPage() {
+<<<<<<< HEAD
   const [tasks, setTasks] = useState<Task[]>(seedTasks)
+=======
+  const [tasks, setTasks] = useState<Task[]>([])
+>>>>>>> 2878498 (Add client retention page)
   const [activity, setActivity] = useState<string[]>([
     '2026-03-17 12:01 AM — Clutch Barber Supply audit moved to In Progress',
     '2026-03-17 12:00 AM — Nightly build session started',
     '2026-03-16 11:55 PM — Caller onboarding SOP marked Done',
   ])
 
+<<<<<<< HEAD
   // ─── Client Retention State ────────────────────────────────────────────────
   const [activeView, setActiveView] = useState<'tasks' | 'retention'>('tasks')
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -546,14 +557,24 @@ export default function TasksPage() {
     }
   }, [retentionEvents])
 
+=======
+>>>>>>> 2878498 (Add client retention page)
   useEffect(() => {
     try {
       const stored = localStorage.getItem('mc_tasks')
       if (stored) {
         setTasks(JSON.parse(stored) as Task[])
+<<<<<<< HEAD
       }
     } catch {
       // Keep seedTasks on error
+=======
+      } else {
+        setTasks(seedTasks)
+      }
+    } catch {
+      setTasks(seedTasks)
+>>>>>>> 2878498 (Add client retention page)
     }
   }, [])
 
@@ -595,6 +616,7 @@ export default function TasksPage() {
     addActivity(`${task.title} created`)
   }
 
+<<<<<<< HEAD
   // ─── Client Retention Helpers ─────────────────────────────────────────────
 
   const monthNames = [
@@ -763,6 +785,15 @@ export default function TasksPage() {
     if (!t.dueDate) return false
     const d = new Date(t.dueDate)
     return d >= taskWeekStart && d <= taskWeekEnd
+=======
+  // Stats
+  const weekStart = new Date('2026-03-15')
+  const weekEnd = new Date('2026-03-21')
+  const tasksThisWeek = tasks.filter(t => {
+    if (!t.dueDate) return false
+    const d = new Date(t.dueDate)
+    return d >= weekStart && d <= weekEnd
+>>>>>>> 2878498 (Add client retention page)
   }).length
   const inProgressCount = tasks.filter(t => t.status === 'inprogress').length
   const totalCount = tasks.length
@@ -791,6 +822,7 @@ export default function TasksPage() {
         boxSizing: 'border-box',
       }}
     >
+<<<<<<< HEAD
       {/* Header with View Switcher */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -856,6 +888,14 @@ export default function TasksPage() {
       {activeView === 'tasks' ? (
         <>
 
+=======
+      {/* Header */}
+      <div style={{ marginBottom: 20 }}>
+        <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0, marginBottom: 4 }}>Task Board</h1>
+        <p style={{ fontSize: 12, color: '#718096', margin: 0 }}>Drag cards between columns to update status</p>
+      </div>
+
+>>>>>>> 2878498 (Add client retention page)
       {/* Stats Bar */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
         <div style={statsBoxStyle}>
@@ -875,6 +915,7 @@ export default function TasksPage() {
           <div style={{ fontSize: 11, color: '#718096', marginTop: 2 }}>Completion</div>
         </div>
       </div>
+<<<<<<< HEAD
 
       {/* Main Content */}
       <div style={{ display: 'flex', gap: 0, flex: 1, minHeight: 0 }}>
@@ -1136,9 +1177,110 @@ export default function TasksPage() {
                 <Plus size={16} />
                 Add Event
               </button>
+=======
+
+      {/* Main Content */}
+      <div style={{ display: 'flex', gap: 0, flex: 1, minHeight: 0 }}>
+        {/* Kanban Columns */}
+        <div style={{ flex: 1, overflowX: 'auto', paddingBottom: 8 }}>
+          <DragDropContext onDragEnd={onDragEnd}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', minWidth: 'max-content' }}>
+              {COLUMNS.map(col => {
+                const colTasks = tasks.filter(t => t.status === col.key)
+                return (
+                  <div
+                    key={col.key}
+                    style={{
+                      background: '#141414',
+                      border: '1px solid #2A2A2A',
+                      borderRadius: 8,
+                      padding: '12px 10px',
+                      minWidth: 220,
+                      maxWidth: 280,
+                      width: 250,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {/* Column Header */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                      <span
+                        style={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          background: col.color,
+                          flexShrink: 0,
+                        }}
+                      />
+                      <span style={{ fontSize: 12, fontWeight: 600, color: '#CBD5E0' }}>
+                        {col.label}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: 10,
+                          color: '#4A5568',
+                          background: '#0D0D0D',
+                          borderRadius: 10,
+                          padding: '1px 6px',
+                          marginLeft: 'auto',
+                        }}
+                      >
+                        {colTasks.length}
+                      </span>
+                    </div>
+
+                    {/* Add Task Button */}
+                    <div style={{ marginBottom: 10 }}>
+                      <AddTaskDialog columnStatus={col.key} onAdd={handleAddTask} />
+                    </div>
+
+                    {/* Cards */}
+                    <Droppable droppableId={col.key}>
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.droppableProps}
+                          style={{
+                            minHeight: 60,
+                            background: snapshot.isDraggingOver ? 'rgba(255,255,255,0.02)' : 'transparent',
+                            borderRadius: 4,
+                            transition: 'background 0.15s',
+                          }}
+                        >
+                          {colTasks.map((task, index) => (
+                            <TaskCard key={task.id} task={task} index={index} />
+                          ))}
+                          {provided.placeholder}
+                        </div>
+                      )}
+                    </Droppable>
+                  </div>
+                )
+              })}
+>>>>>>> 2878498 (Add client retention page)
             </div>
+          </DragDropContext>
+        </div>
+
+        {/* Live Activity Panel */}
+        <div
+          style={{
+            width: 280,
+            flexShrink: 0,
+            background: '#141414',
+            borderLeft: '1px solid #2A2A2A',
+            padding: '16px 14px',
+            marginLeft: 16,
+            borderRadius: 8,
+            overflowY: 'auto',
+            maxHeight: '80vh',
+          }}
+        >
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#CBD5E0', marginBottom: 14 }}>
+            Live Activity
           </div>
 
+<<<<<<< HEAD
           {/* Legend */}
           <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', flexWrap: 'wrap' }}>
             {[
@@ -1716,6 +1858,65 @@ export default function TasksPage() {
           </div>
         </div>
       )}
+=======
+          {/* Active now */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 8,
+              marginBottom: 16,
+              padding: '10px 10px',
+              background: 'rgba(72, 187, 120, 0.05)',
+              border: '1px solid rgba(72, 187, 120, 0.15)',
+              borderRadius: 6,
+            }}
+          >
+            <span
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                background: '#48BB78',
+                flexShrink: 0,
+                marginTop: 3,
+                boxShadow: '0 0 0 0 rgba(72,187,120,0.4)',
+                animation: 'pulse 2s infinite',
+              }}
+            />
+            <span style={{ fontSize: 11, color: '#9AE6B4', lineHeight: 1.4 }}>
+              Poseidon is working on: <strong>Clutch Barber Supply audit</strong>
+            </span>
+          </div>
+
+          {/* Activity feed */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {activity.map((event, i) => (
+              <div
+                key={i}
+                style={{
+                  fontSize: 11,
+                  color: '#4A5568',
+                  lineHeight: 1.4,
+                  paddingBottom: 8,
+                  borderBottom: i < activity.length - 1 ? '1px solid #1E1E1E' : 'none',
+                }}
+              >
+                {event}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes pulse {
+          0% { box-shadow: 0 0 0 0 rgba(72,187,120,0.4); }
+          70% { box-shadow: 0 0 0 6px rgba(72,187,120,0); }
+          100% { box-shadow: 0 0 0 0 rgba(72,187,120,0); }
+        }
+      `}</style>
+>>>>>>> 2878498 (Add client retention page)
     </div>
   )
 }
