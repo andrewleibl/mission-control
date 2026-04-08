@@ -1160,7 +1160,6 @@ export default function TasksPage() {
               </button>
             </div>
           </div>
-        </div>
 
         {/* Live Activity Panel */}
         <div
@@ -1485,6 +1484,7 @@ export default function TasksPage() {
               </div>
             )}
           </div>
+        </div>
         </>
       )}
 
