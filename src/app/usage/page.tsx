@@ -1,6 +1,5 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
-<<<<<<< HEAD
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts'
 
 const REFRESH_INTERVAL_MS = 15 * 60 * 1000 // 15 minutes
@@ -21,45 +20,10 @@ interface UsageData {
   }
   sessionBreakdown: { name: string; cost: number; tokens: number; color: string }[]
 }
-=======
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
-
-interface SessionData {
-  key: string
-  label: string
-  totalTokens: number
-  model: string
-  estimatedCost: number
-}
-
-interface UsageData {
-  ok: boolean
-  sessions: SessionData[]
-  totals: {
-    totalTokens: number
-    estimatedCost: number
-    sessionCount: number
-  }
-  error?: string
-}
-
-function formatTokens(n: number): string {
-  return n.toLocaleString('en-US')
-}
-
-function modelShortName(model: string): string {
-  if (model.includes('sonnet')) return 'Sonnet'
-  if (model.includes('haiku')) return 'Haiku'
-  return model
-}
-
-const BAR_COLORS = ['#E53E3E', '#C53030', '#FC8181', '#F56565', '#FEB2B2', '#E53E3E', '#C53030', '#FC8181']
->>>>>>> 2878498 (Add client retention page)
 
 export default function UsagePage() {
   const [data, setData] = useState<UsageData | null>(null)
   const [loading, setLoading] = useState(true)
-<<<<<<< HEAD
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
   const [nextRefresh, setNextRefresh] = useState<number>(REFRESH_INTERVAL_MS)
 
@@ -74,31 +38,11 @@ export default function UsagePage() {
       setNextRefresh(REFRESH_INTERVAL_MS)
     } catch (e) {
       console.error('Usage fetch error:', e)
-=======
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
-  const [secondsAgo, setSecondsAgo] = useState(0)
-  const [error, setError] = useState<string | null>(null)
-
-  const fetchUsage = useCallback(async () => {
-    try {
-      const res = await fetch('/api/usage')
-      const json = await res.json()
-      if (json.ok) {
-        setData(json)
-        setLastUpdated(new Date())
-        setError(null)
-      } else {
-        setError(json.error || 'Failed to load usage data')
-      }
-    } catch (e) {
-      setError(String(e))
->>>>>>> 2878498 (Add client retention page)
     } finally {
       setLoading(false)
     }
   }, [])
 
-<<<<<<< HEAD
   // Initial load
   useEffect(() => {
     fetchUsage()
@@ -137,31 +81,6 @@ export default function UsagePage() {
   const avgDaily = data.dailySpend.length
     ? data.dailySpend.reduce((s, d) => s + d.spend, 0) / data.dailySpend.length
     : 0
-=======
-  useEffect(() => {
-    fetchUsage()
-    const interval = setInterval(fetchUsage, 30_000)
-    return () => clearInterval(interval)
-  }, [fetchUsage])
-
-  // Tick "seconds ago" counter
-  useEffect(() => {
-    if (!lastUpdated) return
-    const tick = setInterval(() => {
-      setSecondsAgo(Math.floor((Date.now() - lastUpdated.getTime()) / 1000))
-    }, 1000)
-    return () => clearInterval(tick)
-  }, [lastUpdated])
-
-  const totals = data?.totals
-  const sessions = data?.sessions ?? []
-
-  // Chart data — top 8 sessions by tokens
-  const chartData = sessions.slice(0, 8).map((s) => ({
-    name: s.label.length > 14 ? s.label.slice(0, 13) + '…' : s.label,
-    tokens: s.totalTokens,
-  }))
->>>>>>> 2878498 (Add client retention page)
 
   return (
     <div>
@@ -169,7 +88,6 @@ export default function UsagePage() {
       <div style={{ marginBottom: 28, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, color: '#F7FAFC' }}>Usage & Cost</h1>
-<<<<<<< HEAD
           <p style={{ fontSize: 13, color: '#718096', marginTop: 4 }}>{data.month} — live data from OpenClaw</p>
         </div>
         <div style={{ textAlign: 'right' }}>
@@ -250,98 +168,15 @@ export default function UsagePage() {
             <BarChart data={data.dailySpend} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
               <XAxis dataKey="date" tick={{ fill: '#718096', fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: '#718096', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v}`} />
-=======
-          <p style={{ fontSize: 13, color: '#718096', marginTop: 4 }}>Live AI token usage — auto-refreshes every 30s</p>
-        </div>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          {lastUpdated && (
-            <span style={{ fontSize: 12, color: '#4A5568' }}>
-              Updated {secondsAgo}s ago
-            </span>
-          )}
-          <a
-            href="https://console.anthropic.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              padding: '7px 14px',
-              background: '#1A1A1A',
-              border: '1px solid #2A2A2A',
-              borderRadius: 6,
-              color: '#F7FAFC',
-              fontSize: 12,
-              fontWeight: 500,
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
-          >
-            <span>↗</span> Anthropic Console
-          </a>
-        </div>
-      </div>
-
-      {/* Loading / Error */}
-      {loading && (
-        <div style={{ color: '#718096', fontSize: 14, marginBottom: 20 }}>Loading usage data…</div>
-      )}
-      {error && (
-        <div style={{ color: '#FC8181', fontSize: 13, marginBottom: 20, padding: '10px 14px', background: '#1A1A1A', border: '1px solid #E53E3E', borderRadius: 8 }}>
-          ⚠ {error}
-        </div>
-      )}
-
-      {/* Hero stats */}
-      {totals && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 28 }}>
-          <div className="stat-card">
-            <div style={{ fontSize: 11, color: '#4A5568', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Estimated Cost</div>
-            <div style={{ fontSize: 36, fontWeight: 800, color: '#E53E3E' }}>${totals.estimatedCost.toFixed(2)}</div>
-            <div style={{ fontSize: 12, color: '#718096', marginTop: 4 }}>estimated</div>
-          </div>
-          <div className="stat-card">
-            <div style={{ fontSize: 11, color: '#4A5568', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Total Tokens</div>
-            <div style={{ fontSize: 36, fontWeight: 800, color: '#F7FAFC' }}>{(totals.totalTokens / 1_000_000).toFixed(2)}M</div>
-            <div style={{ fontSize: 12, color: '#718096', marginTop: 4 }}>{formatTokens(totals.totalTokens)} tokens</div>
-          </div>
-          <div className="stat-card">
-            <div style={{ fontSize: 11, color: '#4A5568', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Active Sessions</div>
-            <div style={{ fontSize: 36, fontWeight: 800, color: '#F7FAFC' }}>{totals.sessionCount}</div>
-            <div style={{ fontSize: 12, color: '#718096', marginTop: 4 }}>tracked contexts</div>
-          </div>
-        </div>
-      )}
-
-      {/* Bar chart */}
-      {chartData.length > 0 && (
-        <div className="card" style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#F7FAFC', marginBottom: 16 }}>Token Usage by Session</div>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: -10 }}>
-              <XAxis dataKey="name" tick={{ fill: '#718096', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis
-                tick={{ fill: '#718096', fontSize: 11 }}
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={(v) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : String(v)}
-              />
->>>>>>> 2878498 (Add client retention page)
               <Tooltip
                 contentStyle={{ background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 8, color: '#F7FAFC' }}
-                formatter={(v) => [formatTokens(Number(v)), 'Tokens']}
+                formatter={(v) => [`$${Number(v).toFixed(2)}`, 'Spend']}
               />
-              <Bar dataKey="tokens" radius={[4, 4, 0, 0]}>
-                {chartData.map((_, idx) => (
-                  <Cell key={idx} fill={BAR_COLORS[idx % BAR_COLORS.length]} />
-                ))}
-              </Bar>
+              <Bar dataKey="spend" fill="#E53E3E" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
-      )}
 
-<<<<<<< HEAD
         <div className="card">
           <div style={{ fontSize: 13, fontWeight: 600, color: '#F7FAFC', marginBottom: 16 }}>Cost Breakdown</div>
           <ResponsiveContainer width="100%" height={200}>
@@ -402,44 +237,10 @@ export default function UsagePage() {
                 <td style={{ padding: '12px 12px', fontSize: 13, color: '#718096' }}>
                   {data.totals.totalCost > 0 ? Math.round((row.cost / data.totals.totalCost) * 100) : 0}%
                 </td>
-=======
-      {/* Session breakdown table */}
-      {sessions.length > 0 && (
-        <div className="card" style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#F7FAFC', marginBottom: 16 }}>Session Breakdown</div>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid #2A2A2A' }}>
-                {['Session', 'Model', 'Tokens', 'Est. Cost'].map((h) => (
-                  <th key={h} style={{ textAlign: 'left', padding: '8px 12px', fontSize: 11, color: '#4A5568', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                    {h}
-                  </th>
-                ))}
->>>>>>> 2878498 (Add client retention page)
               </tr>
-            </thead>
-            <tbody>
-              {sessions.map((s) => (
-                <tr key={s.key} style={{ borderBottom: '1px solid #1A1A1A' }}>
-                  <td style={{ padding: '11px 12px', fontSize: 13, color: '#F7FAFC' }}>{s.label}</td>
-                  <td style={{ padding: '11px 12px', fontSize: 12, color: '#718096', fontFamily: 'monospace' }}>{modelShortName(s.model)}</td>
-                  <td style={{ padding: '11px 12px', fontSize: 13, color: '#718096' }}>{formatTokens(s.totalTokens)}</td>
-                  <td style={{ padding: '11px 12px', fontSize: 14, fontWeight: 600, color: s.estimatedCost > 0.01 ? '#E53E3E' : '#718096' }}>
-                    ${s.estimatedCost.toFixed(4)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Disclaimer */}
-      <div style={{ fontSize: 12, color: '#4A5568', padding: '10px 14px', background: '#111', border: '1px solid #2A2A2A', borderRadius: 8 }}>
-        ⚠ Estimates based on blended token rates (Sonnet $6.00/1M, Haiku $0.50/1M). Verify exact charges at{' '}
-        <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer" style={{ color: '#FC8181' }}>
-          console.anthropic.com
-        </a>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   )

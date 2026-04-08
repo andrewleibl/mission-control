@@ -160,13 +160,8 @@ const MONTH_NAMES = [
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
 
-<<<<<<< HEAD
 const TODAY = new Date();
 const TODAY_STR = TODAY.toISOString().split('T')[0];
-=======
-const TODAY = new Date(2026, 2, 17); // March 17, 2026 (local time)
-const TODAY_STR = "2026-03-17";
->>>>>>> 2878498 (Add client retention page)
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
