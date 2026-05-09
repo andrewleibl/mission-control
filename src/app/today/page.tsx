@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { Plus, Star, Pencil, Trash2, Check, Square, CheckSquare } from 'lucide-react'
+import CalendarView from './_calendar'
 import { PageContainer, PageHeader, colors, cardStyle, cardStyleAccent, borders, mono } from '@/components/DesignSystem'
 import {
   Task, TaskStatus, Bucket, BUCKET_LABELS,
@@ -177,15 +178,11 @@ export default function TodayPage() {
         />
       )}
       {view === 'calendar' && (
-        <div style={{ ...cardStyleAccent, padding: 60, textAlign: 'center' }}>
-          <div style={{ ...mono, fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', color: colors.accent, textTransform: 'uppercase' as const, marginBottom: 10 }}>
-            Phase 2 — Up Next
-          </div>
-          <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>Calendar View</div>
-          <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.6, maxWidth: 460, margin: '0 auto' }}>
-            Day / Week / Month grid showing tasks with due dates, plus an opt-in toggle to overlay events from Finances and Retention.
-          </div>
-        </div>
+        <CalendarView
+          tasks={visible}
+          clients={clients}
+          onAddForDay={date => setModal({ kind: 'add', defaultDate: date })}
+        />
       )}
 
       {/* Add/Edit modal */}
