@@ -1,298 +1,482 @@
 'use client'
-import React, { useState } from 'react'
-import { Client, seedClients } from '@/lib/clients-data'
 
-const pipelineClients: Partial<Client>[] = [
-  { name: "Mike's Landscaping", business: "Mike's Landscaping", status: 'prospect', monthlySpend: 2850 },
-  { name: 'Elite Outdoor', business: 'Elite Outdoor Services', status: 'prospect', monthlySpend: 3400 },
-  { name: 'Summit Outdoor', business: 'Summit Outdoor', status: 'prospect', monthlySpend: 2800 },
+import { useState, useEffect, useMemo } from 'react'
+import { PageContainer, PageHeader, colors, cardStyle, cardStyleAccent, borders } from '@/components/DesignSystem'
+import {
+  Client, ClientStatus, CommsEntry, ActionItem,
+  loadClients, saveClients, loadComms, loadActions,
+  computeHealth, healthColor, daysSince, daysUntil, lastContactDate, openActionItems,
+} from '@/lib/clients-data'
+
+type FilterKey = 'all' | 'active' | 'at-risk' | 'renewing' | 'stale'
+
+const FILTERS: { key: FilterKey; label: string }[] = [
+  { key: 'all', label: 'All' },
+  { key: 'active', label: 'Active' },
+  { key: 'at-risk', label: 'At-Risk' },
+  { key: 'renewing', label: 'Renewing < 30d' },
+  { key: 'stale', label: 'Stale Contact' },
 ]
 
-export default function ClientCommandCenter() {
-  const [clients, setClients] = useState<Client[]>(seedClients)
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null)
+const STATUS_LABELS: Record<ClientStatus, string> = {
+  active: 'ACTIVE',
+  at_risk: 'AT RISK',
+  onboarding: 'ONBOARDING',
+  prospect: 'PROSPECT',
+  churned: 'CHURNED',
+}
 
-  const totalMRR = clients.filter(c => c.status === 'active').reduce((sum, c) => sum + c.monthlySpend, 0)
-  const totalLeads = clients.reduce((sum, c) => sum + c.leadsMTD, 0)
-  const avgCPL = clients.filter(c => c.cpl > 0).length > 0
-    ? Math.round(clients.filter(c => c.cpl > 0).reduce((sum, c) => sum + c.cpl, 0) / clients.filter(c => c.cpl > 0).length)
-    : 0
-  
-  const renewalsThisMonth = clients.filter(c => c.daysUntilRenewal <= 30 && c.daysUntilRenewal > 0)
-  const atRiskCount = clients.filter(c => c.status === 'at_risk').length
+function statusColor(status: ClientStatus): string {
+  switch (status) {
+    case 'active': return colors.accent
+    case 'at_risk': return colors.red
+    case 'onboarding': return colors.yellow
+    case 'prospect': return colors.blue
+    case 'churned': return colors.textMuted
+  }
+}
+
+function formatDays(days: number): string {
+  if (!isFinite(days)) return '—'
+  if (days === 0) return 'today'
+  if (days === 1) return '1d'
+  return `${days}d`
+}
+
+function fmtMoney(n: number) {
+  return '$' + n.toLocaleString('en-US')
+}
+
+export default function ClientsPage() {
+  const [clients, setClients] = useState<Client[]>([])
+  const [comms, setComms] = useState<CommsEntry[]>([])
+  const [actions, setActions] = useState<ActionItem[]>([])
+  const [filter, setFilter] = useState<FilterKey>('all')
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [showAddModal, setShowAddModal] = useState(false)
+
+  useEffect(() => {
+    setClients(loadClients())
+    setComms(loadComms())
+    setActions(loadActions())
+  }, [])
+
+  // Compute health for every client (memoized — recomputes when data changes)
+  const enriched = useMemo(() => clients.map(c => ({
+    client: c,
+    health: computeHealth(c, comms, actions),
+    lastContact: lastContactDate(c, comms),
+    openItems: openActionItems(c.id, actions).length,
+  })), [clients, comms, actions])
+
+  // KPI strip
+  const totalActive = enriched.filter(e => e.client.status === 'active').length
+  const atRiskCount = enriched.filter(e => e.client.status === 'at_risk' || e.health.score < 45).length
+  const renewingCount = enriched.filter(e => {
+    const d = daysUntil(e.client.renewalDate)
+    return d < 30 && d > 0
+  }).length
+  const staleCount = enriched.filter(e => daysSince(e.lastContact) > 14).length
+
+  // Apply filter
+  const visible = useMemo(() => {
+    return enriched.filter(({ client, lastContact, health }) => {
+      switch (filter) {
+        case 'active': return client.status === 'active'
+        case 'at-risk': return client.status === 'at_risk' || health.score < 45
+        case 'renewing': {
+          const d = daysUntil(client.renewalDate)
+          return d < 30 && d > 0
+        }
+        case 'stale': return daysSince(lastContact) > 14
+        case 'all':
+        default: return true
+      }
+    }).sort((a, b) => a.health.score - b.health.score) // worst first (needs attention)
+  }, [enriched, filter])
+
+  function addClient(c: Client) {
+    const next = [...clients, c]
+    setClients(next)
+    saveClients(next)
+  }
 
   return (
-    <div style={containerStyle}>
-      {/* Header */}
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0, marginBottom: 4 }}>Client Command Center</h1>
-        <p style={{ fontSize: 13, color: '#718096', margin: 0 }}>
-          Active Accounts: {clients.filter(c => c.status === 'active').length} · 
-          MRR: ${totalMRR.toLocaleString()} · 
-          Renewals Due: {renewalsThisMonth.length}
-        </p>
+    <PageContainer>
+      <PageHeader
+        title="Clients"
+        subtitle="Active accounts at a glance — sorted by who needs attention."
+        action={
+          <button onClick={() => setShowAddModal(true)} style={{
+            background: colors.accent, border: 'none', borderRadius: borders.radius.medium,
+            color: '#fff', fontSize: 13, fontWeight: 600, padding: '8px 16px', cursor: 'pointer', whiteSpace: 'nowrap' as const,
+          }}>
+            + Add Client
+          </button>
+        }
+      />
+
+      {/* KPI Strip */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+        <Kpi label="Active" value={String(totalActive)} accent={colors.accent} />
+        <Kpi label="At Risk" value={String(atRiskCount)} accent={atRiskCount > 0 ? colors.red : colors.textMuted} />
+        <Kpi label="Renewing < 30d" value={String(renewingCount)} accent={renewingCount > 0 ? colors.yellow : colors.textMuted} />
+        <Kpi label="Stale Contact" value={String(staleCount)} accent={staleCount > 0 ? colors.yellow : colors.textMuted} />
       </div>
 
-      {/* Alert Banner for At-Risk */}
-      {atRiskCount > 0 && (
-        <div style={alertBannerStyle}>
-          <span style={{ fontSize: 14 }}>⚠️</span>
-          <span style={{ fontSize: 13 }}>
-            <strong>{atRiskCount} client{atRiskCount > 1 ? 's' : ''} at risk</strong> — 
-            {clients.filter(c => c.status === 'at_risk').map(c => c.business).join(', ')} need attention
-          </span>
+      {/* Filter chips */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' as const }}>
+        {FILTERS.map(f => {
+          const active = filter === f.key
+          const count = f.key === 'all' ? enriched.length :
+            f.key === 'active' ? totalActive :
+            f.key === 'at-risk' ? atRiskCount :
+            f.key === 'renewing' ? renewingCount :
+            staleCount
+          return (
+            <button key={f.key} onClick={() => setFilter(f.key)} style={{
+              padding: '6px 14px',
+              borderRadius: borders.radius.medium,
+              border: `1px solid ${active ? colors.accent : colors.border}`,
+              background: active ? 'rgba(56,161,87,0.1)' : 'transparent',
+              color: active ? colors.accent : colors.textMuted,
+              fontSize: 12, fontWeight: 600, cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}>
+              {f.label} <span style={{ opacity: 0.6, marginLeft: 4 }}>{count}</span>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Card grid */}
+      {visible.length === 0 ? (
+        <div style={{ ...cardStyle, padding: 40, textAlign: 'center', color: colors.textMuted, fontSize: 13 }}>
+          No clients match this filter.
+        </div>
+      ) : (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+          gap: 14,
+        }}>
+          {visible.map(({ client, health, lastContact, openItems }) => (
+            <ClientCard
+              key={client.id}
+              client={client}
+              healthScore={health.score}
+              lastContact={lastContact}
+              openItems={openItems}
+              onClick={() => setSelectedId(client.id)}
+            />
+          ))}
         </div>
       )}
 
-      {/* Stats Grid */}
-      <div style={statsGridStyle}>
-        <div style={{ ...statCardStyle, borderLeft: '3px solid #48BB78' }}>
-          <div style={{ fontSize: 28, fontWeight: 700, color: '#48BB78' }}>
-            ${totalMRR.toLocaleString()}
+      {/* Side panel placeholder for Phase 2 */}
+      {selectedId && (
+        <SidePanelPlaceholder
+          clientId={selectedId}
+          clients={clients}
+          onClose={() => setSelectedId(null)}
+        />
+      )}
+
+      {/* Add modal */}
+      {showAddModal && (
+        <AddClientModal
+          onClose={() => setShowAddModal(false)}
+          onSave={addClient}
+          existingIds={clients.map(c => c.id)}
+        />
+      )}
+    </PageContainer>
+  )
+}
+
+// ---- Client Card ----
+function ClientCard({
+  client, healthScore, lastContact, openItems, onClick,
+}: {
+  client: Client
+  healthScore: number
+  lastContact: string
+  openItems: number
+  onClick: () => void
+}) {
+  const hColor = healthColor(healthScore)
+  const healthHex = hColor === 'green' ? colors.accent : hColor === 'yellow' ? colors.yellow : colors.red
+  const sColor = statusColor(client.status)
+  const sBg = client.status === 'active' ? 'rgba(56,161,87,0.12)' :
+              client.status === 'at_risk' ? 'rgba(255,123,114,0.12)' :
+              client.status === 'onboarding' ? 'rgba(227,179,65,0.12)' :
+              client.status === 'prospect' ? 'rgba(99,179,237,0.12)' :
+              'rgba(125,138,153,0.12)'
+
+  const daysContact = daysSince(lastContact)
+  const renewalDays = daysUntil(client.renewalDate)
+  const staleContact = daysContact > 14
+  const renewingSoon = renewalDays < 30 && renewalDays > 0
+
+  // Lead delta
+  const leadDelta = client.leadsMTD - client.prevMonthLeads
+  const cplDelta = client.cpl - client.prevMonthCpl
+
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        ...cardStyle,
+        padding: '18px 20px',
+        cursor: 'pointer',
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 14,
+        transition: 'border-color 0.15s, transform 0.1s',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(56,161,87,0.3)' }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = colors.border }}
+    >
+      {/* Top row: business name + status pill */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: colors.text, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
+            {client.business}
           </div>
-          <div style={{ fontSize: 12, color: '#718096', marginTop: 4 }}>Monthly Recurring</div>
-          <div style={{ marginTop: 8, fontSize: 11, color: '#4A5568' }}>
-            Goal: $10,000 by May
+          <div style={{ fontSize: 12, color: colors.textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
+            {client.name}
+          </div>
+        </div>
+        <span style={{
+          fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 4,
+          background: sBg, color: sColor,
+          letterSpacing: '0.06em', whiteSpace: 'nowrap' as const,
+        }}>
+          {STATUS_LABELS[client.status]}
+        </span>
+      </div>
+
+      {/* Health + key metrics */}
+      <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+        <div style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          minWidth: 64, padding: '8px 4px',
+          background: hColor === 'green' ? 'rgba(56,161,87,0.08)' : hColor === 'yellow' ? 'rgba(227,179,65,0.08)' : 'rgba(255,123,114,0.08)',
+          borderRadius: borders.radius.medium,
+          border: `1px solid ${hColor === 'green' ? 'rgba(56,161,87,0.2)' : hColor === 'yellow' ? 'rgba(227,179,65,0.2)' : 'rgba(255,123,114,0.2)'}`,
+        }}>
+          <div style={{ fontSize: 24, fontWeight: 700, color: healthHex, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+            {healthScore}
+          </div>
+          <div style={{ fontSize: 8, color: colors.textMuted, letterSpacing: '0.08em', fontWeight: 600, marginTop: 2 }}>
+            HEALTH
           </div>
         </div>
 
-        <div style={statCardStyle}>
-          <div style={{ fontSize: 28, fontWeight: 700, color: '#3B82F6' }}>
-            {totalLeads}
+        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, fontSize: 12 }}>
+          <div>
+            <div style={{ fontSize: 9, color: colors.textMuted, letterSpacing: '0.08em', fontWeight: 600, marginBottom: 2 }}>MTD LEADS</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: colors.text, fontVariantNumeric: 'tabular-nums' }}>
+              {client.leadsMTD}
+              {leadDelta !== 0 && client.prevMonthLeads > 0 && (
+                <span style={{ fontSize: 11, marginLeft: 6, color: leadDelta > 0 ? colors.accent : colors.red }}>
+                  {leadDelta > 0 ? '▲' : '▼'}{Math.abs(leadDelta)}
+                </span>
+              )}
+            </div>
           </div>
-          <div style={{ fontSize: 12, color: '#718096', marginTop: 4 }}>Leads This Month</div>
-          <div style={{ marginTop: 8, fontSize: 11, color: '#4A5568' }}>
-            Across {clients.filter(c => c.leadsMTD > 0).length} active campaigns
-          </div>
-        </div>
-
-        <div style={statCardStyle}>
-          <div style={{ fontSize: 28, fontWeight: 700, color: avgCPL < 60 ? '#48BB78' : avgCPL < 80 ? '#ECC94B' : '#E53E3E' }}>
-            ${avgCPL}
-          </div>
-          <div style={{ fontSize: 12, color: '#718096', marginTop: 4 }}>Avg Cost Per Lead</div>
-          <div style={{ marginTop: 8, fontSize: 11, color: '#4A5568' }}>
-            Target: Under $60
-          </div>
-        </div>
-
-        <div style={statCardStyle}>
-          <div style={{ fontSize: 28, fontWeight: 700, color: renewalsThisMonth.length > 0 ? '#ECC94B' : '#48BB78' }}>
-            {renewalsThisMonth.length}
-          </div>
-          <div style={{ fontSize: 12, color: '#718096', marginTop: 4 }}>Renewals Due</div>
-          <div style={{ marginTop: 8, fontSize: 11, color: '#4A5568' }}>
-            Next 30 days
+          <div>
+            <div style={{ fontSize: 9, color: colors.textMuted, letterSpacing: '0.08em', fontWeight: 600, marginBottom: 2 }}>CPL</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: colors.text, fontVariantNumeric: 'tabular-nums' }}>
+              {client.cpl > 0 ? fmtMoney(client.cpl) : '—'}
+              {cplDelta !== 0 && client.prevMonthCpl > 0 && (
+                <span style={{ fontSize: 11, marginLeft: 6, color: cplDelta < 0 ? colors.accent : colors.red }}>
+                  {cplDelta > 0 ? '▲' : '▼'}{fmtMoney(Math.abs(cplDelta))}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div style={{ display: 'flex', gap: 20 }}>
-        {/* Left: Client List */}
-        <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <h2 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>Active Clients</h2>
-            <button style={addButtonStyle}>+ Add Client</button>
-          </div>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {clients
-              .sort((a, b) => a.daysUntilRenewal - b.daysUntilRenewal)
-              .map(client => (
-              <div 
-                key={client.id} 
-                style={{
-                  ...clientCardStyle,
-                  borderLeft: `3px solid ${client.status === 'at_risk' ? '#E53E3E' : client.daysUntilRenewal <= 14 ? '#ECC94B' : '#48BB78'}`,
-                  opacity: client.status === 'churned' ? 0.5 : 1,
-                }}
-                onClick={() => setSelectedClient(client)}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ display: 'flex', gap: 12 }}>
-                    {/* Avatar */}
-                    <div style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: '50%',
-                      background: client.healthScore >= 80 ? '#48BB78' : client.healthScore >= 60 ? '#ECC94B' : '#E53E3E',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: 14,
-                      fontWeight: 700,
-                      color: '#0D0D0D',
-                    }}>
-                      {client.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
-                    </div>
-                    
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: '#F7FAFC' }}>{client.business}</div>
-                      <div style={{ fontSize: 11, color: '#718096', marginTop: 2 }}>{client.name}</div>
-                      <div style={{ fontSize: 11, color: '#4A5568', marginTop: 4 }}>
-                        {client.status === 'at_risk' && <span style={{ color: '#E53E3E' }}>⚠️ At Risk · </span>}
-                        {client.daysUntilRenewal <= 30 && client.daysUntilRenewal > 0 && (
-                          <span style={{ color: '#ECC94B' }}>⏰ Renews in {client.daysUntilRenewal} days · </span>
-                        )}
-                        Last contact: {new Date(client.lastContact).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: '#F7FAFC' }}>
-                      ${client.monthlySpend > 0 ? client.monthlySpend.toLocaleString() : 'N/A'}
-                    </div>
-                    <div style={{ fontSize: 11, color: '#718096', marginTop: 2 }}>
-                      {client.leadsMTD > 0 && `${client.leadsMTD} leads · $${client.cpl} CPL`}
-                    </div>
-                  </div>
-                </div>
-                
-                {client.notes && (
-                  <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid #2A2A2A' }}>
-                    <div style={{ fontSize: 11, color: '#4A5568' }}>{client.notes}</div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Right: Pipeline & Actions */}
-        <div style={{ width: 320 }}>
-          {/* Pipeline Section */}
-          <div style={{ background: '#141414', border: '1px solid #2A2A2A', borderRadius: 8, padding: 16, marginBottom: 20 }}>
-            <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 12px 0', color: '#CBD5E0' }}>Pipeline</h3>
-            {pipelineClients.map((client, i) => (
-              <div key={i} style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                padding: '10px 0',
-                borderBottom: i < pipelineClients.length - 1 ? '1px solid #2A2A2A' : 'none',
-              }}>
-                <div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: '#F7FAFC' }}>{client.business}</div>
-                  <div style={{ fontSize: 10, color: '#718096' }}>Prospect · ${(client.monthlySpend || 0).toLocaleString()}</div>
-                </div>
-                <span style={{
-                  fontSize: 10,
-                  color: '#0D0D0D',
-                  background: '#3B82F6',
-                  padding: '2px 8px',
-                  borderRadius: 4,
-                  fontWeight: 600,
-                }}>
-                  {client.status}
-                </span>
-              </div>
-            ))}
-            <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #2A2A2A' }}>
-              <div style={{ fontSize: 12, color: '#CBD5E0' }}>
-                Pipeline Value: <strong style={{ color: '#F7FAFC' }}>${pipelineClients.reduce((sum, c) => sum + (c.monthlySpend || 0), 0).toLocaleString()}</strong>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div style={{ background: '#141414', border: '1px solid #2A2A2A', borderRadius: 8, padding: 16, marginBottom: 20 }}>
-            <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 12px 0', color: '#CBD5E0' }}>Actions</h3>
-            <button style={actionButtonStyle}>📧 Send Renewal Reminder</button>
-            <button style={{ ...actionButtonStyle, marginTop: 8 }}>📊 Download Client Report</button>
-            <button style={{ ...actionButtonStyle, marginTop: 8 }}>🎨 Request Creative Refresh</button>
-          </div>
-
-          {/* Renewal Calendar */}
-          <div style={{ background: '#141414', border: '1px solid #2A2A2A', borderRadius: 8, padding: 16 }}>
-            <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 12px 0', color: '#CBD5E0' }}>Upcoming Renewals</h3>
-            {renewalsThisMonth.length > 0 ? (
-              renewalsThisMonth.sort((a, b) => a.daysUntilRenewal - b.daysUntilRenewal).map(client => (
-                <div key={client.id} style={{ marginBottom: 10 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                    <span style={{ color: '#F7FAFC' }}>{client.business}</span>
-                    <span style={{ color: client.daysUntilRenewal <= 7 ? '#E53E3E' : '#ECC94B' }}>
-                      {client.daysUntilRenewal}d
-                    </span>
-                  </div>
-                  <div style={{ fontSize: 10, color: '#4A5568' }}>${client.monthlySpend}/month</div>
-                </div>
-              ))
-            ) : (
-              <div style={{ fontSize: 12, color: '#4A5568' }}>No renewals due this month</div>
-            )}
-          </div>
-        </div>
+      {/* Bottom row */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: colors.textMuted, paddingTop: 4, borderTop: `1px solid ${colors.border}` }}>
+        <span>
+          Contact: <span style={{ color: staleContact ? colors.yellow : colors.text }}>{formatDays(daysContact)} ago</span>
+        </span>
+        <span>
+          Renewal: <span style={{ color: renewingSoon ? colors.yellow : colors.text }}>{isFinite(renewalDays) ? formatDays(renewalDays) : '—'}</span>
+        </span>
+        <span>
+          {openItems > 0 ? (
+            <span style={{ color: colors.yellow }}>{openItems} open</span>
+          ) : (
+            <span>0 open</span>
+          )}
+        </span>
       </div>
     </div>
   )
 }
 
-const containerStyle: React.CSSProperties = {
-  minHeight: '100vh',
-  background: '#0D0D0D',
-  color: '#F7FAFC',
-  fontFamily: 'system-ui, -apple-system, sans-serif',
-  padding: '24px 32px',
-  boxSizing: 'border-box',
+// ---- KPI strip card ----
+function Kpi({ label, value, accent }: { label: string; value: string; accent: string }) {
+  return (
+    <div style={{ ...cardStyleAccent, padding: '14px 18px', flex: 1, minWidth: 0 }}>
+      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', color: colors.textMuted, textTransform: 'uppercase' as const, marginBottom: 6 }}>
+        {label}
+      </div>
+      <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', color: accent, fontVariantNumeric: 'tabular-nums' }}>
+        {value}
+      </div>
+    </div>
+  )
 }
 
-const alertBannerStyle: React.CSSProperties = {
-  background: 'rgba(229, 62, 62, 0.1)',
-  border: '1px solid rgba(229, 62, 62, 0.3)',
-  borderRadius: 8,
-  padding: '12px 16px',
-  marginBottom: 20,
-  display: 'flex',
-  alignItems: 'center',
-  gap: 10,
-  color: '#FC8181',
+// ---- Side panel placeholder ----
+function SidePanelPlaceholder({ clientId, clients, onClose }: { clientId: string; clients: Client[]; onClose: () => void }) {
+  const client = clients.find(c => c.id === clientId)
+  if (!client) return null
+  return (
+    <>
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 90 }} />
+      <div style={{
+        position: 'fixed', top: 0, right: 0, bottom: 0, width: 380,
+        background: colors.cardBg, borderLeft: `1px solid ${colors.border}`,
+        zIndex: 91, padding: 28, overflowY: 'auto',
+        boxShadow: '-12px 0 40px rgba(0,0,0,0.4)',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: colors.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: 4 }}>
+              {STATUS_LABELS[client.status]}
+            </div>
+            <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>
+              {client.business}
+            </div>
+            <div style={{ fontSize: 13, color: colors.textMuted, marginTop: 2 }}>
+              {client.name}
+            </div>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: 22, padding: 0, lineHeight: 1 }}>×</button>
+        </div>
+
+        <div style={{
+          ...cardStyleAccent,
+          padding: 24, textAlign: 'center', marginTop: 12,
+        }}>
+          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', color: colors.accent, textTransform: 'uppercase' as const, marginBottom: 8 }}>
+            Phase 2 — Up Next
+          </div>
+          <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>Deep Dive</div>
+          <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.5 }}>
+            Overview / Performance / Comms / Account tabs. Health breakdown, activity timeline, pinned notes, open action items.
+          </div>
+        </div>
+
+        {client.notes && (
+          <div style={{ marginTop: 16, padding: '12px 14px', background: colors.cardBgElevated, borderRadius: borders.radius.medium }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: colors.textMuted, letterSpacing: '0.08em', marginBottom: 6 }}>NOTES</div>
+            <div style={{ fontSize: 13, color: colors.text, lineHeight: 1.5 }}>{client.notes}</div>
+          </div>
+        )}
+      </div>
+    </>
+  )
 }
 
-const statsGridStyle: React.CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(4, 1fr)',
-  gap: 16,
-  marginBottom: 32,
-}
+// ---- Add client modal ----
+function AddClientModal({
+  onClose, onSave, existingIds,
+}: {
+  onClose: () => void
+  onSave: (c: Client) => void
+  existingIds: string[]
+}) {
+  const [name, setName] = useState('')
+  const [business, setBusiness] = useState('')
+  const [status, setStatus] = useState<ClientStatus>('onboarding')
+  const [monthlySpend, setMonthlySpend] = useState('')
 
-const statCardStyle: React.CSSProperties = {
-  background: '#141414',
-  border: '1px solid #2A2A2A',
-  borderRadius: 8,
-  padding: '16px 20px',
-}
+  function handleSave() {
+    if (!name.trim() || !business.trim()) return
+    let id = (Math.max(0, ...existingIds.map(i => parseInt(i, 10) || 0)) + 1).toString()
+    if (existingIds.includes(id)) id = `c_${Date.now()}`
+    onSave({
+      id,
+      name: name.trim(),
+      business: business.trim(),
+      status,
+      monthlySpend: parseFloat(monthlySpend) || 0,
+      leadsMTD: 0,
+      prevMonthLeads: 0,
+      cpl: 0,
+      prevMonthCpl: 0,
+      renewalDate: 'N/A',
+      lastContact: new Date().toISOString().slice(0, 10),
+      notes: '',
+      createdAt: Date.now(),
+    })
+    onClose()
+  }
 
-const clientCardStyle: React.CSSProperties = {
-  background: '#141414',
-  border: '1px solid #2A2A2A',
-  borderRadius: 8,
-  padding: '16px',
-  cursor: 'pointer',
-  transition: 'border-color 0.2s, transform 0.1s',
-}
+  const inputStyle: React.CSSProperties = {
+    background: colors.cardBg, border: `1px solid ${colors.border}`,
+    borderRadius: borders.radius.medium, padding: '10px 12px',
+    color: colors.text, fontSize: 14, outline: 'none', width: '100%',
+    fontFamily: 'inherit',
+  }
+  const labelStyle: React.CSSProperties = {
+    fontSize: 11, color: colors.textMuted, fontWeight: 600,
+    letterSpacing: '0.06em', textTransform: 'uppercase' as const,
+    display: 'block', marginBottom: 6,
+  }
 
-const addButtonStyle: React.CSSProperties = {
-  padding: '8px 14px',
-  background: '#3B82F6',
-  border: 'none',
-  borderRadius: 6,
-  color: '#fff',
-  fontSize: 12,
-  fontWeight: 600,
-  cursor: 'pointer',
-}
+  return (
+    <div
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div style={{ ...cardStyle, width: 420, padding: 28 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <span style={{ fontSize: 16, fontWeight: 600 }}>Add Client</span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: 22, padding: 0, lineHeight: 1 }}>×</button>
+        </div>
 
-const actionButtonStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '10px 14px',
-  background: '#1A1A1A',
-  border: '1px solid #333',
-  borderRadius: 6,
-  color: '#F7FAFC',
-  fontSize: 12,
-  fontWeight: 600,
-  cursor: 'pointer',
-  textAlign: 'left',
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div>
+            <label style={labelStyle}>Contact Name</label>
+            <input type="text" placeholder="e.g. John Smith" value={name} onChange={e => setName(e.target.value)} style={inputStyle} />
+          </div>
+          <div>
+            <label style={labelStyle}>Business Name</label>
+            <input type="text" placeholder="e.g. Acme Landscape Co." value={business} onChange={e => setBusiness(e.target.value)} style={inputStyle} />
+          </div>
+          <div>
+            <label style={labelStyle}>Status</label>
+            <select value={status} onChange={e => setStatus(e.target.value as ClientStatus)} style={{ ...inputStyle, cursor: 'pointer' }}>
+              <option value="onboarding">Onboarding</option>
+              <option value="active">Active</option>
+              <option value="at_risk">At Risk</option>
+              <option value="prospect">Prospect</option>
+              <option value="churned">Churned</option>
+            </select>
+          </div>
+          <div>
+            <label style={labelStyle}>Monthly Spend ($)</label>
+            <input type="number" placeholder="0" value={monthlySpend} onChange={e => setMonthlySpend(e.target.value)} style={inputStyle} />
+          </div>
+        </div>
+
+        <button onClick={handleSave} style={{
+          marginTop: 20, width: '100%', padding: '11px 0',
+          background: colors.accent, border: 'none', borderRadius: borders.radius.medium,
+          color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+        }}>
+          Add Client
+        </button>
+      </div>
+    </div>
+  )
 }
