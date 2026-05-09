@@ -5,7 +5,7 @@ import { PageContainer, PageHeader, colors, cardStyle, cardStyleAccent, borders,
 import {
   Client, ClientStatus, ServiceType, SERVICE_TYPE_LABELS,
   CommsEntry, ActionItem,
-  loadClients, saveClients, loadComms, loadActions, saveActions,
+  loadClients, saveClients, loadComms, saveComms, loadActions, saveActions,
   computeHealth, healthColor, daysSince, daysUntil, lastContactDate,
   openActionItems, computePaymentStatus, FinanceTxLite,
 } from '@/lib/clients-data'
@@ -113,6 +113,7 @@ export default function ClientsPage() {
 
   function persistClients(next: Client[]) { setClients(next); saveClients(next) }
   function persistActions(next: ActionItem[]) { setActions(next); saveActions(next) }
+  function persistComms(next: CommsEntry[]) { setComms(next); saveComms(next) }
 
   function updateClient(updated: Client) {
     persistClients(clients.map(c => c.id === updated.id ? updated : c))
@@ -125,6 +126,18 @@ export default function ClientsPage() {
   }
   function deleteAction(id: string) {
     persistActions(actions.filter(a => a.id !== id))
+  }
+  function addComms(entry: CommsEntry) {
+    persistComms([entry, ...comms])
+  }
+  function updateComms(updated: CommsEntry) {
+    persistComms(comms.map(c => c.id === updated.id ? updated : c))
+  }
+  function togglePinComms(id: string) {
+    persistComms(comms.map(c => c.id === id ? { ...c, pinned: !c.pinned } : c))
+  }
+  function deleteComms(id: string) {
+    persistComms(comms.filter(c => c.id !== id))
   }
 
   const selectedClient = selectedId ? clients.find(c => c.id === selectedId) : null
@@ -214,6 +227,10 @@ export default function ClientsPage() {
           onAddAction={addAction}
           onToggleAction={toggleAction}
           onDeleteAction={deleteAction}
+          onAddComms={addComms}
+          onUpdateComms={updateComms}
+          onTogglePinComms={togglePinComms}
+          onDeleteComms={deleteComms}
         />
       )}
 

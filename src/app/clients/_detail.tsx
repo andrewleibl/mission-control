@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { colors, cardStyle, cardStyleAccent, borders, mono } from '@/components/DesignSystem'
 import {
   Client, ClientStatus, ServiceType, SERVICE_TYPE_LABELS,
-  CommsEntry, ActionItem, FinanceTxLite,
+  CommsEntry, CommsType, ActionItem, FinanceTxLite,
   computeHealth, healthColor, daysSince, daysUntil, lastContactDate,
   openActionItems, computePaymentStatus,
 } from '@/lib/clients-data'
@@ -62,11 +62,16 @@ interface Props {
   onAddAction: (item: ActionItem) => void
   onToggleAction: (id: string) => void
   onDeleteAction: (id: string) => void
+  onAddComms: (entry: CommsEntry) => void
+  onUpdateComms: (entry: CommsEntry) => void
+  onTogglePinComms: (id: string) => void
+  onDeleteComms: (id: string) => void
 }
 
 export default function ClientDetail({
   client, comms, actions, txs, onClose,
   onUpdateClient, onAddAction, onToggleAction, onDeleteAction,
+  onAddComms, onUpdateComms, onTogglePinComms, onDeleteComms,
 }: Props) {
   const [tab, setTab] = useState<DetailTab>('overview')
 
@@ -144,10 +149,13 @@ export default function ClientDetail({
             />
           )}
           {tab === 'comms' && (
-            <PlaceholderSection
-              phase="Phase 3 — Up Next"
-              title="Comms"
-              description="Chronological log of every conversation. Date / type / summary / extracted action items. Pinned items at top. Memory layer for walking into client calls prepared."
+            <CommsTab
+              clientId={client.id}
+              comms={comms}
+              onAdd={onAddComms}
+              onUpdate={onUpdateComms}
+              onTogglePin={onTogglePinComms}
+              onDelete={onDeleteComms}
             />
           )}
           {tab === 'account' && (
@@ -764,6 +772,353 @@ function PlaceholderSection({ phase, title, description }: { phase: string; titl
       </div>
       <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{title}</div>
       <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.6 }}>{description}</div>
+    </div>
+  )
+}
+
+// =================================================================
+// Comms Tab
+// =================================================================
+
+const COMMS_TYPE_LABELS: Record<CommsType, string> = {
+  call: 'CALL',
+  email: 'EMAIL',
+  text: 'TEXT',
+  meeting: 'MEETING',
+  other: 'OTHER',
+}
+
+const COMMS_TYPE_COLOR: Record<CommsType, { fg: string; bg: string }> = {
+  call: { fg: colors.blue, bg: 'rgba(99,179,237,0.12)' },
+  email: { fg: colors.purple, bg: 'rgba(159,122,234,0.12)' },
+  text: { fg: colors.accent, bg: 'rgba(56,161,87,0.12)' },
+  meeting: { fg: colors.yellow, bg: 'rgba(227,179,65,0.12)' },
+  other: { fg: colors.textMuted, bg: 'rgba(125,138,153,0.12)' },
+}
+
+function CommsTab({
+  clientId, comms, onAdd, onUpdate, onTogglePin, onDelete,
+}: {
+  clientId: string
+  comms: CommsEntry[]
+  onAdd: (entry: CommsEntry) => void
+  onUpdate: (entry: CommsEntry) => void
+  onTogglePin: (id: string) => void
+  onDelete: (id: string) => void
+}) {
+  const [showModal, setShowModal] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+
+  const clientComms = comms
+    .filter(c => c.clientId === clientId)
+    .sort((a, b) => b.date.localeCompare(a.date))
+  const pinned = clientComms.filter(c => c.pinned)
+  const history = clientComms.filter(c => !c.pinned)
+
+  const editingEntry = editingId ? comms.find(c => c.id === editingId) ?? null : null
+
+  return (
+    <div>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <div style={{ ...mono, fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', color: colors.textMuted, textTransform: 'uppercase' as const }}>
+          Conversations ({clientComms.length})
+        </div>
+        <button onClick={() => setShowModal(true)} style={{
+          background: colors.accent, border: 'none', borderRadius: borders.radius.medium,
+          color: '#fff', fontSize: 12, fontWeight: 600, padding: '6px 12px', cursor: 'pointer',
+          fontFamily: 'inherit',
+        }}>+ Log Conversation</button>
+      </div>
+
+      {clientComms.length === 0 ? (
+        <div style={{
+          padding: 28, textAlign: 'center',
+          background: colors.cardBgElevated, borderRadius: borders.radius.medium,
+          color: colors.textMuted, fontSize: 13, lineHeight: 1.5,
+        }}>
+          No conversations logged yet.<br />
+          <span style={{ fontSize: 12 }}>Log your next call, email, or meeting to start building the relationship memory.</span>
+        </div>
+      ) : (
+        <>
+          {pinned.length > 0 && (
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ ...mono, fontSize: 9, fontWeight: 600, letterSpacing: '0.1em', color: colors.yellow, marginBottom: 8 }}>
+                ⌘ PINNED
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {pinned.map(c => (
+                  <CommsRow
+                    key={c.id} entry={c}
+                    onTogglePin={() => onTogglePin(c.id)}
+                    onEdit={() => setEditingId(c.id)}
+                    onDelete={() => onDelete(c.id)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {history.length > 0 && (
+            <div>
+              {pinned.length > 0 && (
+                <div style={{ ...mono, fontSize: 9, fontWeight: 600, letterSpacing: '0.1em', color: colors.textMuted, marginBottom: 8 }}>
+                  HISTORY
+                </div>
+              )}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {history.map(c => (
+                  <CommsRow
+                    key={c.id} entry={c}
+                    onTogglePin={() => onTogglePin(c.id)}
+                    onEdit={() => setEditingId(c.id)}
+                    onDelete={() => onDelete(c.id)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {showModal && (
+        <LogCommsModal
+          clientId={clientId}
+          onClose={() => setShowModal(false)}
+          onSave={onAdd}
+        />
+      )}
+      {editingEntry && (
+        <LogCommsModal
+          clientId={clientId}
+          existing={editingEntry}
+          onClose={() => setEditingId(null)}
+          onSave={onUpdate}
+        />
+      )}
+    </div>
+  )
+}
+
+// ---- Comms entry row ----
+function CommsRow({
+  entry, onTogglePin, onEdit, onDelete,
+}: {
+  entry: CommsEntry
+  onTogglePin: () => void
+  onEdit: () => void
+  onDelete: () => void
+}) {
+  const [expanded, setExpanded] = useState(false)
+  const typeColor = COMMS_TYPE_COLOR[entry.type]
+  const hasContext = entry.context && entry.context.trim().length > 0
+
+  return (
+    <div style={{
+      padding: '12px 14px',
+      background: colors.cardBgElevated,
+      border: `1px solid ${entry.pinned ? 'rgba(227,179,65,0.25)' : colors.border}`,
+      borderRadius: borders.radius.medium,
+    }}>
+      {/* Top row: type chip + date + actions */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{
+            ...mono,
+            fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 3,
+            background: typeColor.bg, color: typeColor.fg, letterSpacing: '0.06em',
+          }}>
+            {COMMS_TYPE_LABELS[entry.type]}
+          </span>
+          <span style={{ ...mono, fontSize: 11, color: colors.textMuted, fontVariantNumeric: 'tabular-nums' as const }}>
+            {fmtDate(entry.date)}
+          </span>
+        </div>
+        <div style={{ display: 'flex', gap: 4 }}>
+          <RowAction label={entry.pinned ? 'Unpin' : 'Pin'} onClick={onTogglePin} active={entry.pinned} />
+          <RowAction label="Edit" onClick={onEdit} />
+          <RowAction label="✕" onClick={onDelete} />
+        </div>
+      </div>
+
+      {/* Summary */}
+      <div style={{ fontSize: 13, color: colors.text, lineHeight: 1.5 }}>
+        {entry.summary}
+      </div>
+
+      {/* Context (collapsible) */}
+      {hasContext && (
+        <>
+          {expanded ? (
+            <div style={{
+              marginTop: 8, padding: '8px 10px',
+              background: colors.cardBg, borderRadius: 4,
+              fontSize: 12, color: colors.textMuted, lineHeight: 1.6,
+              whiteSpace: 'pre-wrap' as const,
+            }}>
+              {entry.context}
+            </div>
+          ) : null}
+          <button
+            onClick={() => setExpanded(!expanded)}
+            style={{
+              ...mono,
+              marginTop: 6, fontSize: 10, fontWeight: 600,
+              background: 'none', border: 'none', color: colors.textMuted,
+              cursor: 'pointer', padding: 0, letterSpacing: '0.06em',
+            }}
+          >
+            {expanded ? '— HIDE CONTEXT' : '+ SHOW CONTEXT'}
+          </button>
+        </>
+      )}
+    </div>
+  )
+}
+
+function RowAction({ label, onClick, active }: { label: string; onClick: () => void; active?: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        ...mono,
+        fontSize: 10, fontWeight: 600,
+        background: 'transparent', border: 'none', color: active ? colors.yellow : colors.textMuted,
+        cursor: 'pointer', padding: '2px 6px', borderRadius: 3, opacity: 0.7,
+        fontFamily: 'var(--font-mono), monospace',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.opacity = '1' }}
+      onMouseLeave={e => { e.currentTarget.style.opacity = '0.7' }}
+    >
+      {label}
+    </button>
+  )
+}
+
+// ---- Log conversation modal (also used for editing) ----
+function LogCommsModal({
+  clientId, existing, onClose, onSave,
+}: {
+  clientId: string
+  existing?: CommsEntry
+  onClose: () => void
+  onSave: (entry: CommsEntry) => void
+}) {
+  const todayIso = new Date().toISOString().slice(0, 10)
+  const [date, setDate] = useState(existing?.date ?? todayIso)
+  const [type, setType] = useState<CommsType>(existing?.type ?? 'call')
+  const [summary, setSummary] = useState(existing?.summary ?? '')
+  const [context, setContext] = useState(existing?.context ?? '')
+
+  function save() {
+    if (!summary.trim()) return
+    onSave({
+      id: existing?.id ?? `c_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      clientId,
+      date,
+      type,
+      summary: summary.trim(),
+      context: context.trim() || undefined,
+      pinned: existing?.pinned ?? false,
+      createdAt: existing?.createdAt ?? Date.now(),
+    })
+    onClose()
+  }
+
+  const inputStyle: React.CSSProperties = {
+    background: colors.cardBg, border: `1px solid ${colors.border}`,
+    borderRadius: borders.radius.medium, padding: '10px 12px',
+    color: colors.text, fontSize: 14, outline: 'none', width: '100%',
+    fontFamily: 'inherit',
+  }
+  const labelStyle: React.CSSProperties = {
+    ...mono,
+    fontSize: 11, color: colors.textMuted, fontWeight: 600,
+    letterSpacing: '0.06em', textTransform: 'uppercase' as const,
+    display: 'block', marginBottom: 6,
+  }
+
+  return (
+    <div
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div style={{ ...cardStyle, width: 460, padding: 28, maxHeight: '90vh', overflowY: 'auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <span style={{ fontSize: 16, fontWeight: 600 }}>
+            {existing ? 'Edit Conversation' : 'Log Conversation'}
+          </span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: 22, padding: 0, lineHeight: 1 }}>×</button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Type pills */}
+          <div>
+            <label style={labelStyle}>Type</label>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' as const }}>
+              {(['call', 'email', 'text', 'meeting', 'other'] as CommsType[]).map(t => {
+                const active = type === t
+                const color = COMMS_TYPE_COLOR[t]
+                return (
+                  <button
+                    key={t}
+                    onClick={() => setType(t)}
+                    style={{
+                      ...mono,
+                      flex: 1, padding: '7px 0', minWidth: 56,
+                      borderRadius: borders.radius.medium,
+                      border: `1px solid ${active ? color.fg : colors.border}`,
+                      background: active ? color.bg : 'transparent',
+                      color: active ? color.fg : colors.textMuted,
+                      fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                      letterSpacing: '0.06em',
+                      fontFamily: 'var(--font-mono), monospace',
+                    }}
+                  >
+                    {COMMS_TYPE_LABELS[t]}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          <div>
+            <label style={labelStyle}>Date</label>
+            <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{ ...inputStyle, ...mono }} />
+          </div>
+
+          <div>
+            <label style={labelStyle}>Summary <span style={{ color: colors.red }}>*</span></label>
+            <input
+              type="text" autoFocus
+              placeholder="What was the conversation about?"
+              value={summary} onChange={e => setSummary(e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+
+          <div>
+            <label style={labelStyle}>Additional Context (optional)</label>
+            <textarea
+              placeholder="Longer notes, decisions made, things to remember..."
+              value={context} onChange={e => setContext(e.target.value)}
+              style={{
+                ...inputStyle, minHeight: 100, resize: 'vertical' as const,
+                lineHeight: 1.5,
+              }}
+            />
+          </div>
+        </div>
+
+        <button onClick={save} style={{
+          marginTop: 20, width: '100%', padding: '11px 0',
+          background: colors.accent, border: 'none', borderRadius: borders.radius.medium,
+          color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+        }}>
+          {existing ? 'Save Changes' : 'Log Conversation'}
+        </button>
+      </div>
     </div>
   )
 }
