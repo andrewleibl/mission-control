@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { Roboto_Mono } from 'next/font/google';
+import { DM_Sans } from 'next/font/google';
 import Sidebar from '@/components/Sidebar'
 
-const robotoMono = Roboto_Mono({
+const dmSans = DM_Sans({
   subsets: ['latin'],
-  weight: ['400', '700'],
-  variable: '--font-mono',
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-sans',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -19,8 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={robotoMono.className} style={{ margin: 0, padding: 0, background: '#0D0D0D', fontWeight: 500 }}>
+    <html lang="en" className={dmSans.variable}>
+      <body style={{ margin: 0, padding: 0, background: '#07090D' }}>
         <div style={{ display: 'flex' }}>
           <Sidebar />
           <main style={{ marginLeft: 240, flex: 1 }}>

@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { colors } from '@/components/DesignSystem'
 
 const navItems = [
   { href: '/tasks', label: 'Task Board', icon: '⬛' },
@@ -20,8 +21,8 @@ export default function Sidebar() {
   return (
     <aside style={{
       width: 240,
-      background: '#0D0D0D',
-      borderRight: '1px solid #1A1A1A',
+      background: colors.cardBg,
+      borderRight: `1px solid ${colors.border}`,
       display: 'flex',
       flexDirection: 'column',
       position: 'fixed',
@@ -31,17 +32,29 @@ export default function Sidebar() {
       zIndex: 100,
     }}>
       {/* Logo */}
-      <div style={{ padding: '24px 20px 20px', borderBottom: '1px solid #1A1A1A' }}>
-        <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: '0.15em', color: '#E53E3E', textTransform: 'uppercase' }}>
+      <div style={{ padding: '24px 20px 20px', borderBottom: `1px solid ${colors.border}` }}>
+        <div style={{
+          fontSize: 13,
+          fontWeight: 700,
+          letterSpacing: '0.18em',
+          color: colors.accent,
+          textTransform: 'uppercase',
+        }}>
           Mission Control
         </div>
-        <div style={{ fontSize: 10, color: '#4A5568', marginTop: 3, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+        <div style={{
+          fontSize: 10,
+          color: colors.textSubtle,
+          marginTop: 4,
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+        }}>
           Straight Point Marketing
         </div>
       </div>
 
       {/* Nav */}
-      <nav style={{ flex: 1, padding: '12px 12px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <nav style={{ flex: 1, padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: 2 }}>
         {navItems.map((item) => {
           const active = pathname === item.href || pathname.startsWith(item.href + '/')
           return (
@@ -52,17 +65,20 @@ export default function Sidebar() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 12,
-                padding: '10px 12px',
+                padding: '9px 14px',
+                margin: '0 4px',
                 borderRadius: 6,
                 fontSize: 13,
-                fontWeight: 700,
+                fontWeight: 600,
                 textDecoration: 'none',
-                color: active ? '#F7FAFC' : '#718096',
-                background: active ? '#2A2A2A' : 'transparent',
-                transition: 'background 0.15s, color 0.15s',
+                color: active ? colors.text : colors.textMuted,
+                background: active ? 'rgba(56,161,87,0.1)' : 'transparent',
+                borderLeft: `2px solid ${active ? colors.accent : 'transparent'}`,
+                paddingLeft: 12,
+                transition: 'background 0.12s, color 0.12s',
               }}
             >
-              <span style={{ fontSize: 16, lineHeight: 1 }}>{item.icon}</span>
+              <span style={{ fontSize: 14, lineHeight: 1, opacity: active ? 1 : 0.75 }}>{item.icon}</span>
               <span>{item.label}</span>
             </Link>
           )
@@ -72,7 +88,7 @@ export default function Sidebar() {
       {/* Footer */}
       <div style={{
         padding: '16px 20px',
-        borderTop: '1px solid #1A1A1A',
+        borderTop: `1px solid ${colors.border}`,
         display: 'flex',
         alignItems: 'center',
         gap: 10,
@@ -80,22 +96,21 @@ export default function Sidebar() {
         <div style={{
           width: 32,
           height: 32,
-          background: 'rgba(229,62,62,0.15)',
+          background: 'rgba(56,161,87,0.15)',
+          border: `1px solid rgba(56,161,87,0.25)`,
           borderRadius: 8,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: 16,
+          fontSize: 14,
         }}>
           🔱
         </div>
         <div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#F7FAFC' }}>Poseidon</div>
-          <div style={{ fontSize: 10, color: '#4A5568' }}>v1.0.0</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: colors.text }}>Poseidon</div>
+          <div style={{ fontSize: 10, color: colors.textSubtle, letterSpacing: '0.08em' }}>v1.0.0</div>
         </div>
       </div>
     </aside>
   )
 }
-// Built Wed Apr  1 23:24:06 CDT 2026
-// trigger

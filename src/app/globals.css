@@ -3,17 +3,24 @@
 @tailwind utilities;
 
 :root {
-  --red: #E53E3E;
-  --red-dark: #C53030;
-  --red-deep: #9B2C2C;
-  --bg: #0A0A0A;
-  --surface: #111111;
-  --surface2: #1A1A1A;
-  --surface3: #222222;
-  --border: #2A2A2A;
-  --text: #F7FAFC;
-  --text-muted: #718096;
+  /* Primary palette — aligned with src/components/DesignSystem.tsx */
+  --accent: #38A157;
+  --accent-dark: #2D8444;
+  --accent-deep: #1E5C30;
+  --bg: #07090D;
+  --surface: #0D1117;
+  --surface2: #141B24;
+  --surface3: #1C2534;
+  --border: #1C2534;
+  --border-subtle: #141B24;
+  --text: #F0F6FC;
+  --text-muted: #7D8A99;
   --text-dim: #4A5568;
+  /* Semantic — kept for warning/error use */
+  --red: #FF7B72;
+  --red-dark: #E53E3E;
+  --yellow: #E3B341;
+  --blue: #63B3ED;
 }
 
 * {
@@ -23,15 +30,17 @@
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-family: var(--font-sans), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
-::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
 
@@ -56,9 +65,9 @@ body {
 }
 
 .sidebar-item.active {
-  background: rgba(229, 62, 62, 0.1);
+  background: rgba(56, 161, 87, 0.1);
   color: var(--text);
-  border-left-color: var(--red);
+  border-left-color: var(--accent);
 }
 
 .card {
@@ -79,13 +88,13 @@ body {
   letter-spacing: 0.05em;
 }
 
-.badge-high { background: rgba(229, 62, 62, 0.15); color: #FC8181; }
-.badge-medium { background: rgba(236, 201, 75, 0.15); color: #ECC94B; }
-.badge-low { background: rgba(72, 187, 120, 0.15); color: #48BB78; }
-.badge-green { background: rgba(72, 187, 120, 0.15); color: #48BB78; }
-.badge-yellow { background: rgba(236, 201, 75, 0.15); color: #ECC94B; }
-.badge-red { background: rgba(229, 62, 62, 0.15); color: #FC8181; }
-.badge-blue { background: rgba(66, 153, 225, 0.15); color: #63B3ED; }
+.badge-high { background: rgba(255, 123, 114, 0.15); color: var(--red); }
+.badge-medium { background: rgba(227, 179, 65, 0.15); color: var(--yellow); }
+.badge-low { background: rgba(56, 161, 87, 0.15); color: var(--accent); }
+.badge-green { background: rgba(56, 161, 87, 0.15); color: var(--accent); }
+.badge-yellow { background: rgba(227, 179, 65, 0.15); color: var(--yellow); }
+.badge-red { background: rgba(255, 123, 114, 0.15); color: var(--red); }
+.badge-blue { background: rgba(99, 179, 237, 0.15); color: var(--blue); }
 
 .kanban-col {
   background: var(--surface);
@@ -125,19 +134,21 @@ input, textarea {
   font-size: 14px;
   outline: none;
   transition: border-color 0.15s;
+  font-family: inherit;
 }
 
 input:focus, textarea:focus {
-  border-color: var(--red);
+  border-color: var(--accent);
 }
 
 button {
   cursor: pointer;
   transition: all 0.15s;
+  font-family: inherit;
 }
 
 .btn-primary {
-  background: var(--red);
+  background: var(--accent);
   color: white;
   border: none;
   padding: 10px 20px;
@@ -147,7 +158,7 @@ button {
 }
 
 .btn-primary:hover {
-  background: var(--red-dark);
+  background: var(--accent-dark);
 }
 
 .btn-ghost {
@@ -184,9 +195,9 @@ button {
   color: var(--text);
 }
 
-.dot-green { color: #48BB78; }
-.dot-yellow { color: #ECC94B; }
-.dot-red { color: #FC8181; }
+.dot-green { color: var(--accent); }
+.dot-yellow { color: var(--yellow); }
+.dot-red { color: var(--red); }
 .dot-gray { color: var(--text-dim); }
 
 .meta-overview-grid,
@@ -247,7 +258,7 @@ button {
 
   .sidebar-item.active {
     border-left-color: transparent;
-    border-bottom-color: var(--red);
+    border-bottom-color: var(--accent);
   }
 
   main {
