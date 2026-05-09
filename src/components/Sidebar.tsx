@@ -7,6 +7,7 @@ const navItems = [
   { href: '/calendar', label: 'Calendar', icon: '📅' },
   { href: '/client-retention', label: 'Retention', icon: '🤝' },
   { href: '/pipeline', label: 'Pipeline', icon: '🔥' },
+  { href: '/finances', label: 'Finances', icon: '💰' },
   { href: '/docs', label: 'Docs', icon: '📄' },
   { href: '/clients', label: 'Clients', icon: '👥' },
   { href: '/chat', label: 'Chat', icon: '💬' },
