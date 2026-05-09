@@ -35,6 +35,7 @@ export default function Sidebar() {
       left: 0,
       height: '100vh',
       zIndex: 100,
+      fontFamily: 'var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace',
     }}>
       {/* Logo */}
       <div style={{ padding: '24px 20px 20px', borderBottom: `1px solid ${colors.border}` }}>
