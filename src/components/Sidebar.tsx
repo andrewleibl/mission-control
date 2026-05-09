@@ -2,22 +2,20 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  LayoutGrid, Calendar as CalendarIcon, HeartHandshake, Flame,
-  Wallet, FileText, Users, MessageSquare, Activity,
+  Calendar as CalendarIcon, HeartHandshake, Flame, Wallet, Users,
+  TrendingUp, ClipboardList,
   type LucideIcon,
 } from 'lucide-react'
 import { colors } from '@/components/DesignSystem'
 
 const navItems: { href: string; label: string; Icon: LucideIcon }[] = [
-  { href: '/tasks', label: 'Task Board', Icon: LayoutGrid },
   { href: '/calendar', label: 'Calendar', Icon: CalendarIcon },
   { href: '/client-retention', label: 'Retention', Icon: HeartHandshake },
   { href: '/pipeline', label: 'Pipeline', Icon: Flame },
   { href: '/finances', label: 'Finances', Icon: Wallet },
-  { href: '/docs', label: 'Docs', Icon: FileText },
   { href: '/clients', label: 'Clients', Icon: Users },
-  { href: '/chat', label: 'Chat', Icon: MessageSquare },
-  { href: '/usage', label: 'Usage & Cost', Icon: Activity },
+  { href: '/growth', label: 'Growth', Icon: TrendingUp },
+  { href: '/sops', label: 'SOP', Icon: ClipboardList },
 ]
 
 export default function Sidebar() {
