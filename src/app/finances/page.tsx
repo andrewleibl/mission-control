@@ -3,12 +3,14 @@
 import { useState, useEffect, useMemo } from 'react'
 import { PageContainer, PageHeader, colors, cardStyle, cardStyleAccent, borders } from '@/components/DesignSystem'
 import {
-  Transaction, RecurringRule, Frequency, TxType,
+  Transaction, RecurringRule, Frequency, TxType, ProjectedTransaction,
   INCOME_CATEGORIES, EXPENSE_CATEGORIES,
   loadTransactions, saveTransactions, loadRules, saveRules,
   projectRecurring, confirmed, sumIncome, sumExpenses,
+  approveProjection, skipProjection,
 } from '@/lib/finances'
 import { getClientsForTagging, getClientById, ClientSummary } from '@/lib/clients-data'
+import CalendarView from './_calendar'
 
 type TabKey = 'calendar' | 'stats' | 'recurring' | 'all'
 
@@ -32,14 +34,15 @@ function parseDate(s: string) { return new Date(s + 'T12:00:00') }
 // Add Transaction Modal
 // =================================================================
 function AddTransactionModal({
-  onClose, onSave, clients,
+  onClose, onSave, clients, defaultDate,
 }: {
   onClose: () => void
   onSave: (tx: Transaction) => void
   clients: ClientSummary[]
+  defaultDate?: string
 }) {
   const [type, setType] = useState<TxType>('income')
-  const [date, setDate] = useState(todayIso)
+  const [date, setDate] = useState(defaultDate ?? todayIso)
   const [category, setCategory] = useState(INCOME_CATEGORIES[0])
   const [amount, setAmount] = useState('')
   const [note, setNote] = useState('')
@@ -442,7 +445,7 @@ export default function FinancesPage() {
   const [tab, setTab] = useState<TabKey>('calendar')
   const [txs, setTxs] = useState<Transaction[]>([])
   const [rules, setRules] = useState<RecurringRule[]>([])
-  const [showTxModal, setShowTxModal] = useState(false)
+  const [txModalDate, setTxModalDate] = useState<string | null>(null) // null = closed; string = open with default date
   const [showRuleModal, setShowRuleModal] = useState(false)
 
   const clients = useMemo(() => getClientsForTagging(), [])
@@ -462,6 +465,11 @@ export default function FinancesPage() {
     persistRules(rules.filter(r => r.id !== id))
     persistTxs(txs.filter(t => t.recurringId !== id))
   }
+
+  function openTxModal(date?: string) { setTxModalDate(date ?? todayIso) }
+  function closeTxModal() { setTxModalDate(null) }
+  function approveProj(projection: ProjectedTransaction) { persistTxs(approveProjection(txs, projection)) }
+  function skipProj(projection: ProjectedTransaction) { persistTxs(skipProjection(txs, projection)) }
 
   // Pending approvals count: project the next 14 days, count what's not yet approved
   const pendingCount = useMemo(() => {
@@ -485,7 +493,7 @@ export default function FinancesPage() {
         title="Finances"
         subtitle="Income & expense tracking with per-client P&L."
         action={
-          <button onClick={() => setShowTxModal(true)} style={{
+          <button onClick={() => openTxModal()} style={{
             background: colors.accent, border: 'none', borderRadius: borders.radius.medium,
             color: '#fff', fontSize: 13, fontWeight: 600, padding: '8px 16px', cursor: 'pointer', whiteSpace: 'nowrap' as const,
           }}>
@@ -522,15 +530,19 @@ export default function FinancesPage() {
 
       {/* Tab content */}
       {tab === 'calendar' && (
-        <PlaceholderCard
-          phase="Phase 2 — Up Next"
-          title="Calendar View"
-          description="Notion-style Day / Week / Month toggle. Each day shows a rollup, click to see all transactions for that day. Projected recurring entries appear as faded chips until approved."
+        <CalendarView
+          txs={txs}
+          rules={rules}
+          clients={clients}
+          onAddForDay={openTxModal}
+          onApprove={approveProj}
+          onSkip={skipProj}
+          onDeleteTx={deleteTx}
         />
       )}
       {tab === 'stats' && (
         <PlaceholderCard
-          phase="Phase 3"
+          phase="Phase 3 — Up Next"
           title="Statistics View"
           description="P&L trend, expense breakdown, MRR vs one-off revenue split, per-client P&L table. Time-frame toggle for This Month / Last 3 / YTD / Last 12 / Custom range."
         />
@@ -542,7 +554,7 @@ export default function FinancesPage() {
         <AllTransactionsTab txs={txs} onDelete={deleteTx} />
       )}
 
-      {showTxModal && <AddTransactionModal onClose={() => setShowTxModal(false)} onSave={addTx} clients={clients} />}
+      {txModalDate !== null && <AddTransactionModal onClose={closeTxModal} onSave={addTx} clients={clients} defaultDate={txModalDate} />}
       {showRuleModal && <AddRecurringModal onClose={() => setShowRuleModal(false)} onSave={addRule} clients={clients} />}
     </PageContainer>
   )
