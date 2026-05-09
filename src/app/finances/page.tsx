@@ -34,20 +34,33 @@ function parseDate(s: string) { return new Date(s + 'T12:00:00') }
 // =================================================================
 // Add Transaction Modal
 // =================================================================
+interface ModalDefaults {
+  type?: TxType
+  date?: string
+  category?: string
+  amount?: number
+  clientId?: string
+  note?: string
+}
+
 function AddTransactionModal({
-  onClose, onSave, clients, defaultDate,
+  onClose, onSave, clients, defaults, title, submitLabel,
 }: {
   onClose: () => void
   onSave: (tx: Transaction) => void
   clients: ClientSummary[]
-  defaultDate?: string
+  defaults?: ModalDefaults
+  title?: string
+  submitLabel?: string
 }) {
-  const [type, setType] = useState<TxType>('income')
-  const [date, setDate] = useState(defaultDate ?? todayIso)
-  const [category, setCategory] = useState(INCOME_CATEGORIES[0])
-  const [amount, setAmount] = useState('')
-  const [note, setNote] = useState('')
-  const [clientId, setClientId] = useState('')
+  const [type, setType] = useState<TxType>(defaults?.type ?? 'income')
+  const [date, setDate] = useState(defaults?.date ?? todayIso)
+  const [category, setCategory] = useState(
+    defaults?.category ?? (defaults?.type === 'expense' ? EXPENSE_CATEGORIES[0] : INCOME_CATEGORIES[0])
+  )
+  const [amount, setAmount] = useState(defaults?.amount ? String(defaults.amount) : '')
+  const [note, setNote] = useState(defaults?.note ?? '')
+  const [clientId, setClientId] = useState(defaults?.clientId ?? '')
 
   const cats = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES
 
@@ -72,7 +85,7 @@ function AddTransactionModal({
   }
 
   return (
-    <ModalShell title="Add Transaction" onClose={onClose}>
+    <ModalShell title={title ?? 'Add Transaction'} onClose={onClose}>
       <TypeToggle value={type} onChange={handleTypeChange} />
 
       <FieldGrid>
@@ -98,7 +111,7 @@ function AddTransactionModal({
         </Field>
       </FieldGrid>
 
-      <PrimaryButton onClick={handleSave}>Save Transaction</PrimaryButton>
+      <PrimaryButton onClick={handleSave}>{submitLabel ?? 'Save Transaction'}</PrimaryButton>
     </ModalShell>
   )
 }
@@ -442,12 +455,18 @@ function AllTransactionsTab({
 // =================================================================
 // Main page
 // =================================================================
+type TxModalState =
+  | { kind: 'add'; date: string }
+  | { kind: 'edit-confirm'; projection: ProjectedTransaction }
+  | null
+
 export default function FinancesPage() {
   const [tab, setTab] = useState<TabKey>('calendar')
   const [txs, setTxs] = useState<Transaction[]>([])
   const [rules, setRules] = useState<RecurringRule[]>([])
-  const [txModalDate, setTxModalDate] = useState<string | null>(null) // null = closed; string = open with default date
+  const [txModal, setTxModal] = useState<TxModalState>(null)
   const [showRuleModal, setShowRuleModal] = useState(false)
+  const [toast, setToast] = useState<{ msg: string; tone: 'success' | 'info' | 'error' } | null>(null)
 
   const clients = useMemo(() => getClientsForTagging(), [])
 
@@ -456,21 +475,82 @@ export default function FinancesPage() {
     setRules(loadRules())
   }, [])
 
+  // Auto-dismiss toast after 2.5s
+  useEffect(() => {
+    if (!toast) return
+    const t = setTimeout(() => setToast(null), 2500)
+    return () => clearTimeout(t)
+  }, [toast])
+
+  function showToast(msg: string, tone: 'success' | 'info' | 'error' = 'success') {
+    setToast({ msg, tone })
+  }
+
   function persistTxs(next: Transaction[]) { setTxs(next); saveTransactions(next) }
   function persistRules(next: RecurringRule[]) { setRules(next); saveRules(next) }
 
-  function addTx(tx: Transaction) { persistTxs([tx, ...txs]) }
-  function deleteTx(id: string) { persistTxs(txs.filter(t => t.id !== id)) }
-  function addRule(rule: RecurringRule) { persistRules([rule, ...rules]) }
+  function deleteTx(id: string) {
+    persistTxs(txs.filter(t => t.id !== id))
+    showToast('Transaction deleted', 'info')
+  }
+  function addRule(rule: RecurringRule) {
+    persistRules([rule, ...rules])
+    showToast('Recurring rule added')
+  }
   function deleteRule(id: string) {
     persistRules(rules.filter(r => r.id !== id))
     persistTxs(txs.filter(t => t.recurringId !== id))
+    showToast('Rule deleted', 'info')
   }
 
-  function openTxModal(date?: string) { setTxModalDate(date ?? todayIso) }
-  function closeTxModal() { setTxModalDate(null) }
-  function approveProj(projection: ProjectedTransaction) { persistTxs(approveProjection(txs, projection)) }
-  function skipProj(projection: ProjectedTransaction) { persistTxs(skipProjection(txs, projection)) }
+  function openTxModal(date?: string) { setTxModal({ kind: 'add', date: date ?? todayIso }) }
+  function openEditConfirm(projection: ProjectedTransaction) { setTxModal({ kind: 'edit-confirm', projection }) }
+  function closeTxModal() { setTxModal(null) }
+
+  function handleTxModalSave(tx: Transaction) {
+    if (txModal?.kind === 'edit-confirm') {
+      persistTxs(approveProjection(txs, txModal.projection, {
+        amount: tx.amount,
+        category: tx.category,
+        clientId: tx.clientId,
+        note: tx.note,
+        date: tx.date,
+      }))
+      showToast('Recurring entry confirmed')
+    } else {
+      persistTxs([tx, ...txs])
+      showToast('Transaction added')
+    }
+  }
+
+  function approveProj(projection: ProjectedTransaction) {
+    persistTxs(approveProjection(txs, projection))
+    showToast('Approved')
+  }
+  function skipProj(projection: ProjectedTransaction) {
+    persistTxs(skipProjection(txs, projection))
+    showToast('Skipped', 'info')
+  }
+
+  // Page-level keyboard shortcuts: N for new transaction, Esc to close modals
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      const target = e.target as HTMLElement
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+
+      if (e.key.toLowerCase() === 'n' && !txModal && !showRuleModal) {
+        e.preventDefault()
+        openTxModal()
+      }
+      if (e.key === 'Escape') {
+        if (txModal) setTxModal(null)
+        else if (showRuleModal) setShowRuleModal(false)
+      }
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [txModal, showRuleModal])
 
   // Pending approvals count: project the next 14 days, count what's not yet approved
   const pendingCount = useMemo(() => {
@@ -538,6 +618,7 @@ export default function FinancesPage() {
           onAddForDay={openTxModal}
           onApprove={approveProj}
           onSkip={skipProj}
+          onEditAndConfirm={openEditConfirm}
           onDeleteTx={deleteTx}
         />
       )}
@@ -551,9 +632,51 @@ export default function FinancesPage() {
         <AllTransactionsTab txs={txs} onDelete={deleteTx} />
       )}
 
-      {txModalDate !== null && <AddTransactionModal onClose={closeTxModal} onSave={addTx} clients={clients} defaultDate={txModalDate} />}
+      {txModal && (
+        <AddTransactionModal
+          onClose={closeTxModal}
+          onSave={handleTxModalSave}
+          clients={clients}
+          defaults={
+            txModal.kind === 'add'
+              ? { date: txModal.date }
+              : {
+                  type: txModal.projection.type,
+                  date: txModal.projection.date,
+                  amount: txModal.projection.amount,
+                  category: txModal.projection.category,
+                  clientId: txModal.projection.clientId,
+                  note: txModal.projection.note,
+                }
+          }
+          title={txModal.kind === 'edit-confirm' ? 'Edit & Confirm' : undefined}
+          submitLabel={txModal.kind === 'edit-confirm' ? 'Confirm Transaction' : undefined}
+        />
+      )}
       {showRuleModal && <AddRecurringModal onClose={() => setShowRuleModal(false)} onSave={addRule} clients={clients} />}
+
+      {toast && <Toast {...toast} />}
     </PageContainer>
+  )
+}
+
+function Toast({ msg, tone }: { msg: string; tone: 'success' | 'info' | 'error' }) {
+  const bg = tone === 'success' ? 'rgba(56,161,87,0.95)' : tone === 'error' ? 'rgba(255,123,114,0.95)' : 'rgba(20,27,36,0.97)'
+  return (
+    <div style={{
+      position: 'fixed', bottom: 28, left: '50%', transform: 'translateX(-50%)',
+      background: bg,
+      color: '#fff',
+      padding: '11px 22px',
+      borderRadius: 999,
+      fontSize: 13, fontWeight: 600,
+      boxShadow: '0 12px 40px rgba(0,0,0,0.4)',
+      zIndex: 1000,
+      pointerEvents: 'none',
+      backdropFilter: 'blur(10px)',
+    }}>
+      {msg}
+    </div>
   )
 }
 

@@ -17,6 +17,7 @@ interface Props {
   onAddForDay: (dateIso: string) => void
   onApprove: (projection: ProjectedTransaction) => void
   onSkip: (projection: ProjectedTransaction) => void
+  onEditAndConfirm: (projection: ProjectedTransaction) => void
   onDeleteTx: (id: string) => void
 }
 
@@ -56,11 +57,41 @@ interface CalendarEntry {
   projection?: ProjectedTransaction
 }
 
-export default function CalendarView({ txs, rules, clients, onAddForDay, onApprove, onSkip, onDeleteTx }: Props) {
+export default function CalendarView({ txs, rules, clients, onAddForDay, onApprove, onSkip, onEditAndConfirm, onDeleteTx }: Props) {
   const [view, setView] = useState<ViewMode>('month')
   const [cursor, setCursor] = useState<Date>(TODAY)
   const [selectedDayIso, setSelectedDayIso] = useState<string | null>(null)
   const [popover, setPopover] = useState<{ projection: ProjectedTransaction; x: number; y: number } | null>(null)
+
+  // Keyboard shortcuts: D/W/M view, T today, ←/→ navigate, Esc close panel/popover
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      const target = e.target as HTMLElement
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+
+      switch (e.key.toLowerCase()) {
+        case 'd': setView('day'); break
+        case 'w': setView('week'); break
+        case 'm': setView('month'); break
+        case 't': setCursor(TODAY); break
+        case 'arrowleft':
+          e.preventDefault()
+          setCursor(prev => view === 'day' ? addDays(prev, -1) : view === 'week' ? addDays(prev, -7) : addMonths(prev, -1))
+          break
+        case 'arrowright':
+          e.preventDefault()
+          setCursor(prev => view === 'day' ? addDays(prev, 1) : view === 'week' ? addDays(prev, 7) : addMonths(prev, 1))
+          break
+        case 'escape':
+          if (popover) setPopover(null)
+          else if (selectedDayIso) setSelectedDayIso(null)
+          break
+      }
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [view, popover, selectedDayIso])
 
   // Determine the date range to show + project
   const [rangeStart, rangeEnd] = useMemo<[Date, Date]>(() => {
@@ -201,6 +232,7 @@ export default function CalendarView({ txs, rules, clients, onAddForDay, onAppro
             onAddForDay={onAddForDay}
             onApprove={onApprove}
             onSkip={onSkip}
+            onEditAndConfirm={onEditAndConfirm}
             onDeleteTx={onDeleteTx}
           />
         )}
@@ -216,6 +248,7 @@ export default function CalendarView({ txs, rules, clients, onAddForDay, onAppro
           onAddForDay={onAddForDay}
           onApprove={onApprove}
           onSkip={onSkip}
+          onEditAndConfirm={onEditAndConfirm}
           onDeleteTx={onDeleteTx}
         />
       )}
@@ -228,6 +261,7 @@ export default function CalendarView({ txs, rules, clients, onAddForDay, onAppro
           y={popover.y}
           onApprove={() => { onApprove(popover.projection); setPopover(null) }}
           onSkip={() => { onSkip(popover.projection); setPopover(null) }}
+          onEdit={() => { onEditAndConfirm(popover.projection); setPopover(null) }}
         />
       )}
     </div>
@@ -443,7 +477,7 @@ function WeekGrid({
 
 // ------------------ Day list ------------------
 function DayList({
-  dateIso, entries, clients, onAddForDay, onApprove, onSkip, onDeleteTx,
+  dateIso, entries, clients, onAddForDay, onApprove, onSkip, onEditAndConfirm, onDeleteTx,
 }: {
   dateIso: string
   entries: CalendarEntry[]
@@ -451,6 +485,7 @@ function DayList({
   onAddForDay: (iso: string) => void
   onApprove: (p: ProjectedTransaction) => void
   onSkip: (p: ProjectedTransaction) => void
+  onEditAndConfirm: (p: ProjectedTransaction) => void
   onDeleteTx: (id: string) => void
 }) {
   const sorted = [...entries].sort((a, b) => a.type.localeCompare(b.type))
@@ -461,6 +496,7 @@ function DayList({
       onAddForDay={onAddForDay}
       onApprove={onApprove}
       onSkip={onSkip}
+      onEditAndConfirm={onEditAndConfirm}
       onDeleteTx={onDeleteTx}
       compact={false}
     />
@@ -469,7 +505,7 @@ function DayList({
 
 // ------------------ Side panel ------------------
 function SidePanel({
-  dateIso, entries, clients, onClose, onAddForDay, onApprove, onSkip, onDeleteTx,
+  dateIso, entries, clients, onClose, onAddForDay, onApprove, onSkip, onEditAndConfirm, onDeleteTx,
 }: {
   dateIso: string
   entries: CalendarEntry[]
@@ -478,6 +514,7 @@ function SidePanel({
   onAddForDay: (iso: string) => void
   onApprove: (p: ProjectedTransaction) => void
   onSkip: (p: ProjectedTransaction) => void
+  onEditAndConfirm: (p: ProjectedTransaction) => void
   onDeleteTx: (id: string) => void
 }) {
   return (
@@ -498,6 +535,7 @@ function SidePanel({
           onAddForDay={onAddForDay}
           onApprove={onApprove}
           onSkip={onSkip}
+          onEditAndConfirm={onEditAndConfirm}
           onDeleteTx={onDeleteTx}
           onClose={onClose}
           compact={true}
@@ -509,13 +547,14 @@ function SidePanel({
 
 // ------------------ Day contents (shared by day view + side panel) ------------------
 function DayContents({
-  dateIso, entries, onAddForDay, onApprove, onSkip, onDeleteTx, onClose, compact,
+  dateIso, entries, onAddForDay, onApprove, onSkip, onEditAndConfirm, onDeleteTx, onClose, compact,
 }: {
   dateIso: string
   entries: CalendarEntry[]
   onAddForDay: (iso: string) => void
   onApprove: (p: ProjectedTransaction) => void
   onSkip: (p: ProjectedTransaction) => void
+  onEditAndConfirm: (p: ProjectedTransaction) => void
   onDeleteTx: (id: string) => void
   onClose?: () => void
   compact: boolean
@@ -581,6 +620,7 @@ function DayContents({
                 entry={e}
                 onApprove={() => onApprove(e.projection!)}
                 onSkip={() => onSkip(e.projection!)}
+                onEdit={() => onEditAndConfirm(e.projection!)}
               />
             ))}
           </div>
@@ -669,7 +709,7 @@ function Chip({
 }
 
 // ------------------ Pending approval row (in side panel / day view) ------------------
-function PendingRow({ entry, onApprove, onSkip }: { entry: CalendarEntry; onApprove: () => void; onSkip: () => void }) {
+function PendingRow({ entry, onApprove, onSkip, onEdit }: { entry: CalendarEntry; onApprove: () => void; onSkip: () => void; onEdit: () => void }) {
   const isIncome = entry.type === 'income'
   const color = isIncome ? colors.accent : colors.red
   const client = entry.clientId ? getClientById(entry.clientId) : undefined
@@ -701,6 +741,12 @@ function PendingRow({ entry, onApprove, onSkip }: { entry: CalendarEntry; onAppr
           background: colors.accent, color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer',
           fontFamily: 'inherit',
         }}>Confirm</button>
+        <button onClick={onEdit} style={{
+          flex: 1, padding: '6px 0', fontSize: 11, fontWeight: 600,
+          background: 'transparent', color: colors.text,
+          border: `1px solid ${colors.border}`, borderRadius: 4, cursor: 'pointer',
+          fontFamily: 'inherit',
+        }}>Edit</button>
         <button onClick={onSkip} style={{
           flex: 1, padding: '6px 0', fontSize: 11, fontWeight: 600,
           background: 'transparent', color: colors.textMuted,
@@ -746,12 +792,13 @@ function TxRow({ entry, onDelete }: { entry: CalendarEntry; onDelete: () => void
 
 // ------------------ Approval popover ------------------
 function ApprovalPopover({
-  projection, x, y, onApprove, onSkip,
+  projection, x, y, onApprove, onSkip, onEdit,
 }: {
   projection: ProjectedTransaction
   x: number; y: number
   onApprove: () => void
   onSkip: () => void
+  onEdit: () => void
 }) {
   const isIncome = projection.type === 'income'
   const color = isIncome ? colors.accent : colors.red
@@ -783,6 +830,12 @@ function ApprovalPopover({
           background: colors.accent, color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer',
           fontFamily: 'inherit',
         }}>Confirm</button>
+        <button onClick={onEdit} style={{
+          flex: 1, padding: '7px 0', fontSize: 12, fontWeight: 600,
+          background: 'transparent', color: colors.text,
+          border: `1px solid ${colors.border}`, borderRadius: 4, cursor: 'pointer',
+          fontFamily: 'inherit',
+        }}>Edit</button>
         <button onClick={onSkip} style={{
           flex: 1, padding: '7px 0', fontSize: 12, fontWeight: 600,
           background: 'transparent', color: colors.textMuted,
