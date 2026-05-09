@@ -11,6 +11,7 @@ import {
 } from '@/lib/finances'
 import { getClientsForTagging, getClientById, ClientSummary } from '@/lib/clients-data'
 import CalendarView from './_calendar'
+import StatsView from './_stats'
 
 type TabKey = 'calendar' | 'stats' | 'recurring' | 'all'
 
@@ -541,11 +542,7 @@ export default function FinancesPage() {
         />
       )}
       {tab === 'stats' && (
-        <PlaceholderCard
-          phase="Phase 3 — Up Next"
-          title="Statistics View"
-          description="P&L trend, expense breakdown, MRR vs one-off revenue split, per-client P&L table. Time-frame toggle for This Month / Last 3 / YTD / Last 12 / Custom range."
-        />
+        <StatsView txs={txs} rules={rules} clients={clients} />
       )}
       {tab === 'recurring' && (
         <RecurringTab rules={rules} onAdd={() => setShowRuleModal(true)} onDelete={deleteRule} />
