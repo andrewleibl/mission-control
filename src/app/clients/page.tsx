@@ -7,7 +7,7 @@ import {
   CommsEntry, ActionItem,
   loadClients, saveClients, loadComms, saveComms, loadActions, saveActions,
   computeHealth, healthColor, daysSince, daysUntil, lastContactDate,
-  openActionItems, computePaymentStatus, FinanceTxLite,
+  openActionItems, computePaymentStatus, computeLTV, FinanceTxLite,
 } from '@/lib/clients-data'
 import { loadTransactions } from '@/lib/finances'
 import ClientDetail from './_detail'
@@ -77,7 +77,13 @@ export default function ClientsPage() {
     lastContact: lastContactDate(c, comms),
     openItems: openActionItems(c.id, actions).length,
     payment: computePaymentStatus(c, txs),
+    ltv: computeLTV(c, txs),
   })), [clients, comms, actions, txs])
+
+  // Portfolio LTV across active clients
+  const totalActiveLTV = enriched
+    .filter(e => e.client.status === 'active')
+    .reduce((s, e) => s + e.ltv.total, 0)
 
   // KPI strip
   const totalActive = enriched.filter(e => e.client.status === 'active').length
@@ -174,6 +180,7 @@ export default function ClientsPage() {
         <Kpi label="At Risk" value={String(atRiskCount)} accent={atRiskCount > 0 ? colors.red : colors.textMuted} />
         <Kpi label="Renewing < 30d" value={String(renewingCount)} accent={renewingCount > 0 ? colors.yellow : colors.textMuted} />
         <Kpi label="Stale Contact" value={String(staleCount)} accent={staleCount > 0 ? colors.yellow : colors.textMuted} />
+        <Kpi label="Active LTV" value={fmtMoney(totalActiveLTV)} accent={totalActiveLTV > 0 ? colors.accent : colors.textMuted} />
       </div>
 
       {/* Filter chips */}
@@ -212,7 +219,7 @@ export default function ClientsPage() {
           gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
           gap: 14,
         }}>
-          {visible.map(({ client, health, lastContact, openItems, payment }) => (
+          {visible.map(({ client, health, lastContact, openItems, payment, ltv }) => (
             <ClientCard
               key={client.id}
               client={client}
@@ -220,6 +227,8 @@ export default function ClientsPage() {
               lastContact={lastContact}
               openItems={openItems}
               paymentState={payment.state}
+              ltvTotal={ltv.total}
+              ltvTenure={ltv.tenureLabel}
               onClick={() => setSelectedId(client.id)}
             />
           ))}
@@ -259,13 +268,15 @@ export default function ClientsPage() {
 
 // ---- Client Card ----
 function ClientCard({
-  client, healthScore, lastContact, openItems, paymentState, onClick,
+  client, healthScore, lastContact, openItems, paymentState, ltvTotal, ltvTenure, onClick,
 }: {
   client: Client
   healthScore: number
   lastContact: string
   openItems: number
   paymentState: 'current' | 'overdue' | 'no-billing'
+  ltvTotal: number
+  ltvTenure: string
   onClick: () => void
 }) {
   const hColor = healthColor(healthScore)
@@ -348,8 +359,8 @@ function ClientCard({
             </div>
           </div>
           <div>
-            <div style={{ ...mono, fontSize: 9, color: colors.textMuted, letterSpacing: '0.08em', fontWeight: 600, marginBottom: 2 }}>RETAINER</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ ...mono, fontSize: 9, color: colors.textMuted, letterSpacing: '0.08em', fontWeight: 600, marginBottom: 2 }}>RETAINER · LTV</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' as const }}>
               <span style={{ ...mono, fontSize: 14, fontWeight: 600, color: colors.text, fontVariantNumeric: 'tabular-nums' }}>
                 {client.monthlyRetainer > 0 ? `${fmtMoney(client.monthlyRetainer)}/mo` : 'Project'}
               </span>
@@ -362,6 +373,16 @@ function ClientCard({
                   {paymentChip.label}
                 </span>
               )}
+            </div>
+            <div style={{
+              ...mono,
+              fontSize: 11, color: ltvTotal > 0 ? colors.accent : colors.textMuted,
+              marginTop: 3, fontVariantNumeric: 'tabular-nums' as const,
+            }}>
+              {ltvTotal > 0 ? `LTV ${fmtMoney(ltvTotal)}` : 'No LTV yet'}
+              <span style={{ color: colors.textMuted, marginLeft: 6, fontSize: 10, fontWeight: 400 }}>
+                · {ltvTenure}
+              </span>
             </div>
           </div>
         </div>

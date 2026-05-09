@@ -7,7 +7,7 @@ import {
   Client, ClientStatus, ServiceType, SERVICE_TYPE_LABELS,
   CommsEntry, CommsType, ActionItem, FinanceTxLite,
   computeHealth, healthColor, daysSince, daysUntil, lastContactDate,
-  openActionItems, computePaymentStatus,
+  openActionItems, computePaymentStatus, computeLTV,
 } from '@/lib/clients-data'
 
 type DetailTab = 'overview' | 'performance' | 'comms' | 'account'
@@ -187,6 +187,7 @@ function OverviewTab({
   const lastContact = lastContactDate(client, comms)
   const openItems = openActionItems(client.id, actions)
   const payment = computePaymentStatus(client, txs)
+  const ltv = computeLTV(client, txs)
 
   // Activity timeline: combine comms entries + action items, last 5
   const timeline = [
@@ -204,6 +205,11 @@ function OverviewTab({
       {/* Health Breakdown */}
       <Section label="Health Breakdown">
         <HealthBreakdownCard score={health.score} components={health.components} />
+      </Section>
+
+      {/* LTV Snapshot */}
+      <Section label="Lifetime Value">
+        <LTVSnapshot ltv={ltv} />
       </Section>
 
       {/* Payment Status */}
@@ -378,6 +384,58 @@ function PaymentStatusCard({ client, payment }: { client: Client; payment: Retur
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+// ---- LTV snapshot ----
+function LTVSnapshot({ ltv }: { ltv: ReturnType<typeof computeLTV> }) {
+  const isEmpty = ltv.total === 0
+  return (
+    <div style={{
+      padding: '16px 18px',
+      background: isEmpty ? colors.cardBgElevated : 'rgba(56,161,87,0.06)',
+      border: `1px solid ${isEmpty ? colors.border : 'rgba(56,161,87,0.2)'}`,
+      borderRadius: borders.radius.medium,
+      display: 'grid',
+      gridTemplateColumns: '1.4fr 1fr 1fr',
+      gap: 16,
+    }}>
+      <LTVCell
+        label="Total"
+        value={fmtMoney(ltv.total)}
+        color={isEmpty ? colors.textMuted : colors.accent}
+        emphasized
+      />
+      <LTVCell
+        label="Tenure"
+        value={ltv.tenureLabel}
+        color={colors.text}
+      />
+      <LTVCell
+        label="Avg / Mo"
+        value={fmtMoney(Math.round(ltv.avgPerMonth))}
+        color={colors.text}
+        sub={ltv.paymentCount > 0 ? `${ltv.paymentCount} payment${ltv.paymentCount === 1 ? '' : 's'}` : undefined}
+      />
+    </div>
+  )
+}
+
+function LTVCell({ label, value, color, emphasized, sub }: { label: string; value: string; color: string; emphasized?: boolean; sub?: string }) {
+  return (
+    <div>
+      <div style={{ ...mono, fontSize: 9, color: colors.textMuted, letterSpacing: '0.08em', fontWeight: 600, marginBottom: 4, textTransform: 'uppercase' as const }}>
+        {label}
+      </div>
+      <div style={{ ...mono, fontSize: emphasized ? 22 : 16, fontWeight: 700, color, fontVariantNumeric: 'tabular-nums' as const, lineHeight: 1.1 }}>
+        {value}
+      </div>
+      {sub && (
+        <div style={{ ...mono, fontSize: 10, color: colors.textMuted, marginTop: 3 }}>
+          {sub}
+        </div>
+      )}
     </div>
   )
 }

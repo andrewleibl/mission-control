@@ -262,6 +262,51 @@ export function computePaymentStatus(client: Client, txs: FinanceTxLite[]): Paym
 }
 
 // =================================================================
+// Lifetime Value
+// =================================================================
+
+export interface LTV {
+  total: number // sum of all confirmed income tagged to this client
+  tenureDays: number // days since startDate (or createdAt fallback)
+  tenureLabel: string // human-friendly: "<1 mo" / "3 mo" / "1y 4mo"
+  avgPerMonth: number // total / (tenureDays/30), or 0 if no tenure
+  paymentCount: number // number of income transactions
+}
+
+function formatTenure(days: number): string {
+  if (days < 30) return '<1 mo'
+  const months = Math.floor(days / 30)
+  if (months < 12) return `${months} mo`
+  const years = Math.floor(months / 12)
+  const remMonths = months % 12
+  if (remMonths === 0) return `${years}y`
+  return `${years}y ${remMonths}mo`
+}
+
+export function computeLTV(client: Client, txs: FinanceTxLite[]): LTV {
+  const incomeTx = txs.filter(t =>
+    t.type === 'income' && t.status === 'confirmed' && t.clientId === client.id
+  )
+  const total = incomeTx.reduce((s, t) => s + t.amount, 0)
+
+  // Determine tenure from startDate, falling back to createdAt
+  const startMs = client.startDate
+    ? new Date(client.startDate + 'T12:00:00').getTime()
+    : client.createdAt
+  const tenureDays = Math.max(1, Math.floor((Date.now() - startMs) / 86400000))
+  const tenureMonths = tenureDays / 30
+  const avgPerMonth = tenureMonths > 0 ? total / tenureMonths : 0
+
+  return {
+    total,
+    tenureDays,
+    tenureLabel: formatTenure(tenureDays),
+    avgPerMonth,
+    paymentCount: incomeTx.length,
+  }
+}
+
+// =================================================================
 // Health score (recalibrated for relationship + payment, not ad performance)
 // =================================================================
 
