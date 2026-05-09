@@ -1,18 +1,23 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import {
+  LayoutGrid, Calendar as CalendarIcon, HeartHandshake, Flame,
+  Wallet, FileText, Users, MessageSquare, Activity,
+  type LucideIcon,
+} from 'lucide-react'
 import { colors } from '@/components/DesignSystem'
 
-const navItems = [
-  { href: '/tasks', label: 'Task Board', icon: '⬛' },
-  { href: '/calendar', label: 'Calendar', icon: '📅' },
-  { href: '/client-retention', label: 'Retention', icon: '🤝' },
-  { href: '/pipeline', label: 'Pipeline', icon: '🔥' },
-  { href: '/finances', label: 'Finances', icon: '💰' },
-  { href: '/docs', label: 'Docs', icon: '📄' },
-  { href: '/clients', label: 'Clients', icon: '👥' },
-  { href: '/chat', label: 'Chat', icon: '💬' },
-  { href: '/usage', label: 'Usage & Cost', icon: '📊' },
+const navItems: { href: string; label: string; Icon: LucideIcon }[] = [
+  { href: '/tasks', label: 'Task Board', Icon: LayoutGrid },
+  { href: '/calendar', label: 'Calendar', Icon: CalendarIcon },
+  { href: '/client-retention', label: 'Retention', Icon: HeartHandshake },
+  { href: '/pipeline', label: 'Pipeline', Icon: Flame },
+  { href: '/finances', label: 'Finances', Icon: Wallet },
+  { href: '/docs', label: 'Docs', Icon: FileText },
+  { href: '/clients', label: 'Clients', Icon: Users },
+  { href: '/chat', label: 'Chat', Icon: MessageSquare },
+  { href: '/usage', label: 'Usage & Cost', Icon: Activity },
 ]
 
 export default function Sidebar() {
@@ -55,16 +60,16 @@ export default function Sidebar() {
 
       {/* Nav */}
       <nav style={{ flex: 1, padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {navItems.map((item) => {
-          const active = pathname === item.href || pathname.startsWith(item.href + '/')
+        {navItems.map(({ href, label, Icon }) => {
+          const active = pathname === href || pathname.startsWith(href + '/')
           return (
             <Link
-              key={item.href}
-              href={item.href}
+              key={href}
+              href={href}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 12,
+                gap: 11,
                 padding: '9px 14px',
                 margin: '0 4px',
                 borderRadius: 6,
@@ -78,8 +83,8 @@ export default function Sidebar() {
                 transition: 'background 0.12s, color 0.12s',
               }}
             >
-              <span style={{ fontSize: 14, lineHeight: 1, opacity: active ? 1 : 0.75 }}>{item.icon}</span>
-              <span>{item.label}</span>
+              <Icon size={15} strokeWidth={1.85} color={active ? colors.accent : colors.textMuted} />
+              <span>{label}</span>
             </Link>
           )
         })}
