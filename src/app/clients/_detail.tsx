@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Pencil } from 'lucide-react'
 import { colors, cardStyle, cardStyleAccent, borders, mono } from '@/components/DesignSystem'
 import {
   Client, ClientStatus, ServiceType, SERVICE_TYPE_LABELS,
@@ -98,7 +99,7 @@ export default function ClientDetail({
               }}>
                 {STATUS_LABELS[client.status]}
               </span>
-              <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', marginTop: 8 }}>
+              <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', marginTop: 8, color: colors.text }}>
                 {client.business}
               </div>
               <div style={{ fontSize: 13, color: colors.textMuted, marginTop: 2 }}>
@@ -548,14 +549,33 @@ function FieldRow({
             />
           )
         ) : (
-          <span
+          <button
             onClick={() => { setDraft(value); setEditing(true) }}
-            style={{ ...valueStyle, cursor: 'pointer', padding: '4px 8px', borderRadius: 4 }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              cursor: 'pointer', padding: '4px 8px', borderRadius: 4,
+              background: 'transparent', border: 'none',
+              color: 'inherit', fontFamily: 'inherit',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+              const icon = e.currentTarget.querySelector('svg')
+              if (icon) (icon as SVGElement).style.opacity = '1'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'transparent'
+              const icon = e.currentTarget.querySelector('svg')
+              if (icon) (icon as SVGElement).style.opacity = '0.35'
+            }}
           >
-            {display ?? (value || placeholder || '—')}
-          </span>
+            <span style={valueStyle}>
+              {display ?? (value || placeholder || '—')}
+            </span>
+            <Pencil
+              size={11} strokeWidth={2}
+              style={{ color: colors.textMuted, opacity: 0.35, transition: 'opacity 0.15s', flexShrink: 0 }}
+            />
+          </button>
         )}
       </div>
     </div>
