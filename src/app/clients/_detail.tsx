@@ -211,6 +211,11 @@ function OverviewTab({
         <PaymentStatusCard client={client} payment={payment} />
       </Section>
 
+      {/* Revenue History */}
+      <Section label="Revenue History">
+        <RevenueHistory clientId={client.id} txs={txs} />
+      </Section>
+
       {/* Open Action Items */}
       <Section label={`Open Action Items (${openItems.length})`}>
         <ActionItemsList
@@ -372,6 +377,75 @@ function PaymentStatusCard({ client, payment }: { client: Client; payment: Retur
             {fmtMoney(payment.mtdRevenue)}
           </div>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// ---- Revenue history — last 6 months from this client ----
+function RevenueHistory({ clientId, txs }: { clientId: string; txs: FinanceTxLite[] }) {
+  const now = new Date()
+  const months: { label: string; ym: string; total: number }[] = []
+  const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const total = txs
+      .filter(t => t.type === 'income' && t.status === 'confirmed' && t.clientId === clientId && t.date.slice(0, 7) === ym)
+      .reduce((s, t) => s + t.amount, 0)
+    months.push({ label: SHORT_MONTHS[d.getMonth()], ym, total })
+  }
+
+  const max = Math.max(1, ...months.map(m => m.total))
+  const sumTotal = months.reduce((s, m) => s + m.total, 0)
+  const avg = sumTotal / months.length
+
+  if (sumTotal === 0) {
+    return (
+      <div style={{
+        padding: '14px 16px', background: colors.cardBgElevated,
+        borderRadius: borders.radius.medium, color: colors.textMuted, fontSize: 12,
+      }}>
+        No income from this client logged in Finances yet.
+      </div>
+    )
+  }
+
+  return (
+    <div style={{
+      padding: '14px 16px',
+      background: colors.cardBgElevated,
+      borderRadius: borders.radius.medium,
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10, fontSize: 11 }}>
+        <span style={{ color: colors.textMuted }}>
+          6-mo total: <span style={{ ...mono, color: colors.accent, fontWeight: 600 }}>${sumTotal.toLocaleString('en-US')}</span>
+        </span>
+        <span style={{ color: colors.textMuted }}>
+          Avg/mo: <span style={{ ...mono, color: colors.text, fontWeight: 600 }}>${Math.round(avg).toLocaleString('en-US')}</span>
+        </span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 56 }}>
+        {months.map((m, i) => {
+          const heightPct = max > 0 ? (m.total / max) * 100 : 0
+          return (
+            <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+              <div
+                title={`${m.label}: $${m.total.toLocaleString('en-US')}`}
+                style={{
+                  width: '100%', height: `${heightPct}%`, minHeight: m.total > 0 ? 2 : 0,
+                  background: m.total > 0 ? colors.accent : 'transparent',
+                  borderRadius: '2px 2px 0 0',
+                  opacity: 0.85,
+                  transition: 'opacity 0.15s',
+                }}
+              />
+              <div style={{ ...mono, fontSize: 9, color: colors.textMuted, letterSpacing: '0.04em' }}>
+                {m.label}
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )

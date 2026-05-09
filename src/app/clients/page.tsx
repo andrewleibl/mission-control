@@ -157,6 +157,17 @@ export default function ClientsPage() {
         }
       />
 
+      {/* Renewal Pipeline banner — only shown when any clients are renewing soon */}
+      {renewingCount > 0 && (
+        <RenewalBanner
+          clients={enriched.filter(e => {
+            const d = daysUntil(e.client.renewalDate)
+            return d < 30 && d > 0
+          }).sort((a, b) => daysUntil(a.client.renewalDate) - daysUntil(b.client.renewalDate))}
+          onSelect={id => setSelectedId(id)}
+        />
+      )}
+
       {/* KPI Strip */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
         <Kpi label="Active" value={String(totalActive)} accent={colors.accent} />
@@ -371,6 +382,57 @@ function ClientCard({
             <span>0 open</span>
           )}
         </span>
+      </div>
+    </div>
+  )
+}
+
+// ---- Renewal pipeline banner ----
+function RenewalBanner({
+  clients, onSelect,
+}: {
+  clients: { client: Client }[]
+  onSelect: (id: string) => void
+}) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 14,
+      padding: '12px 18px', marginBottom: 14,
+      background: 'rgba(227,179,65,0.06)',
+      border: '1px solid rgba(227,179,65,0.25)',
+      borderRadius: borders.radius.medium,
+    }}>
+      <span style={{
+        ...mono,
+        fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 4,
+        background: 'rgba(227,179,65,0.18)', color: colors.yellow,
+        letterSpacing: '0.08em', whiteSpace: 'nowrap' as const,
+      }}>
+        RENEWAL PIPELINE
+      </span>
+      <span style={{ fontSize: 12, color: colors.textMuted }}>
+        {clients.length} {clients.length === 1 ? 'client' : 'clients'} renewing in the next 30 days:
+      </span>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const, flex: 1 }}>
+        {clients.map(({ client }) => (
+          <button
+            key={client.id}
+            onClick={() => onSelect(client.id)}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              background: 'transparent', border: 'none', cursor: 'pointer',
+              padding: '3px 8px', borderRadius: 4, fontFamily: 'inherit',
+              color: colors.text, fontSize: 12, fontWeight: 600,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+          >
+            <span>{client.business}</span>
+            <span style={{ ...mono, fontSize: 11, color: colors.yellow, fontVariantNumeric: 'tabular-nums' as const }}>
+              {daysUntil(client.renewalDate)}d
+            </span>
+          </button>
+        ))}
       </div>
     </div>
   )
