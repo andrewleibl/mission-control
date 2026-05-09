@@ -4,9 +4,10 @@ import { useState, useEffect, useMemo } from 'react'
 import { PageContainer, PageHeader, colors, cardStyle, cardStyleAccent, borders, mono } from '@/components/DesignSystem'
 import {
   Client, ClientStatus, CommsEntry, ActionItem,
-  loadClients, saveClients, loadComms, loadActions,
+  loadClients, saveClients, loadComms, loadActions, saveActions,
   computeHealth, healthColor, daysSince, daysUntil, lastContactDate, openActionItems,
 } from '@/lib/clients-data'
+import ClientDetail from './_detail'
 
 type FilterKey = 'all' | 'active' | 'at-risk' | 'renewing' | 'stale'
 
@@ -101,6 +102,24 @@ export default function ClientsPage() {
     saveClients(next)
   }
 
+  function persistClients(next: Client[]) { setClients(next); saveClients(next) }
+  function persistActions(next: ActionItem[]) { setActions(next); saveActions(next) }
+
+  function updateClient(updated: Client) {
+    persistClients(clients.map(c => c.id === updated.id ? updated : c))
+  }
+  function addAction(item: ActionItem) {
+    persistActions([item, ...actions])
+  }
+  function toggleAction(id: string) {
+    persistActions(actions.map(a => a.id === id ? { ...a, completed: !a.completed, completedAt: !a.completed ? Date.now() : undefined } : a))
+  }
+  function deleteAction(id: string) {
+    persistActions(actions.filter(a => a.id !== id))
+  }
+
+  const selectedClient = selectedId ? clients.find(c => c.id === selectedId) : null
+
   return (
     <PageContainer>
       <PageHeader
@@ -173,12 +192,17 @@ export default function ClientsPage() {
         </div>
       )}
 
-      {/* Side panel placeholder for Phase 2 */}
-      {selectedId && (
-        <SidePanelPlaceholder
-          clientId={selectedId}
-          clients={clients}
+      {/* Deep dive side panel */}
+      {selectedClient && (
+        <ClientDetail
+          client={selectedClient}
+          comms={comms}
+          actions={actions}
           onClose={() => setSelectedId(null)}
+          onUpdateClient={updateClient}
+          onAddAction={addAction}
+          onToggleAction={toggleAction}
+          onDeleteAction={deleteAction}
         />
       )}
 
@@ -332,58 +356,6 @@ function Kpi({ label, value, accent }: { label: string; value: string; accent: s
         {value}
       </div>
     </div>
-  )
-}
-
-// ---- Side panel placeholder ----
-function SidePanelPlaceholder({ clientId, clients, onClose }: { clientId: string; clients: Client[]; onClose: () => void }) {
-  const client = clients.find(c => c.id === clientId)
-  if (!client) return null
-  return (
-    <>
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 90 }} />
-      <div style={{
-        position: 'fixed', top: 0, right: 0, bottom: 0, width: 380,
-        background: colors.cardBg, borderLeft: `1px solid ${colors.border}`,
-        zIndex: 91, padding: 28, overflowY: 'auto',
-        boxShadow: '-12px 0 40px rgba(0,0,0,0.4)',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-          <div>
-            <div style={{ ...mono, fontSize: 11, fontWeight: 600, color: colors.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: 4 }}>
-              {STATUS_LABELS[client.status]}
-            </div>
-            <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>
-              {client.business}
-            </div>
-            <div style={{ fontSize: 13, color: colors.textMuted, marginTop: 2 }}>
-              {client.name}
-            </div>
-          </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: 22, padding: 0, lineHeight: 1 }}>×</button>
-        </div>
-
-        <div style={{
-          ...cardStyleAccent,
-          padding: 24, textAlign: 'center', marginTop: 12,
-        }}>
-          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', color: colors.accent, textTransform: 'uppercase' as const, marginBottom: 8 }}>
-            Phase 2 — Up Next
-          </div>
-          <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>Deep Dive</div>
-          <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.5 }}>
-            Overview / Performance / Comms / Account tabs. Health breakdown, activity timeline, pinned notes, open action items.
-          </div>
-        </div>
-
-        {client.notes && (
-          <div style={{ marginTop: 16, padding: '12px 14px', background: colors.cardBgElevated, borderRadius: borders.radius.medium }}>
-            <div style={{ fontSize: 10, fontWeight: 600, color: colors.textMuted, letterSpacing: '0.08em', marginBottom: 6 }}>NOTES</div>
-            <div style={{ fontSize: 13, color: colors.text, lineHeight: 1.5 }}>{client.notes}</div>
-          </div>
-        )}
-      </div>
-    </>
   )
 }
 
