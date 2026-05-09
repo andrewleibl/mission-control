@@ -1,68 +1,49 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { PageContainer, PageHeader, colors, cardStyle, cardStyleAccent, typography, spacing, borders } from '@/components/DesignSystem'
+import { PageContainer, PageHeader, colors, cardStyle, cardStyleAccent, borders } from '@/components/DesignSystem'
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer,
-} from 'recharts'
+  Transaction, RecurringRule, Frequency, TxType,
+  INCOME_CATEGORIES, EXPENSE_CATEGORIES,
+  loadTransactions, saveTransactions, loadRules, saveRules,
+  projectRecurring, confirmed, sumIncome, sumExpenses,
+} from '@/lib/finances'
+import { getClientsForTagging, getClientById, ClientSummary } from '@/lib/clients-data'
 
-type TxType = 'income' | 'expense'
+type TabKey = 'calendar' | 'stats' | 'recurring' | 'all'
 
-interface Transaction {
-  id: string
-  date: string
-  type: TxType
-  category: string
-  amount: number
-  note: string
-}
+const TABS: { key: TabKey; label: string }[] = [
+  { key: 'calendar', label: 'Calendar' },
+  { key: 'stats', label: 'Stats' },
+  { key: 'recurring', label: 'Recurring' },
+  { key: 'all', label: 'All Transactions' },
+]
 
-const INCOME_CATEGORIES = ['Client Retainer', 'Project Fee', 'Upsell', 'Ad Management', 'Other']
-const EXPENSE_CATEGORIES = ['Software / Tools', 'Contractors', 'Ad Spend', 'Subscriptions', 'Office / Admin', 'Other']
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-
-const now = new Date()
+const today = new Date()
+const todayIso = today.toISOString().slice(0, 10)
 
 function fmt(n: number) {
   return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
 }
 
-function fmtSmall(n: number) {
-  if (n >= 1000) return '$' + (n / 1000).toFixed(1) + 'k'
-  return fmt(n)
-}
+function parseDate(s: string) { return new Date(s + 'T12:00:00') }
 
-function getMonthKey(date: Date) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
-}
-
-function parseDate(dateStr: string) {
-  return new Date(dateStr + 'T12:00:00')
-}
-
-// ---- Stat Card ----
-function StatCard({ label, value, sub, accent }: { label: string; value: string; sub?: string; accent?: string }) {
-  return (
-    <div style={{ ...cardStyleAccent, padding: '20px 22px', flex: 1, minWidth: 0 }}>
-      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', color: colors.textMuted, textTransform: 'uppercase' as const, marginBottom: 10 }}>
-        {label}
-      </div>
-      <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em', color: accent ?? colors.text, fontVariantNumeric: 'tabular-nums' }}>
-        {value}
-      </div>
-      {sub && <div style={{ fontSize: 12, color: colors.textMuted, marginTop: 4 }}>{sub}</div>}
-    </div>
-  )
-}
-
-// ---- Add Modal ----
-function AddModal({ onClose, onSave }: { onClose: () => void; onSave: (tx: Transaction) => void }) {
+// =================================================================
+// Add Transaction Modal
+// =================================================================
+function AddTransactionModal({
+  onClose, onSave, clients,
+}: {
+  onClose: () => void
+  onSave: (tx: Transaction) => void
+  clients: ClientSummary[]
+}) {
   const [type, setType] = useState<TxType>('income')
-  const [date, setDate] = useState(now.toISOString().slice(0, 10))
+  const [date, setDate] = useState(todayIso)
   const [category, setCategory] = useState(INCOME_CATEGORIES[0])
   const [amount, setAmount] = useState('')
   const [note, setNote] = useState('')
+  const [clientId, setClientId] = useState('')
 
   const cats = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES
 
@@ -74,254 +55,273 @@ function AddModal({ onClose, onSave }: { onClose: () => void; onSave: (tx: Trans
   function handleSave() {
     const val = parseFloat(amount.replace(/[^0-9.]/g, ''))
     if (!val || val <= 0) return
-    onSave({ id: Date.now().toString(), date, type, category, amount: val, note: note.trim() })
+    onSave({
+      id: `tx_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      type, date, category,
+      amount: val,
+      clientId: clientId || undefined,
+      note: note.trim() || undefined,
+      status: 'confirmed',
+      createdAt: Date.now(),
+    })
     onClose()
   }
 
-  const inputBase: React.CSSProperties = {
-    background: colors.cardBg,
-    border: `1px solid ${colors.border}`,
-    borderRadius: borders.radius.medium,
-    padding: '10px 12px',
-    color: colors.text,
-    fontSize: 14,
-    outline: 'none',
-    width: '100%',
-    fontFamily: 'inherit',
+  return (
+    <ModalShell title="Add Transaction" onClose={onClose}>
+      <TypeToggle value={type} onChange={handleTypeChange} />
+
+      <FieldGrid>
+        <Field label="Date">
+          <BaseInput type="date" value={date} onChange={e => setDate(e.target.value)} />
+        </Field>
+        <Field label="Category">
+          <BaseSelect value={category} onChange={e => setCategory(e.target.value)}>
+            {cats.map(c => <option key={c} value={c}>{c}</option>)}
+          </BaseSelect>
+        </Field>
+        <Field label="Amount ($)">
+          <BaseInput type="number" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)} />
+        </Field>
+        <Field label="Client (optional)">
+          <BaseSelect value={clientId} onChange={e => setClientId(e.target.value)}>
+            <option value="">— None / Overhead —</option>
+            {clients.map(c => <option key={c.id} value={c.id}>{c.business}</option>)}
+          </BaseSelect>
+        </Field>
+        <Field label="Note (optional)">
+          <BaseInput type="text" placeholder="e.g. invoice #, descriptor..." value={note} onChange={e => setNote(e.target.value)} />
+        </Field>
+      </FieldGrid>
+
+      <PrimaryButton onClick={handleSave}>Save Transaction</PrimaryButton>
+    </ModalShell>
+  )
+}
+
+// =================================================================
+// Add Recurring Rule Modal
+// =================================================================
+function AddRecurringModal({
+  onClose, onSave, clients,
+}: {
+  onClose: () => void
+  onSave: (rule: RecurringRule) => void
+  clients: ClientSummary[]
+}) {
+  const [type, setType] = useState<TxType>('expense')
+  const [category, setCategory] = useState(EXPENSE_CATEGORIES[0])
+  const [amount, setAmount] = useState('')
+  const [frequency, setFrequency] = useState<Frequency>('monthly')
+  const [startDate, setStartDate] = useState(todayIso)
+  const [endDate, setEndDate] = useState('')
+  const [note, setNote] = useState('')
+  const [clientId, setClientId] = useState('')
+
+  const cats = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES
+
+  function handleTypeChange(t: TxType) {
+    setType(t)
+    setCategory(t === 'income' ? INCOME_CATEGORIES[0] : EXPENSE_CATEGORIES[0])
+  }
+
+  function handleSave() {
+    const val = parseFloat(amount.replace(/[^0-9.]/g, ''))
+    if (!val || val <= 0) return
+    onSave({
+      id: `rule_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      type, category,
+      amount: val,
+      frequency,
+      startDate,
+      endDate: endDate || undefined,
+      clientId: clientId || undefined,
+      note: note.trim() || undefined,
+      autoConfirm: false,
+      createdAt: Date.now(),
+    })
+    onClose()
   }
 
   return (
+    <ModalShell title="Add Recurring Rule" onClose={onClose}>
+      <TypeToggle value={type} onChange={handleTypeChange} />
+
+      <FieldGrid>
+        <Field label="Category">
+          <BaseSelect value={category} onChange={e => setCategory(e.target.value)}>
+            {cats.map(c => <option key={c} value={c}>{c}</option>)}
+          </BaseSelect>
+        </Field>
+        <Field label="Amount ($)">
+          <BaseInput type="number" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)} />
+        </Field>
+        <Field label="Frequency">
+          <BaseSelect value={frequency} onChange={e => setFrequency(e.target.value as Frequency)}>
+            <option value="weekly">Weekly</option>
+            <option value="biweekly">Bi-weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="yearly">Yearly</option>
+          </BaseSelect>
+        </Field>
+        <Field label="Start Date">
+          <BaseInput type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+        </Field>
+        <Field label="End Date (optional)">
+          <BaseInput type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+        </Field>
+        <Field label="Client (optional)">
+          <BaseSelect value={clientId} onChange={e => setClientId(e.target.value)}>
+            <option value="">— None / Overhead —</option>
+            {clients.map(c => <option key={c.id} value={c.id}>{c.business}</option>)}
+          </BaseSelect>
+        </Field>
+        <Field label="Note (optional)">
+          <BaseInput type="text" placeholder="e.g. Notion subscription" value={note} onChange={e => setNote(e.target.value)} />
+        </Field>
+      </FieldGrid>
+
+      <PrimaryButton onClick={handleSave}>Save Recurring Rule</PrimaryButton>
+    </ModalShell>
+  )
+}
+
+// =================================================================
+// Reusable form pieces
+// =================================================================
+function ModalShell({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+  return (
     <div
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div style={{ ...cardStyle, width: 420, padding: 28 }}>
+      <div style={{ ...cardStyle, width: 460, maxHeight: '90vh', overflowY: 'auto', padding: 28 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <span style={{ fontSize: 16, fontWeight: 600 }}>Add Transaction</span>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: 20, padding: 0, lineHeight: 1 }}>×</button>
+          <span style={{ fontSize: 16, fontWeight: 600 }}>{title}</span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: 22, padding: 0, lineHeight: 1 }}>×</button>
         </div>
-
-        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-          {(['income', 'expense'] as TxType[]).map(t => (
-            <button key={t} onClick={() => handleTypeChange(t)} style={{
-              flex: 1, padding: '8px 0',
-              borderRadius: borders.radius.medium,
-              border: `1px solid ${type === t ? (t === 'income' ? colors.accent : colors.red) : colors.border}`,
-              background: type === t ? (t === 'income' ? 'rgba(56,161,87,0.12)' : 'rgba(255,123,114,0.1)') : 'transparent',
-              color: type === t ? (t === 'income' ? colors.accent : colors.red) : colors.textMuted,
-              fontSize: 13, fontWeight: 600, cursor: 'pointer',
-            }}>
-              {t === 'income' ? '+ Income' : '− Expense'}
-            </button>
-          ))}
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {[
-            { label: 'Date', el: <input type="date" value={date} onChange={e => setDate(e.target.value)} style={inputBase} /> },
-            { label: 'Category', el: <select value={category} onChange={e => setCategory(e.target.value)} style={{ ...inputBase, cursor: 'pointer' }}>{cats.map(c => <option key={c} value={c}>{c}</option>)}</select> },
-            { label: 'Amount ($)', el: <input type="number" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)} style={inputBase} /> },
-            { label: 'Note (optional)', el: <input type="text" placeholder="e.g. client name, invoice #" value={note} onChange={e => setNote(e.target.value)} style={inputBase} /> },
-          ].map(({ label, el }) => (
-            <div key={label}>
-              <label style={{ fontSize: 11, color: colors.textMuted, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 6 }}>{label}</label>
-              {el}
-            </div>
-          ))}
-        </div>
-
-        <button onClick={handleSave} style={{
-          marginTop: 20, width: '100%', padding: '11px 0',
-          background: colors.accent, border: 'none', borderRadius: borders.radius.medium,
-          color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer',
-        }}>
-          Save Transaction
-        </button>
+        {children}
       </div>
     </div>
   )
 }
 
-// ---- Chart Tooltip ----
-function PLTooltip({ active, payload, label }: { active?: boolean; payload?: { name: string; value: number }[]; label?: string }) {
-  if (!active || !payload?.length) return null
+function TypeToggle({ value, onChange }: { value: TxType; onChange: (t: TxType) => void }) {
   return (
-    <div style={{ background: '#141B24', border: `1px solid ${colors.border}`, borderRadius: borders.radius.medium, padding: '10px 14px', fontSize: 13 }}>
-      <div style={{ color: colors.textMuted, marginBottom: 6, fontWeight: 600 }}>{label}</div>
-      {payload.map(p => (
-        <div key={p.name} style={{ color: p.name === 'Revenue' ? colors.accent : colors.red }}>
-          {p.name}: {fmt(p.value)}
-        </div>
+    <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+      {(['income', 'expense'] as TxType[]).map(t => (
+        <button key={t} onClick={() => onChange(t)} style={{
+          flex: 1, padding: '8px 0',
+          borderRadius: borders.radius.medium,
+          border: `1px solid ${value === t ? (t === 'income' ? colors.accent : colors.red) : colors.border}`,
+          background: value === t ? (t === 'income' ? 'rgba(56,161,87,0.12)' : 'rgba(255,123,114,0.1)') : 'transparent',
+          color: value === t ? (t === 'income' ? colors.accent : colors.red) : colors.textMuted,
+          fontSize: 13, fontWeight: 600, cursor: 'pointer',
+        }}>
+          {t === 'income' ? '+ Income' : '− Expense'}
+        </button>
       ))}
     </div>
   )
 }
 
-export default function FinancesPage() {
-  const [txs, setTxs] = useState<Transaction[]>([])
-  const [showModal, setShowModal] = useState(false)
-  const [viewMonth, setViewMonth] = useState(getMonthKey(now))
-  const [deleteId, setDeleteId] = useState<string | null>(null)
+function FieldGrid({ children }: { children: React.ReactNode }) {
+  return <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>{children}</div>
+}
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('mc_finances_txs')
-      if (saved) setTxs(JSON.parse(saved))
-    } catch { /* ignore */ }
-  }, [])
-
-  function saveTxs(next: Transaction[]) {
-    setTxs(next)
-    localStorage.setItem('mc_finances_txs', JSON.stringify(next))
-  }
-
-  function addTx(tx: Transaction) { saveTxs([tx, ...txs]) }
-  function deleteTx(id: string) { saveTxs(txs.filter(t => t.id !== id)); setDeleteId(null) }
-
-  const monthTxs = useMemo(() => txs.filter(t => t.date.slice(0, 7) === viewMonth), [txs, viewMonth])
-  const monthRevenue = useMemo(() => monthTxs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0), [monthTxs])
-  const monthExpenses = useMemo(() => monthTxs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0), [monthTxs])
-  const monthProfit = monthRevenue - monthExpenses
-  const monthMargin = monthRevenue > 0 ? Math.round((monthProfit / monthRevenue) * 100) : 0
-
-  const plChartData = useMemo(() => Array.from({ length: 6 }, (_, i) => {
-    const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1)
-    const key = getMonthKey(d)
-    const m = txs.filter(t => t.date.slice(0, 7) === key)
-    return {
-      month: MONTHS[d.getMonth()],
-      Revenue: m.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0),
-      Expenses: m.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0),
-    }
-  }), [txs])
-
-  const expenseCats = useMemo(() => {
-    const map: Record<string, number> = {}
-    monthTxs.filter(t => t.type === 'expense').forEach(t => { map[t.category] = (map[t.category] ?? 0) + t.amount })
-    return Object.entries(map).sort((a, b) => b[1] - a[1])
-  }, [monthTxs])
-
-  const monthOptions = useMemo(() => Array.from({ length: 12 }, (_, i) => {
-    const d = new Date(now.getFullYear(), now.getMonth() - 11 + i, 1)
-    return { key: getMonthKey(d), label: `${MONTHS[d.getMonth()]} ${d.getFullYear()}` }
-  }).reverse(), [])
-
-  const selectBase: React.CSSProperties = {
-    background: colors.cardBg,
-    border: `1px solid ${colors.border}`,
-    borderRadius: borders.radius.medium,
-    padding: '8px 12px',
-    color: colors.text,
-    fontSize: 13,
-    outline: 'none',
-    fontFamily: 'inherit',
-    cursor: 'pointer',
-  }
-
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <PageContainer>
-      <PageHeader
-        title="Finances"
-        subtitle="Income & expense tracking — P&L by month and quarter."
-        action={
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <select value={viewMonth} onChange={e => setViewMonth(e.target.value)} style={selectBase}>
-              {monthOptions.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
-            </select>
-            <button onClick={() => setShowModal(true)} style={{
-              background: colors.accent, border: 'none', borderRadius: borders.radius.medium,
-              color: '#fff', fontSize: 13, fontWeight: 600, padding: '8px 16px', cursor: 'pointer', whiteSpace: 'nowrap' as const,
-            }}>
-              + Add
-            </button>
-          </div>
-        }
-      />
+    <div>
+      <label style={{ fontSize: 11, color: colors.textMuted, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 6 }}>{label}</label>
+      {children}
+    </div>
+  )
+}
 
-      {/* Stat Cards */}
-      <div style={{ display: 'flex', gap: 14, marginBottom: 24 }}>
-        <StatCard label="Revenue" value={fmt(monthRevenue)} sub={monthOptions.find(m => m.key === viewMonth)?.label} accent={colors.accent} />
-        <StatCard label="Expenses" value={fmt(monthExpenses)} accent={colors.red} />
-        <StatCard label="Net Profit" value={fmt(monthProfit)} accent={monthProfit >= 0 ? colors.accent : colors.red} />
-        <StatCard
-          label="Margin"
-          value={`${monthMargin}%`}
-          sub="of revenue"
-          accent={monthMargin >= 50 ? colors.accent : monthMargin >= 25 ? colors.yellow : colors.red}
-        />
+const baseInputStyle: React.CSSProperties = {
+  background: colors.cardBg,
+  border: `1px solid ${colors.border}`,
+  borderRadius: borders.radius.medium,
+  padding: '10px 12px',
+  color: colors.text,
+  fontSize: 14,
+  outline: 'none',
+  width: '100%',
+  fontFamily: 'inherit',
+}
+
+function BaseInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  return <input {...props} style={{ ...baseInputStyle, ...(props.style ?? {}) }} />
+}
+
+function BaseSelect(props: React.SelectHTMLAttributes<HTMLSelectElement> & { children: React.ReactNode }) {
+  return <select {...props} style={{ ...baseInputStyle, cursor: 'pointer', ...(props.style ?? {}) }}>{props.children}</select>
+}
+
+function PrimaryButton({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button onClick={onClick} style={{
+      marginTop: 20, width: '100%', padding: '11px 0',
+      background: colors.accent, border: 'none', borderRadius: borders.radius.medium,
+      color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+    }}>
+      {children}
+    </button>
+  )
+}
+
+// =================================================================
+// Tab views (Calendar / Stats are Phase 2/3 placeholders)
+// =================================================================
+function PlaceholderCard({ phase, title, description }: { phase: string; title: string; description: string }) {
+  return (
+    <div style={{
+      ...cardStyleAccent, padding: 60, textAlign: 'center',
+    }}>
+      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', color: colors.accent, textTransform: 'uppercase' as const, marginBottom: 12 }}>
+        {phase}
+      </div>
+      <div style={{ fontSize: 22, fontWeight: 600, marginBottom: 8 }}>{title}</div>
+      <div style={{ fontSize: 14, color: colors.textMuted, maxWidth: 480, margin: '0 auto' }}>{description}</div>
+    </div>
+  )
+}
+
+function RecurringTab({
+  rules, onAdd, onDelete,
+}: {
+  rules: RecurringRule[]
+  onAdd: () => void
+  onDelete: (id: string) => void
+}) {
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <div>
+          <div style={{ fontSize: 16, fontWeight: 600 }}>Recurring Rules</div>
+          <div style={{ fontSize: 12, color: colors.textMuted, marginTop: 2 }}>
+            Define a transaction once, it auto-projects. Each instance requires your approval before it counts.
+          </div>
+        </div>
+        <button onClick={onAdd} style={{
+          background: colors.accent, border: 'none', borderRadius: borders.radius.medium,
+          color: '#fff', fontSize: 13, fontWeight: 600, padding: '8px 16px', cursor: 'pointer', whiteSpace: 'nowrap' as const,
+        }}>+ New Rule</button>
       </div>
 
-      {/* Charts */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 14, marginBottom: 24 }}>
-        <div style={{ ...cardStyle, padding: '20px 24px' }}>
-          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', color: colors.textMuted, textTransform: 'uppercase' as const, marginBottom: 16 }}>
-            P&L — Last 6 Months
-          </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={plChartData} barGap={4} barCategoryGap="30%">
-              <CartesianGrid vertical={false} stroke={colors.border} strokeDasharray="3 3" />
-              <XAxis dataKey="month" tick={{ fill: colors.textMuted, fontSize: 12 }} axisLine={false} tickLine={false} />
-              <YAxis tickFormatter={fmtSmall} tick={{ fill: colors.textMuted, fontSize: 11 }} axisLine={false} tickLine={false} width={48} />
-              <Tooltip content={<PLTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
-              <Bar dataKey="Revenue" fill={colors.accent} radius={[3, 3, 0, 0]} />
-              <Bar dataKey="Expenses" fill={colors.red} radius={[3, 3, 0, 0]} opacity={0.75} />
-            </BarChart>
-          </ResponsiveContainer>
-          <div style={{ display: 'flex', gap: 20, marginTop: 10 }}>
-            {[{ l: 'Revenue', c: colors.accent }, { l: 'Expenses', c: colors.red }].map(({ l, c }) => (
-              <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div style={{ width: 10, height: 10, borderRadius: 2, background: c }} />
-                <span style={{ fontSize: 11, color: colors.textMuted }}>{l}</span>
-              </div>
-            ))}
-          </div>
+      {rules.length === 0 ? (
+        <div style={{ ...cardStyle, padding: 40, textAlign: 'center', color: colors.textMuted, fontSize: 13 }}>
+          No recurring rules yet. Add one for your software subs, retainers, or contractor pay.
         </div>
-
-        <div style={{ ...cardStyle, padding: '20px 22px' }}>
-          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', color: colors.textMuted, textTransform: 'uppercase' as const, marginBottom: 16 }}>
-            Expenses by Category
-          </div>
-          {expenseCats.length === 0 ? (
-            <div style={{ color: colors.textMuted, fontSize: 13, paddingTop: 8 }}>No expenses this month.</div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {expenseCats.map(([cat, amt]) => (
-                <div key={cat}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                    <span style={{ fontSize: 12, color: colors.text }}>{cat}</span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: colors.red, fontVariantNumeric: 'tabular-nums' }}>{fmt(amt)}</span>
-                  </div>
-                  <div style={{ height: 4, background: colors.border, borderRadius: 2, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${Math.round((amt / monthExpenses) * 100)}%`, background: colors.red, borderRadius: 2, opacity: 0.65 }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Transaction Log */}
-      <div style={{ ...cardStyle, overflow: 'hidden' }}>
-        <div style={{ padding: '14px 20px', borderBottom: `1px solid ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', color: colors.textMuted, textTransform: 'uppercase' as const }}>
-            Transactions — {monthOptions.find(m => m.key === viewMonth)?.label}
-          </span>
-          <span style={{ fontSize: 12, color: colors.textMuted }}>{monthTxs.length} entries</span>
-        </div>
-
-        {monthTxs.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: colors.textMuted, fontSize: 13 }}>
-            No transactions logged for this month.
-          </div>
-        ) : (
+      ) : (
+        <div style={{ ...cardStyle, overflow: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
-                {['Date', 'Type', 'Category', 'Note', 'Amount', ''].map((h, i) => (
-                  <th key={i} style={{
-                    padding: '9px 16px',
-                    textAlign: h === 'Amount' ? 'right' : 'left',
+                {['Type', 'Category', 'Client', 'Frequency', 'Amount', 'Starts', ''].map(h => (
+                  <th key={h} style={{
+                    padding: '10px 16px', textAlign: h === 'Amount' ? 'right' : 'left',
                     fontSize: 11, fontWeight: 600, letterSpacing: '0.06em',
                     textTransform: 'uppercase' as const, color: colors.textMuted,
                   }}>{h}</th>
@@ -329,46 +329,234 @@ export default function FinancesPage() {
               </tr>
             </thead>
             <tbody>
-              {[...monthTxs].sort((a, b) => b.date.localeCompare(a.date)).map(tx => (
-                <tr key={tx.id} style={{ borderBottom: `1px solid ${colors.border}` }}>
-                  <td style={{ padding: '11px 16px', fontSize: 13, color: colors.textMuted, whiteSpace: 'nowrap' as const }}>
-                    {parseDate(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                  </td>
-                  <td style={{ padding: '11px 16px' }}>
-                    <span style={{
-                      fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 4,
-                      background: tx.type === 'income' ? 'rgba(56,161,87,0.12)' : 'rgba(255,123,114,0.1)',
-                      color: tx.type === 'income' ? colors.accent : colors.red,
-                      letterSpacing: '0.04em', textTransform: 'uppercase' as const,
-                    }}>
-                      {tx.type === 'income' ? 'In' : 'Out'}
-                    </span>
-                  </td>
-                  <td style={{ padding: '11px 16px', fontSize: 13, color: colors.text }}>{tx.category}</td>
-                  <td style={{ padding: '11px 16px', fontSize: 13, color: colors.textMuted, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
-                    {tx.note || '—'}
-                  </td>
-                  <td style={{ padding: '11px 16px', fontSize: 14, fontWeight: 600, color: tx.type === 'income' ? colors.accent : colors.red, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
-                    {tx.type === 'income' ? '+' : '−'}{fmt(tx.amount)}
-                  </td>
-                  <td style={{ padding: '11px 16px', textAlign: 'right' }}>
-                    {deleteId === tx.id ? (
-                      <span style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                        <button onClick={() => deleteTx(tx.id)} style={{ fontSize: 11, color: colors.red, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Delete</button>
-                        <button onClick={() => setDeleteId(null)} style={{ fontSize: 11, color: colors.textMuted, background: 'none', border: 'none', cursor: 'pointer' }}>Cancel</button>
-                      </span>
-                    ) : (
-                      <button onClick={() => setDeleteId(tx.id)} style={{ fontSize: 11, color: colors.textMuted, background: 'none', border: 'none', cursor: 'pointer', opacity: 0.4 }}>✕</button>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {rules.map(r => {
+                const client = r.clientId ? getClientById(r.clientId) : undefined
+                return (
+                  <tr key={r.id} style={{ borderBottom: `1px solid ${colors.border}` }}>
+                    <td style={{ padding: '11px 16px' }}>
+                      <span style={{
+                        fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 4,
+                        background: r.type === 'income' ? 'rgba(56,161,87,0.12)' : 'rgba(255,123,114,0.1)',
+                        color: r.type === 'income' ? colors.accent : colors.red,
+                        letterSpacing: '0.04em', textTransform: 'uppercase' as const,
+                      }}>{r.type === 'income' ? 'In' : 'Out'}</span>
+                    </td>
+                    <td style={{ padding: '11px 16px', fontSize: 13, color: colors.text }}>
+                      {r.category}
+                      {r.note && <span style={{ color: colors.textMuted, marginLeft: 6 }}>· {r.note}</span>}
+                    </td>
+                    <td style={{ padding: '11px 16px', fontSize: 13, color: colors.textMuted }}>
+                      {client?.business ?? '—'}
+                    </td>
+                    <td style={{ padding: '11px 16px', fontSize: 13, color: colors.textMuted, textTransform: 'capitalize' as const }}>{r.frequency}</td>
+                    <td style={{ padding: '11px 16px', fontSize: 14, fontWeight: 600, color: r.type === 'income' ? colors.accent : colors.red, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+                      {fmt(r.amount)}
+                    </td>
+                    <td style={{ padding: '11px 16px', fontSize: 12, color: colors.textMuted }}>
+                      {parseDate(r.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })}
+                    </td>
+                    <td style={{ padding: '11px 16px', textAlign: 'right' }}>
+                      <button onClick={() => onDelete(r.id)} style={{ fontSize: 12, color: colors.textMuted, background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5 }}>✕</button>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
-        )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function AllTransactionsTab({
+  txs, onDelete,
+}: {
+  txs: Transaction[]
+  onDelete: (id: string) => void
+}) {
+  const sorted = useMemo(() => [...confirmed(txs)].sort((a, b) => b.date.localeCompare(a.date)), [txs])
+
+  if (sorted.length === 0) {
+    return (
+      <div style={{ ...cardStyle, padding: 40, textAlign: 'center', color: colors.textMuted, fontSize: 13 }}>
+        No transactions yet. Hit + Add Transaction to log one.
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ ...cardStyle, overflow: 'hidden' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
+            {['Date', 'Type', 'Category', 'Client', 'Note', 'Amount', ''].map(h => (
+              <th key={h} style={{
+                padding: '10px 16px', textAlign: h === 'Amount' ? 'right' : 'left',
+                fontSize: 11, fontWeight: 600, letterSpacing: '0.06em',
+                textTransform: 'uppercase' as const, color: colors.textMuted,
+              }}>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {sorted.map(tx => {
+            const client = tx.clientId ? getClientById(tx.clientId) : undefined
+            return (
+              <tr key={tx.id} style={{ borderBottom: `1px solid ${colors.border}` }}>
+                <td style={{ padding: '11px 16px', fontSize: 13, color: colors.textMuted, whiteSpace: 'nowrap' as const }}>
+                  {parseDate(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </td>
+                <td style={{ padding: '11px 16px' }}>
+                  <span style={{
+                    fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 4,
+                    background: tx.type === 'income' ? 'rgba(56,161,87,0.12)' : 'rgba(255,123,114,0.1)',
+                    color: tx.type === 'income' ? colors.accent : colors.red,
+                    letterSpacing: '0.04em', textTransform: 'uppercase' as const,
+                  }}>{tx.type === 'income' ? 'In' : 'Out'}</span>
+                </td>
+                <td style={{ padding: '11px 16px', fontSize: 13, color: colors.text }}>{tx.category}</td>
+                <td style={{ padding: '11px 16px', fontSize: 13, color: colors.textMuted }}>{client?.business ?? '—'}</td>
+                <td style={{ padding: '11px 16px', fontSize: 13, color: colors.textMuted, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
+                  {tx.note ?? '—'}
+                </td>
+                <td style={{ padding: '11px 16px', fontSize: 14, fontWeight: 600, color: tx.type === 'income' ? colors.accent : colors.red, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+                  {tx.type === 'income' ? '+' : '−'}{fmt(tx.amount)}
+                </td>
+                <td style={{ padding: '11px 16px', textAlign: 'right' }}>
+                  <button onClick={() => onDelete(tx.id)} style={{ fontSize: 12, color: colors.textMuted, background: 'none', border: 'none', cursor: 'pointer', opacity: 0.4 }}>✕</button>
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+// =================================================================
+// Main page
+// =================================================================
+export default function FinancesPage() {
+  const [tab, setTab] = useState<TabKey>('calendar')
+  const [txs, setTxs] = useState<Transaction[]>([])
+  const [rules, setRules] = useState<RecurringRule[]>([])
+  const [showTxModal, setShowTxModal] = useState(false)
+  const [showRuleModal, setShowRuleModal] = useState(false)
+
+  const clients = useMemo(() => getClientsForTagging(), [])
+
+  useEffect(() => {
+    setTxs(loadTransactions())
+    setRules(loadRules())
+  }, [])
+
+  function persistTxs(next: Transaction[]) { setTxs(next); saveTransactions(next) }
+  function persistRules(next: RecurringRule[]) { setRules(next); saveRules(next) }
+
+  function addTx(tx: Transaction) { persistTxs([tx, ...txs]) }
+  function deleteTx(id: string) { persistTxs(txs.filter(t => t.id !== id)) }
+  function addRule(rule: RecurringRule) { persistRules([rule, ...rules]) }
+  function deleteRule(id: string) {
+    persistRules(rules.filter(r => r.id !== id))
+    persistTxs(txs.filter(t => t.recurringId !== id))
+  }
+
+  // Pending approvals count: project the next 14 days, count what's not yet approved
+  const pendingCount = useMemo(() => {
+    const start = todayIso
+    const endDate = new Date(today)
+    endDate.setDate(endDate.getDate() + 14)
+    const end = endDate.toISOString().slice(0, 10)
+    return projectRecurring(rules, txs, start, end).filter(p => p.date >= todayIso && p.date <= end).length
+  }, [rules, txs])
+
+  // Quick stats for header strip
+  const monthIso = todayIso.slice(0, 7)
+  const monthTxs = useMemo(() => txs.filter(t => t.date.slice(0, 7) === monthIso), [txs, monthIso])
+  const monthRev = sumIncome(monthTxs)
+  const monthExp = sumExpenses(monthTxs)
+  const monthNet = monthRev - monthExp
+
+  return (
+    <PageContainer>
+      <PageHeader
+        title="Finances"
+        subtitle="Income & expense tracking with per-client P&L."
+        action={
+          <button onClick={() => setShowTxModal(true)} style={{
+            background: colors.accent, border: 'none', borderRadius: borders.radius.medium,
+            color: '#fff', fontSize: 13, fontWeight: 600, padding: '8px 16px', cursor: 'pointer', whiteSpace: 'nowrap' as const,
+          }}>
+            + Add Transaction
+          </button>
+        }
+      />
+
+      {/* Quick header stats — current month */}
+      <div style={{ display: 'flex', gap: 14, marginBottom: 20 }}>
+        <MiniStat label={`${parseDate(todayIso + '').toLocaleDateString('en-US', { month: 'long' })} Revenue`} value={fmt(monthRev)} accent={colors.accent} />
+        <MiniStat label="Month Expenses" value={fmt(monthExp)} accent={colors.red} />
+        <MiniStat label="Net" value={fmt(monthNet)} accent={monthNet >= 0 ? colors.accent : colors.red} />
+        <MiniStat label="Pending Approvals" value={String(pendingCount)} accent={pendingCount > 0 ? colors.yellow : colors.textMuted} />
       </div>
 
-      {showModal && <AddModal onClose={() => setShowModal(false)} onSave={addTx} />}
+      {/* Tab strip */}
+      <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: `1px solid ${colors.border}` }}>
+        {TABS.map(t => {
+          const active = tab === t.key
+          return (
+            <button key={t.key} onClick={() => setTab(t.key)} style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              padding: '10px 16px', fontSize: 13, fontWeight: 600,
+              color: active ? colors.text : colors.textMuted,
+              borderBottom: `2px solid ${active ? colors.accent : 'transparent'}`,
+              marginBottom: -1, transition: 'color 0.15s',
+            }}>
+              {t.label}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Tab content */}
+      {tab === 'calendar' && (
+        <PlaceholderCard
+          phase="Phase 2 — Up Next"
+          title="Calendar View"
+          description="Notion-style Day / Week / Month toggle. Each day shows a rollup, click to see all transactions for that day. Projected recurring entries appear as faded chips until approved."
+        />
+      )}
+      {tab === 'stats' && (
+        <PlaceholderCard
+          phase="Phase 3"
+          title="Statistics View"
+          description="P&L trend, expense breakdown, MRR vs one-off revenue split, per-client P&L table. Time-frame toggle for This Month / Last 3 / YTD / Last 12 / Custom range."
+        />
+      )}
+      {tab === 'recurring' && (
+        <RecurringTab rules={rules} onAdd={() => setShowRuleModal(true)} onDelete={deleteRule} />
+      )}
+      {tab === 'all' && (
+        <AllTransactionsTab txs={txs} onDelete={deleteTx} />
+      )}
+
+      {showTxModal && <AddTransactionModal onClose={() => setShowTxModal(false)} onSave={addTx} clients={clients} />}
+      {showRuleModal && <AddRecurringModal onClose={() => setShowRuleModal(false)} onSave={addRule} clients={clients} />}
     </PageContainer>
+  )
+}
+
+function MiniStat({ label, value, accent }: { label: string; value: string; accent?: string }) {
+  return (
+    <div style={{ ...cardStyleAccent, padding: '14px 18px', flex: 1, minWidth: 0 }}>
+      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', color: colors.textMuted, textTransform: 'uppercase' as const, marginBottom: 6 }}>
+        {label}
+      </div>
+      <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', color: accent ?? colors.text, fontVariantNumeric: 'tabular-nums' }}>
+        {value}
+      </div>
+    </div>
   )
 }
