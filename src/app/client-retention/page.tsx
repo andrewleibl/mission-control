@@ -137,21 +137,6 @@ export default function RetentionPage() {
     daysSinceLastEvent(c.id, events) > 14
   ).length
 
-  // Churn risk: active/at_risk clients with no touchpoint in 30+ days,
-  // excluding brand-new clients (grace period of 14 days from start)
-  const churnRiskClients = useMemo(() => {
-    return clients.filter(c => {
-      if (c.status !== 'active' && c.status !== 'at_risk') return false
-      const startMs = c.startDate ? fromIso(c.startDate).getTime() : c.createdAt
-      const ageDays = Math.floor((Date.now() - startMs) / 86400000)
-      if (ageDays < 14) return false
-      return daysSinceLastEvent(c.id, events) > 30
-    }).map(c => ({
-      client: c,
-      daysSince: daysSinceLastEvent(c.id, events),
-    })).sort((a, b) => b.daysSince - a.daysSince)
-  }, [clients, events])
-
   // Filtered events for visible calendar
   const filteredEvents = useMemo(() => {
     switch (filter) {
@@ -199,14 +184,6 @@ export default function RetentionPage() {
           </button>
         }
       />
-
-      {/* Churn-risk banner — only when active clients are 30+ days untouched */}
-      {churnRiskClients.length > 0 && (
-        <ChurnRiskBanner
-          atRisk={churnRiskClients}
-          onScheduleFor={cid => setModal({ kind: 'add', date: TODAY_ISO, presetClientId: cid })}
-        />
-      )}
 
       {/* KPI Strip */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
@@ -381,57 +358,6 @@ function ViewToggle({ value, onChange }: { value: ViewMode; onChange: (v: ViewMo
           }}>{v}</button>
         )
       })}
-    </div>
-  )
-}
-
-// ---- Churn Risk Banner ----
-function ChurnRiskBanner({
-  atRisk, onScheduleFor,
-}: {
-  atRisk: { client: Client; daysSince: number }[]
-  onScheduleFor: (clientId: string) => void
-}) {
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 14,
-      padding: '12px 18px', marginBottom: 14,
-      background: 'rgba(255,123,114,0.05)',
-      border: '1px solid rgba(255,123,114,0.25)',
-      borderRadius: borders.radius.medium,
-    }}>
-      <span style={{
-        ...mono,
-        fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 4,
-        background: 'rgba(255,123,114,0.18)', color: colors.red,
-        letterSpacing: '0.08em', whiteSpace: 'nowrap' as const,
-      }}>
-        CHURN RISK
-      </span>
-      <span style={{ fontSize: 12, color: colors.textMuted }}>
-        {atRisk.length} active {atRisk.length === 1 ? 'client has' : 'clients have'} not been touched in 30+ days. Click to schedule:
-      </span>
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' as const, flex: 1 }}>
-        {atRisk.map(({ client, daysSince }) => (
-          <button
-            key={client.id}
-            onClick={() => onScheduleFor(client.id)}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              background: 'transparent', border: 'none', cursor: 'pointer',
-              padding: '3px 8px', borderRadius: 4, fontFamily: 'inherit',
-              color: colors.text, fontSize: 12, fontWeight: 600,
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
-          >
-            <span>{client.business}</span>
-            <span style={{ ...mono, fontSize: 11, color: colors.red, fontVariantNumeric: 'tabular-nums' as const }}>
-              {isFinite(daysSince) ? `${daysSince}d` : 'never'}
-            </span>
-          </button>
-        ))}
-      </div>
     </div>
   )
 }
