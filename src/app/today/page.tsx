@@ -51,11 +51,41 @@ export default function TodayPage() {
     | { kind: 'edit'; task: Task }
     | null
   >(null)
+  const [toast, setToast] = useState<{ msg: string; tone: 'success' | 'info' | 'error' } | null>(null)
 
   useEffect(() => {
     setTasks(loadTasks())
     setClients(loadClients())
   }, [])
+
+  // Auto-dismiss toast
+  useEffect(() => {
+    if (!toast) return
+    const t = setTimeout(() => setToast(null), 2500)
+    return () => clearTimeout(t)
+  }, [toast])
+
+  function showToast(msg: string, tone: 'success' | 'info' | 'error' = 'success') {
+    setToast({ msg, tone })
+  }
+
+  // Keyboard shortcuts: N = new task, Esc = close modal
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      const target = e.target as HTMLElement
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+      if (e.key.toLowerCase() === 'n' && !modal) {
+        e.preventDefault()
+        setModal({ kind: 'add' })
+      }
+      if (e.key === 'Escape' && modal) {
+        setModal(null)
+      }
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [modal])
 
   function persistTasks(next: Task[]) { setTasks(next); saveTasks(next) }
 
@@ -66,22 +96,30 @@ export default function TodayPage() {
       createdAt: Date.now(),
     }
     persistTasks([newTask, ...tasks])
+    showToast(data.starred ? '⭐ Task added as priority' : 'Task added')
   }
   function updateTask(updated: Task) {
     persistTasks(tasks.map(t => t.id === updated.id ? updated : t))
+    showToast('Task updated')
   }
   function deleteTask(id: string) {
     persistTasks(tasks.filter(t => t.id !== id))
+    showToast('Task deleted', 'info')
   }
   function toggleDone(id: string) {
+    const task = tasks.find(t => t.id === id)
+    const becomingDone = task?.status !== 'done'
     persistTasks(tasks.map(t => {
       if (t.id !== id) return t
       const isDone = t.status === 'done'
       return { ...t, status: isDone ? 'open' : 'done', completedAt: isDone ? undefined : Date.now() }
     }))
+    showToast(becomingDone ? 'Done ✓' : 'Reopened', becomingDone ? 'success' : 'info')
   }
   function toggleStar(id: string) {
+    const task = tasks.find(t => t.id === id)
     persistTasks(tasks.map(t => t.id === id ? { ...t, starred: !t.starred } : t))
+    showToast(task?.starred ? 'Unstarred' : 'Starred as priority', task?.starred ? 'info' : 'success')
   }
 
   // ─── Derived ───────────────────────────────────────────────
@@ -184,6 +222,8 @@ export default function TodayPage() {
           onAddForDay={date => setModal({ kind: 'add', defaultDate: date })}
         />
       )}
+
+      {toast && <Toast msg={toast.msg} tone={toast.tone} />}
 
       {/* Add/Edit modal */}
       {modal && (
@@ -329,6 +369,7 @@ function TaskRow({
   onDelete: () => void
 }) {
   const isDone = task.status === 'done'
+  const isInProgress = task.status === 'in-progress'
   const isOverdue = task.dueDate && task.dueDate < todayIso() && !isDone
   const isToday = task.dueDate === todayIso()
 
@@ -338,7 +379,8 @@ function TaskRow({
         display: 'flex', alignItems: 'center', gap: 10,
         padding: '10px 14px',
         background: colors.cardBgElevated,
-        border: `1px solid ${task.starred && !isDone ? 'rgba(227,179,65,0.25)' : colors.border}`,
+        border: `1px solid ${isInProgress ? 'rgba(99,179,237,0.3)' : task.starred && !isDone ? 'rgba(227,179,65,0.25)' : colors.border}`,
+        borderLeft: isInProgress ? `3px solid ${colors.blue}` : undefined,
         borderRadius: borders.radius.medium,
         opacity: isDone ? 0.55 : 1,
         transition: 'background 0.1s',
@@ -379,12 +421,24 @@ function TaskRow({
           padding: 0, fontFamily: 'inherit',
         }}
       >
-        <div style={{
-          fontSize: 13, fontWeight: 600, color: colors.text,
-          textDecoration: isDone ? 'line-through' : 'none',
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const,
-        }}>
-          {task.title}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          <span style={{
+            fontSize: 13, fontWeight: 600, color: colors.text,
+            textDecoration: isDone ? 'line-through' : 'none',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const,
+          }}>
+            {task.title}
+          </span>
+          {isInProgress && (
+            <span style={{
+              ...mono,
+              fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 3,
+              background: 'rgba(99,179,237,0.12)', color: colors.blue,
+              letterSpacing: '0.08em', flexShrink: 0,
+            }}>
+              IN PROGRESS
+            </span>
+          )}
         </div>
         {(task.dueDate || client || task.notes) && (
           <div style={{
@@ -419,6 +473,24 @@ const iconActionStyle: React.CSSProperties = {
   background: 'transparent', border: 'none', cursor: 'pointer',
   color: colors.textMuted, padding: 4, opacity: 0.4,
   display: 'flex', alignItems: 'center',
+}
+
+function Toast({ msg, tone }: { msg: string; tone: 'success' | 'info' | 'error' }) {
+  const bg = tone === 'success' ? 'rgba(56,161,87,0.95)' : tone === 'error' ? 'rgba(255,123,114,0.95)' : 'rgba(20,27,36,0.97)'
+  return (
+    <div style={{
+      position: 'fixed', bottom: 28, left: '50%', transform: 'translateX(-50%)',
+      background: bg, color: '#fff',
+      padding: '11px 22px', borderRadius: 999,
+      fontSize: 13, fontWeight: 600,
+      boxShadow: '0 12px 40px rgba(0,0,0,0.4)',
+      zIndex: 1000, pointerEvents: 'none',
+      backdropFilter: 'blur(10px)',
+      whiteSpace: 'nowrap' as const,
+    }}>
+      {msg}
+    </div>
+  )
 }
 
 // ---- Add/Edit Modal ----
