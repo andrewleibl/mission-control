@@ -65,12 +65,12 @@ export default function RetentionPage() {
   const [events, setEvents] = useState<RetentionEvent[]>([])
   const [clients, setClients] = useState<Client[]>([])
   const [comms, setComms] = useState<CommsEntry[]>([])
-  const [view, setView] = useState<ViewMode>('month')
+  const [view, setView] = useState<ViewMode>('week')
   const [cursor, setCursor] = useState<Date>(new Date())
   const [filter, setFilter] = useState<FilterKey>('all')
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
   const [modal, setModal] = useState<
-    | { kind: 'add'; date: string }
+    | { kind: 'add'; date: string; presetClientId?: string }
     | { kind: 'edit'; event: RetentionEvent }
     | null
   >(null)
@@ -132,7 +132,25 @@ export default function RetentionPage() {
   const weekCount = eventsThisWeek(events).length
   const overdueCount = overdueEvents(events).length
   const upcomingCount = upcomingEvents(events, 7).length
-  const staleCount = clients.filter(c => daysSinceLastEvent(c.id, events) > 14).length
+  const staleCount = clients.filter(c =>
+    (c.status === 'active' || c.status === 'at_risk') &&
+    daysSinceLastEvent(c.id, events) > 14
+  ).length
+
+  // Churn risk: active/at_risk clients with no touchpoint in 30+ days,
+  // excluding brand-new clients (grace period of 14 days from start)
+  const churnRiskClients = useMemo(() => {
+    return clients.filter(c => {
+      if (c.status !== 'active' && c.status !== 'at_risk') return false
+      const startMs = c.startDate ? fromIso(c.startDate).getTime() : c.createdAt
+      const ageDays = Math.floor((Date.now() - startMs) / 86400000)
+      if (ageDays < 14) return false
+      return daysSinceLastEvent(c.id, events) > 30
+    }).map(c => ({
+      client: c,
+      daysSince: daysSinceLastEvent(c.id, events),
+    })).sort((a, b) => b.daysSince - a.daysSince)
+  }, [clients, events])
 
   // Filtered events for visible calendar
   const filteredEvents = useMemo(() => {
@@ -181,6 +199,14 @@ export default function RetentionPage() {
           </button>
         }
       />
+
+      {/* Churn-risk banner — only when active clients are 30+ days untouched */}
+      {churnRiskClients.length > 0 && (
+        <ChurnRiskBanner
+          atRisk={churnRiskClients}
+          onScheduleFor={cid => setModal({ kind: 'add', date: TODAY_ISO, presetClientId: cid })}
+        />
+      )}
 
       {/* KPI Strip */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
@@ -243,10 +269,22 @@ export default function RetentionPage() {
           />
         )}
         {view === 'week' && (
-          <PlaceholderView title="Week View" subtitle="Phase 2 — next iteration." />
+          <WeekGrid
+            cursor={cursor}
+            events={filteredEvents}
+            clients={clients}
+            onSelectEvent={setSelectedEventId}
+            onAddForDay={iso => setModal({ kind: 'add', date: iso })}
+          />
         )}
         {view === 'day' && (
-          <PlaceholderView title="Day View" subtitle="Phase 2 — next iteration." />
+          <DayView
+            date={cursor}
+            events={filteredEvents}
+            clients={clients}
+            onSelectEvent={setSelectedEventId}
+            onAddForDay={iso => setModal({ kind: 'add', date: iso })}
+          />
         )}
       </div>
 
@@ -267,6 +305,7 @@ export default function RetentionPage() {
         <EventModal
           mode={modal.kind}
           defaultDate={modal.kind === 'add' ? modal.date : modal.event.date}
+          presetClientId={modal.kind === 'add' ? modal.presetClientId : undefined}
           existing={modal.kind === 'edit' ? modal.event : undefined}
           clients={clients}
           onClose={() => setModal(null)}
@@ -346,14 +385,320 @@ function ViewToggle({ value, onChange }: { value: ViewMode; onChange: (v: ViewMo
   )
 }
 
-function PlaceholderView({ title, subtitle }: { title: string; subtitle: string }) {
+// ---- Churn Risk Banner ----
+function ChurnRiskBanner({
+  atRisk, onScheduleFor,
+}: {
+  atRisk: { client: Client; daysSince: number }[]
+  onScheduleFor: (clientId: string) => void
+}) {
   return (
-    <div style={{ padding: 60, textAlign: 'center' }}>
-      <div style={{ ...mono, fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', color: colors.accent, textTransform: 'uppercase' as const, marginBottom: 10 }}>
-        {subtitle}
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 14,
+      padding: '12px 18px', marginBottom: 14,
+      background: 'rgba(255,123,114,0.05)',
+      border: '1px solid rgba(255,123,114,0.25)',
+      borderRadius: borders.radius.medium,
+    }}>
+      <span style={{
+        ...mono,
+        fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 4,
+        background: 'rgba(255,123,114,0.18)', color: colors.red,
+        letterSpacing: '0.08em', whiteSpace: 'nowrap' as const,
+      }}>
+        CHURN RISK
+      </span>
+      <span style={{ fontSize: 12, color: colors.textMuted }}>
+        {atRisk.length} active {atRisk.length === 1 ? 'client has' : 'clients have'} not been touched in 30+ days. Click to schedule:
+      </span>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' as const, flex: 1 }}>
+        {atRisk.map(({ client, daysSince }) => (
+          <button
+            key={client.id}
+            onClick={() => onScheduleFor(client.id)}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              background: 'transparent', border: 'none', cursor: 'pointer',
+              padding: '3px 8px', borderRadius: 4, fontFamily: 'inherit',
+              color: colors.text, fontSize: 12, fontWeight: 600,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+          >
+            <span>{client.business}</span>
+            <span style={{ ...mono, fontSize: 11, color: colors.red, fontVariantNumeric: 'tabular-nums' as const }}>
+              {isFinite(daysSince) ? `${daysSince}d` : 'never'}
+            </span>
+          </button>
+        ))}
       </div>
-      <div style={{ fontSize: 18, fontWeight: 600 }}>{title}</div>
     </div>
+  )
+}
+
+// ---- Week Grid ----
+function WeekGrid({
+  cursor, events, clients, onSelectEvent, onAddForDay,
+}: {
+  cursor: Date
+  events: RetentionEvent[]
+  clients: Client[]
+  onSelectEvent: (id: string) => void
+  onAddForDay: (iso: string) => void
+}) {
+  const start = startOfWeek(cursor)
+  const days = Array.from({ length: 7 }, (_, i) => addDays(start, i))
+
+  return (
+    <div>
+      {/* Header */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: `1px solid ${colors.border}` }}>
+        {days.map((d, i) => {
+          const isToday = toIso(d) === TODAY_ISO
+          return (
+            <div key={i} style={{
+              padding: '12px 14px',
+              borderRight: i < 6 ? `1px solid ${colors.border}` : undefined,
+              background: isToday ? 'rgba(56,161,87,0.05)' : 'transparent',
+            }}>
+              <div style={{ ...mono, fontSize: 10, fontWeight: 600, color: colors.textMuted, letterSpacing: '0.08em', marginBottom: 4 }}>
+                {WEEKDAYS[i]}
+              </div>
+              <div style={{
+                ...mono,
+                fontSize: 18, fontWeight: 600,
+                color: isToday ? colors.accent : colors.text,
+                fontVariantNumeric: 'tabular-nums' as const,
+              }}>{d.getDate()}</div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Body */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', minHeight: 400 }}>
+        {days.map((d, i) => {
+          const iso = toIso(d)
+          const cellEvents = events.filter(e => e.date === iso).sort((a, b) => (a.time ?? '').localeCompare(b.time ?? ''))
+          const isToday = iso === TODAY_ISO
+          return (
+            <div
+              key={i}
+              onClick={e => {
+                if ((e.target as HTMLElement).closest('[data-event-chip]')) return
+                onAddForDay(iso)
+              }}
+              style={{
+                padding: '10px 8px',
+                borderRight: i < 6 ? `1px solid ${colors.border}` : undefined,
+                background: isToday ? 'rgba(56,161,87,0.04)' : 'transparent',
+                cursor: 'pointer',
+                display: 'flex', flexDirection: 'column', gap: 6,
+                transition: 'background 0.1s',
+              }}
+              onMouseEnter={e => { if (!isToday) e.currentTarget.style.background = 'rgba(255,255,255,0.02)' }}
+              onMouseLeave={e => { if (!isToday) e.currentTarget.style.background = 'transparent' }}
+            >
+              {cellEvents.length === 0 && (
+                <span style={{ ...mono, fontSize: 11, color: colors.textMuted, opacity: 0.4 }}>—</span>
+              )}
+              {cellEvents.map(ev => {
+                const c = clients.find(c => c.id === ev.clientId)
+                return (
+                  <ExpandedEventChip
+                    key={ev.id}
+                    event={ev}
+                    clientName={c?.business ?? 'Unknown'}
+                    onClick={() => onSelectEvent(ev.id)}
+                  />
+                )
+              })}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ---- Expanded chip (used in week view) ----
+function ExpandedEventChip({ event, clientName, onClick }: { event: RetentionEvent; clientName: string; onClick: () => void }) {
+  const cp = TYPE_COLOR[event.type]
+  const Icon = TYPE_ICON[event.type]
+  return (
+    <button
+      data-event-chip
+      onClick={onClick}
+      style={{
+        display: 'flex', flexDirection: 'column', gap: 3,
+        background: cp.bg,
+        borderRadius: 5,
+        padding: '6px 8px',
+        opacity: event.completed ? 0.55 : 1,
+        textDecoration: event.completed ? 'line-through' : 'none',
+        border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+        textAlign: 'left' as const,
+      }}
+      title={`${EVENT_TYPE_LABELS[event.type]} — ${event.title}`}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+        <Icon size={10} strokeWidth={2.25} color={cp.fg} style={{ flexShrink: 0 }} />
+        <span style={{ ...mono, fontSize: 10, fontWeight: 700, color: cp.fg, letterSpacing: '0.04em' }}>
+          {EVENT_TYPE_LABELS[event.type].toUpperCase()}
+        </span>
+        {event.time && (
+          <span style={{ ...mono, fontSize: 9, color: cp.fg, opacity: 0.7, marginLeft: 'auto' }}>
+            {event.time}
+          </span>
+        )}
+      </div>
+      <div style={{ fontSize: 11, fontWeight: 600, color: colors.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
+        {clientName}
+      </div>
+      <div style={{ fontSize: 10, color: colors.textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
+        {event.title}
+      </div>
+    </button>
+  )
+}
+
+// ---- Day View ----
+function DayView({
+  date, events, clients, onSelectEvent, onAddForDay,
+}: {
+  date: Date
+  events: RetentionEvent[]
+  clients: Client[]
+  onSelectEvent: (id: string) => void
+  onAddForDay: (iso: string) => void
+}) {
+  const iso = toIso(date)
+  const dayEvents = events.filter(e => e.date === iso).sort((a, b) => (a.time ?? '').localeCompare(b.time ?? ''))
+  const isToday = iso === TODAY_ISO
+
+  return (
+    <div style={{ padding: '24px 28px' }}>
+      {/* Header */}
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ ...mono, fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', color: isToday ? colors.accent : colors.textMuted, textTransform: 'uppercase' as const, marginBottom: 4 }}>
+          {date.toLocaleDateString('en-US', { weekday: 'long' })}{isToday ? ' · TODAY' : ''}
+        </div>
+        <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', color: colors.text }}>
+          {date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+        </div>
+        <div style={{ ...mono, fontSize: 11, color: colors.textMuted, marginTop: 4 }}>
+          {dayEvents.length} {dayEvents.length === 1 ? 'EVENT' : 'EVENTS'}
+        </div>
+      </div>
+
+      {dayEvents.length === 0 ? (
+        <div style={{
+          padding: 40, textAlign: 'center',
+          background: colors.cardBgElevated, borderRadius: borders.radius.medium,
+          color: colors.textMuted, fontSize: 13,
+        }}>
+          No events for this day.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {dayEvents.map(ev => {
+            const c = clients.find(c => c.id === ev.clientId)
+            return (
+              <DayEventCard
+                key={ev.id}
+                event={ev}
+                clientName={c?.business ?? 'Unknown'}
+                clientContact={c?.name ?? ''}
+                onClick={() => onSelectEvent(ev.id)}
+              />
+            )
+          })}
+        </div>
+      )}
+
+      <button
+        onClick={() => onAddForDay(iso)}
+        style={{
+          marginTop: 16, width: '100%', padding: '11px 0',
+          background: 'transparent', border: `1px dashed ${colors.border}`,
+          borderRadius: borders.radius.medium,
+          color: colors.textMuted, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+          fontFamily: 'inherit',
+        }}
+      >
+        + Add event for this day
+      </button>
+    </div>
+  )
+}
+
+// ---- Day event card (in Day view) ----
+function DayEventCard({
+  event, clientName, clientContact, onClick,
+}: {
+  event: RetentionEvent
+  clientName: string
+  clientContact: string
+  onClick: () => void
+}) {
+  const cp = TYPE_COLOR[event.type]
+  const Icon = TYPE_ICON[event.type]
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 14,
+        padding: '14px 16px',
+        background: colors.cardBgElevated,
+        border: `1px solid ${colors.border}`,
+        borderLeft: `3px solid ${cp.fg}`,
+        borderRadius: borders.radius.medium,
+        cursor: 'pointer', fontFamily: 'inherit',
+        textAlign: 'left' as const,
+        opacity: event.completed ? 0.6 : 1,
+        transition: 'background 0.1s',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}
+      onMouseLeave={e => { e.currentTarget.style.background = colors.cardBgElevated }}
+    >
+      {/* Type badge */}
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        width: 44, height: 44, borderRadius: 8,
+        background: cp.bg, border: `1px solid ${cp.fg}40`,
+        flexShrink: 0,
+      }}>
+        <Icon size={16} strokeWidth={2} color={cp.fg} />
+      </div>
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 2 }}>
+          <span style={{ ...mono, fontSize: 9, fontWeight: 700, color: cp.fg, letterSpacing: '0.08em' }}>
+            {EVENT_TYPE_LABELS[event.type].toUpperCase()}
+          </span>
+          {event.time && (
+            <span style={{ ...mono, fontSize: 11, color: colors.textMuted, fontVariantNumeric: 'tabular-nums' as const }}>
+              {event.time}
+            </span>
+          )}
+          {event.completed && (
+            <span style={{ ...mono, fontSize: 9, fontWeight: 700, color: colors.accent, letterSpacing: '0.08em' }}>
+              · COMPLETED
+            </span>
+          )}
+        </div>
+        <div style={{
+          fontSize: 14, fontWeight: 600, color: colors.text,
+          textDecoration: event.completed ? 'line-through' : 'none',
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const,
+        }}>
+          {event.title}
+        </div>
+        <div style={{ fontSize: 12, color: colors.textMuted, marginTop: 2 }}>
+          {clientName}{clientContact && ` · ${clientContact}`}
+        </div>
+      </div>
+    </button>
   )
 }
 
@@ -627,10 +972,11 @@ function SidePanel({
 
 // ---- Add/Edit Modal ----
 function EventModal({
-  mode, defaultDate, existing, clients, onClose, onSave,
+  mode, defaultDate, presetClientId, existing, clients, onClose, onSave,
 }: {
   mode: 'add' | 'edit'
   defaultDate: string
+  presetClientId?: string
   existing?: RetentionEvent
   clients: Client[]
   onClose: () => void
@@ -639,7 +985,7 @@ function EventModal({
   const [type, setType] = useState<EventType>(existing?.type ?? 'call')
   const [date, setDate] = useState(existing?.date ?? defaultDate)
   const [time, setTime] = useState(existing?.time ?? '')
-  const [clientId, setClientId] = useState(existing?.clientId ?? clients[0]?.id ?? '')
+  const [clientId, setClientId] = useState(existing?.clientId ?? presetClientId ?? clients[0]?.id ?? '')
   const [title, setTitle] = useState(existing?.title ?? '')
   const [notes, setNotes] = useState(existing?.notes ?? '')
   const [completed, setCompleted] = useState(existing?.completed ?? false)
