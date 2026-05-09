@@ -2,14 +2,14 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  Calendar as CalendarIcon, HeartHandshake, Wallet, Users,
+  ListChecks, HeartHandshake, Wallet, Users,
   TrendingUp, ClipboardList,
   type LucideIcon,
 } from 'lucide-react'
 import { colors } from '@/components/DesignSystem'
 
 const navItems: { href: string; label: string; Icon: LucideIcon }[] = [
-  { href: '/calendar', label: 'Calendar', Icon: CalendarIcon },
+  { href: '/today', label: 'Today', Icon: ListChecks },
   { href: '/client-retention', label: 'Retention', Icon: HeartHandshake },
   { href: '/finances', label: 'Finances', Icon: Wallet },
   { href: '/clients', label: 'Clients', Icon: Users },
