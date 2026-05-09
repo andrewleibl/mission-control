@@ -3,9 +3,10 @@
 import { useState } from 'react'
 import { colors, cardStyle, cardStyleAccent, borders, mono } from '@/components/DesignSystem'
 import {
-  Client, ClientStatus, CommsEntry, ActionItem,
+  Client, ClientStatus, ServiceType, SERVICE_TYPE_LABELS,
+  CommsEntry, ActionItem, FinanceTxLite,
   computeHealth, healthColor, daysSince, daysUntil, lastContactDate,
-  openActionItems,
+  openActionItems, computePaymentStatus,
 } from '@/lib/clients-data'
 
 type DetailTab = 'overview' | 'performance' | 'comms' | 'account'
@@ -55,6 +56,7 @@ interface Props {
   client: Client
   comms: CommsEntry[]
   actions: ActionItem[]
+  txs: FinanceTxLite[]
   onClose: () => void
   onUpdateClient: (next: Client) => void
   onAddAction: (item: ActionItem) => void
@@ -63,7 +65,7 @@ interface Props {
 }
 
 export default function ClientDetail({
-  client, comms, actions, onClose,
+  client, comms, actions, txs, onClose,
   onUpdateClient, onAddAction, onToggleAction, onDeleteAction,
 }: Props) {
   const [tab, setTab] = useState<DetailTab>('overview')
@@ -127,6 +129,7 @@ export default function ClientDetail({
               client={client}
               comms={comms}
               actions={actions}
+              txs={txs}
               onUpdateClient={onUpdateClient}
               onAddAction={onAddAction}
               onToggleAction={onToggleAction}
@@ -135,9 +138,9 @@ export default function ClientDetail({
           )}
           {tab === 'performance' && (
             <PlaceholderSection
-              phase="Phase 4 — Up Next"
+              phase="Phase 4 — Optional"
               title="Performance"
-              description="Time-series charts of leads, CPL, and ad spend. Side-by-side period compare. Pulls from the existing Meta API integration."
+              description="Reserved for clients with ad campaigns. Time-series of leads, CPL, spend (optional, pulled from Meta API)."
             />
           )}
           {tab === 'comms' && (
@@ -148,11 +151,7 @@ export default function ClientDetail({
             />
           )}
           {tab === 'account' && (
-            <PlaceholderSection
-              phase="Phase 5"
-              title="Account"
-              description="Contract terms, renewal date, services scope, contact info, files & links."
-            />
+            <AccountTab client={client} onUpdateClient={onUpdateClient} />
           )}
         </div>
       </div>
@@ -164,19 +163,21 @@ export default function ClientDetail({
 // Overview tab content
 // =================================================================
 function OverviewTab({
-  client, comms, actions, onUpdateClient, onAddAction, onToggleAction, onDeleteAction,
+  client, comms, actions, txs, onUpdateClient, onAddAction, onToggleAction, onDeleteAction,
 }: {
   client: Client
   comms: CommsEntry[]
   actions: ActionItem[]
+  txs: FinanceTxLite[]
   onUpdateClient: (next: Client) => void
   onAddAction: (item: ActionItem) => void
   onToggleAction: (id: string) => void
   onDeleteAction: (id: string) => void
 }) {
-  const health = computeHealth(client, comms, actions)
+  const health = computeHealth(client, comms, actions, txs)
   const lastContact = lastContactDate(client, comms)
   const openItems = openActionItems(client.id, actions)
+  const payment = computePaymentStatus(client, txs)
 
   // Activity timeline: combine comms entries + action items, last 5
   const timeline = [
@@ -196,9 +197,9 @@ function OverviewTab({
         <HealthBreakdownCard score={health.score} components={health.components} />
       </Section>
 
-      {/* Performance Snapshot */}
-      <Section label="Performance Snapshot">
-        <PerformanceSnapshot client={client} />
+      {/* Payment Status */}
+      <Section label="Payment Status">
+        <PaymentStatusCard client={client} payment={payment} />
       </Section>
 
       {/* Open Action Items */}
@@ -302,40 +303,253 @@ function HealthBreakdownCard({ score, components }: { score: number; components:
   )
 }
 
-// ---- Performance snapshot ----
-function PerformanceSnapshot({ client }: { client: Client }) {
-  const leadDelta = client.leadsMTD - client.prevMonthLeads
-  const cplDelta = client.cpl - client.prevMonthCpl
+// ---- Payment status card ----
+function PaymentStatusCard({ client, payment }: { client: Client; payment: ReturnType<typeof computePaymentStatus> }) {
+  if (payment.state === 'no-billing') {
+    return (
+      <div style={{ padding: '14px 16px', background: colors.cardBgElevated, borderRadius: borders.radius.medium, fontSize: 12, color: colors.textMuted }}>
+        Project-based — no recurring billing tracked.
+        {payment.mtdRevenue > 0 && (
+          <> MTD revenue: <span style={{ ...mono, color: colors.accent, fontWeight: 600 }}>{fmtMoney(payment.mtdRevenue)}</span></>
+        )}
+      </div>
+    )
+  }
+
+  const isCurrent = payment.state === 'current'
+  const accent = isCurrent ? colors.accent : colors.red
+  const bg = isCurrent ? 'rgba(56,161,87,0.06)' : 'rgba(255,123,114,0.06)'
+  const border = isCurrent ? 'rgba(56,161,87,0.2)' : 'rgba(255,123,114,0.2)'
+
   return (
     <div style={{
       padding: '14px 16px',
-      background: colors.cardBgElevated,
+      background: bg,
+      border: `1px solid ${border}`,
       borderRadius: borders.radius.medium,
-      display: 'grid',
-      gridTemplateColumns: '1fr 1fr 1fr',
-      gap: 12,
     }}>
-      <Stat label="MTD Leads" value={String(client.leadsMTD)} delta={leadDelta} deltaPositive={leadDelta > 0} />
-      <Stat label="CPL" value={client.cpl > 0 ? fmtMoney(client.cpl) : '—'} delta={cplDelta} deltaPositive={cplDelta < 0} deltaPrefix="$" />
-      <Stat label="Spend" value={fmtMoney(client.monthlySpend)} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <span style={{
+          ...mono,
+          fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 4,
+          background: isCurrent ? 'rgba(56,161,87,0.15)' : 'rgba(255,123,114,0.15)',
+          color: accent, letterSpacing: '0.06em',
+        }}>
+          {isCurrent ? 'PAID' : 'OVERDUE'}
+        </span>
+        <span style={{ ...mono, fontSize: 13, fontWeight: 700, color: colors.text, fontVariantNumeric: 'tabular-nums' as const }}>
+          {fmtMoney(client.monthlyRetainer)}/mo
+        </span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, fontSize: 12 }}>
+        <div>
+          <div style={{ ...mono, fontSize: 9, color: colors.textMuted, letterSpacing: '0.08em', fontWeight: 600, marginBottom: 2, textTransform: 'uppercase' as const }}>
+            Last payment
+          </div>
+          <div style={{ ...mono, fontSize: 13, color: colors.text, fontVariantNumeric: 'tabular-nums' as const }}>
+            {payment.lastPaymentDate ? fmtDate(payment.lastPaymentDate) : 'None logged'}
+            {payment.daysSincePayment !== undefined && (
+              <span style={{ color: colors.textMuted, marginLeft: 6 }}>
+                ({payment.daysSincePayment}d)
+              </span>
+            )}
+          </div>
+        </div>
+        <div>
+          <div style={{ ...mono, fontSize: 9, color: colors.textMuted, letterSpacing: '0.08em', fontWeight: 600, marginBottom: 2, textTransform: 'uppercase' as const }}>
+            MTD revenue
+          </div>
+          <div style={{ ...mono, fontSize: 13, color: payment.mtdRevenue > 0 ? colors.accent : colors.textMuted, fontVariantNumeric: 'tabular-nums' as const, fontWeight: 600 }}>
+            {fmtMoney(payment.mtdRevenue)}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
 
-function Stat({ label, value, delta, deltaPositive, deltaPrefix }: { label: string; value: string; delta?: number; deltaPositive?: boolean; deltaPrefix?: string }) {
+// ---- Account tab — full editable account info ----
+function AccountTab({ client, onUpdateClient }: { client: Client; onUpdateClient: (c: Client) => void }) {
   return (
-    <div>
-      <div style={{ ...mono, fontSize: 9, color: colors.textMuted, letterSpacing: '0.08em', fontWeight: 600, marginBottom: 4, textTransform: 'uppercase' as const }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <Section label="Identity">
+        <FieldRow label="Contact Name" value={client.name} onSave={v => onUpdateClient({ ...client, name: v })} />
+        <FieldRow label="Business Name" value={client.business} onSave={v => onUpdateClient({ ...client, business: v })} />
+      </Section>
+
+      <Section label="Engagement">
+        <FieldRow
+          label="Status"
+          value={client.status}
+          display={STATUS_LABELS[client.status]}
+          options={[
+            { value: 'onboarding', label: 'Onboarding' },
+            { value: 'active', label: 'Active' },
+            { value: 'at_risk', label: 'At Risk' },
+            { value: 'prospect', label: 'Prospect' },
+            { value: 'churned', label: 'Churned' },
+          ]}
+          onSave={v => onUpdateClient({ ...client, status: v as ClientStatus })}
+        />
+        <FieldRow
+          label="Service Type"
+          value={client.serviceType}
+          display={SERVICE_TYPE_LABELS[client.serviceType]}
+          options={[
+            { value: 'ads', label: 'Ads' },
+            { value: 'web', label: 'Web Design' },
+            { value: 'retainer', label: 'Retainer' },
+            { value: 'project', label: 'Project' },
+            { value: 'other', label: 'Other' },
+          ]}
+          onSave={v => onUpdateClient({ ...client, serviceType: v as ServiceType })}
+        />
+        <FieldRow
+          label="Monthly Retainer"
+          value={String(client.monthlyRetainer)}
+          display={client.monthlyRetainer > 0 ? `${fmtMoney(client.monthlyRetainer)}/mo` : 'Project-based'}
+          inputType="number"
+          mono
+          onSave={v => onUpdateClient({ ...client, monthlyRetainer: parseFloat(v) || 0 })}
+        />
+      </Section>
+
+      <Section label="Dates">
+        <FieldRow
+          label="Start Date"
+          value={client.startDate ?? ''}
+          display={client.startDate ? fmtDate(client.startDate) : '—'}
+          inputType="date"
+          mono
+          onSave={v => onUpdateClient({ ...client, startDate: v || undefined })}
+        />
+        <FieldRow
+          label="Renewal Date"
+          value={client.renewalDate === 'N/A' ? '' : client.renewalDate}
+          display={client.renewalDate === 'N/A' ? 'N/A' : fmtDate(client.renewalDate)}
+          inputType="date"
+          mono
+          onSave={v => onUpdateClient({ ...client, renewalDate: v || 'N/A' })}
+        />
+        <FieldRow
+          label="Last Contact"
+          value={client.lastContact}
+          display={fmtDate(client.lastContact)}
+          inputType="date"
+          mono
+          onSave={v => onUpdateClient({ ...client, lastContact: v })}
+        />
+      </Section>
+
+      <Section label="Contact">
+        <FieldRow
+          label="Email"
+          value={client.contactEmail ?? ''}
+          inputType="email"
+          placeholder="—"
+          onSave={v => onUpdateClient({ ...client, contactEmail: v.trim() || undefined })}
+        />
+        <FieldRow
+          label="Phone"
+          value={client.contactPhone ?? ''}
+          inputType="tel"
+          placeholder="—"
+          onSave={v => onUpdateClient({ ...client, contactPhone: v.trim() || undefined })}
+        />
+      </Section>
+    </div>
+  )
+}
+
+// ---- Inline-editable field row (for Account tab) ----
+function FieldRow({
+  label, value, display, options, inputType, mono: monoValue, placeholder, onSave,
+}: {
+  label: string
+  value: string
+  display?: string
+  options?: { value: string; label: string }[]
+  inputType?: 'text' | 'email' | 'tel' | 'number' | 'date'
+  mono?: boolean
+  placeholder?: string
+  onSave: (v: string) => void
+}) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(value)
+
+  function save() {
+    if (draft !== value) onSave(draft)
+    setEditing(false)
+  }
+  function cancel() {
+    setDraft(value)
+    setEditing(false)
+  }
+
+  const valueStyle: React.CSSProperties = {
+    ...(monoValue ? mono : {}),
+    fontSize: 13, color: value ? colors.text : colors.textMuted,
+    fontVariantNumeric: 'tabular-nums' as const,
+  }
+
+  return (
+    <div style={{
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      padding: '10px 14px', background: colors.cardBgElevated,
+      borderRadius: borders.radius.medium, marginBottom: 6,
+    }}>
+      <div style={{
+        ...mono,
+        fontSize: 10, color: colors.textMuted, letterSpacing: '0.08em',
+        fontWeight: 600, textTransform: 'uppercase' as const, minWidth: 110,
+      }}>
         {label}
       </div>
-      <div style={{ ...mono, fontSize: 16, fontWeight: 700, color: colors.text, fontVariantNumeric: 'tabular-nums' as const }}>
-        {value}
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+        {editing ? (
+          options ? (
+            <select
+              autoFocus value={draft}
+              onChange={e => setDraft(e.target.value)}
+              onBlur={save}
+              onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') cancel() }}
+              style={{
+                background: colors.cardBg, border: `1px solid ${colors.accent}`,
+                borderRadius: 4, padding: '5px 8px',
+                color: colors.text, fontSize: 13, outline: 'none', fontFamily: 'inherit',
+              }}
+            >
+              {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          ) : (
+            <input
+              type={inputType ?? 'text'}
+              autoFocus value={draft}
+              placeholder={placeholder}
+              onChange={e => setDraft(e.target.value)}
+              onBlur={save}
+              onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') cancel() }}
+              style={{
+                ...(monoValue ? mono : {}),
+                background: colors.cardBg, border: `1px solid ${colors.accent}`,
+                borderRadius: 4, padding: '5px 8px',
+                color: colors.text, fontSize: 13, outline: 'none',
+                fontFamily: monoValue ? 'var(--font-mono), monospace' : 'inherit',
+                textAlign: 'right' as const, minWidth: 160,
+              }}
+            />
+          )
+        ) : (
+          <span
+            onClick={() => { setDraft(value); setEditing(true) }}
+            style={{ ...valueStyle, cursor: 'pointer', padding: '4px 8px', borderRadius: 4 }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+          >
+            {display ?? (value || placeholder || '—')}
+          </span>
+        )}
       </div>
-      {delta !== undefined && delta !== 0 && (
-        <div style={{ ...mono, fontSize: 10, color: deltaPositive ? colors.accent : colors.red, marginTop: 2 }}>
-          {delta > 0 ? '▲' : '▼'}{deltaPrefix ?? ''}{Math.abs(delta).toLocaleString('en-US')}
-        </div>
-      )}
     </div>
   )
 }

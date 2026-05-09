@@ -3,18 +3,28 @@
 
 export type ClientStatus = 'active' | 'at_risk' | 'churned' | 'prospect' | 'onboarding'
 
+export type ServiceType = 'ads' | 'web' | 'retainer' | 'project' | 'other'
+
+export const SERVICE_TYPE_LABELS: Record<ServiceType, string> = {
+  ads: 'Ads',
+  web: 'Web Design',
+  retainer: 'Retainer',
+  project: 'Project',
+  other: 'Other',
+}
+
 export type Client = {
   id: string
   name: string
   business: string
   status: ClientStatus
-  monthlySpend: number
-  leadsMTD: number
-  prevMonthLeads: number
-  cpl: number
-  prevMonthCpl: number
-  renewalDate: string // ISO date or 'N/A'
+  serviceType: ServiceType
+  monthlyRetainer: number // what they pay you per month; 0 for project-only
+  startDate?: string // ISO date — when relationship began
+  renewalDate: string // ISO date or 'N/A' (for project-only)
   lastContact: string // ISO date
+  contactEmail?: string
+  contactPhone?: string
   notes: string
   createdAt: number
 }
@@ -25,12 +35,10 @@ export const seedClients: Client[] = [
     name: 'Hector Huizar',
     business: 'Valley of the Sun Landscape',
     status: 'active',
-    monthlySpend: 785,
-    leadsMTD: 12,
-    prevMonthLeads: 17,
-    cpl: 65,
-    prevMonthCpl: 47,
-    renewalDate: '2026-06-10',
+    serviceType: 'ads',
+    monthlyRetainer: 785,
+    startDate: '2026-01-15',
+    renewalDate: '2026-07-10',
     lastContact: '2026-05-06',
     notes: 'Under-pacing by 32%. Considering budget increase.',
     createdAt: Date.now(),
@@ -40,12 +48,10 @@ export const seedClients: Client[] = [
     name: 'PJ Sparks',
     business: 'We Do Hardscape',
     status: 'at_risk',
-    monthlySpend: 285,
-    leadsMTD: 4,
-    prevMonthLeads: 9,
-    cpl: 71,
-    prevMonthCpl: 38,
-    renewalDate: '2026-06-09',
+    serviceType: 'ads',
+    monthlyRetainer: 285,
+    startDate: '2026-02-09',
+    renewalDate: '2026-08-09',
     lastContact: '2026-04-21',
     notes: 'CTR dropped 0.91%. Needs creative refresh.',
     createdAt: Date.now(),
@@ -55,12 +61,10 @@ export const seedClients: Client[] = [
     name: 'Ricardo Madera',
     business: 'Madera Landscape',
     status: 'active',
-    monthlySpend: 285,
-    leadsMTD: 8,
-    prevMonthLeads: 7,
-    cpl: 36,
-    prevMonthCpl: 41,
-    renewalDate: '2026-06-09',
+    serviceType: 'ads',
+    monthlyRetainer: 285,
+    startDate: '2026-02-09',
+    renewalDate: '2026-08-09',
     lastContact: '2026-05-07',
     notes: 'Wants to compare $500 vs last month spend.',
     createdAt: Date.now(),
@@ -70,11 +74,9 @@ export const seedClients: Client[] = [
     name: 'Vicelia Tinde',
     business: 'Clutch Barber Supply',
     status: 'active',
-    monthlySpend: 0,
-    leadsMTD: 0,
-    prevMonthLeads: 0,
-    cpl: 0,
-    prevMonthCpl: 0,
+    serviceType: 'web',
+    monthlyRetainer: 0,
+    startDate: '2026-04-15',
     renewalDate: 'N/A',
     lastContact: '2026-05-05',
     notes: 'Shopify redesign HIGH PRIORITY. $900 outstanding.',
@@ -210,15 +212,61 @@ export function overdueActionItems(clientId: string, items: ActionItem[]): Actio
 }
 
 // =================================================================
-// Health score
+// Payment status — derived from Finances income transactions
+// =================================================================
+
+// Minimal shape so this lib doesn't have to import from finances.
+export interface FinanceTxLite {
+  type: 'income' | 'expense'
+  date: string
+  amount: number
+  clientId?: string
+  status: 'confirmed' | 'skipped'
+}
+
+export type PaymentState = 'current' | 'overdue' | 'no-billing'
+
+export interface PaymentStatus {
+  state: PaymentState
+  lastPaymentDate?: string
+  daysSincePayment?: number
+  mtdRevenue: number
+}
+
+export function computePaymentStatus(client: Client, txs: FinanceTxLite[]): PaymentStatus {
+  // Project-only / no recurring billing
+  if (client.monthlyRetainer === 0) return { state: 'no-billing', mtdRevenue: 0 }
+
+  const clientIncome = txs.filter(t =>
+    t.type === 'income' && t.status === 'confirmed' && t.clientId === client.id
+  )
+
+  if (clientIncome.length === 0) {
+    return { state: 'overdue', mtdRevenue: 0 }
+  }
+
+  const sorted = [...clientIncome].sort((a, b) => b.date.localeCompare(a.date))
+  const lastPaymentDate = sorted[0].date
+  const daysSincePayment = daysSince(lastPaymentDate)
+
+  // MTD revenue
+  const monthIso = new Date().toISOString().slice(0, 7)
+  const mtdRevenue = clientIncome
+    .filter(t => t.date.slice(0, 7) === monthIso)
+    .reduce((s, t) => s + t.amount, 0)
+
+  // Overdue if no payment in 35+ days (gives a bit of grace beyond a 30-day cycle)
+  const state: PaymentState = daysSincePayment > 35 ? 'overdue' : 'current'
+
+  return { state, lastPaymentDate, daysSincePayment, mtdRevenue }
+}
+
+// =================================================================
+// Health score (recalibrated for relationship + payment, not ad performance)
 // =================================================================
 
 export interface HealthBreakdown {
   score: number // 0-100
-  base: number
-  contactPenalty: number
-  overduePenalty: number
-  renewalPenalty: number
   components: { label: string; impact: number }[]
 }
 
@@ -234,6 +282,7 @@ export function computeHealth(
   client: Client,
   comms: CommsEntry[],
   actions: ActionItem[],
+  txs: FinanceTxLite[] = [],
 ): HealthBreakdown {
   const base = STATUS_BASE[client.status]
   let score = base
@@ -247,7 +296,7 @@ export function computeHealth(
   }
   score += contactPenalty
 
-  // Open overdue items: penalize per overdue
+  // Open overdue action items
   const overdueCount = overdueActionItems(client.id, actions).length
   let overduePenalty = 0
   if (overdueCount > 0) {
@@ -255,7 +304,7 @@ export function computeHealth(
   }
   score += overduePenalty
 
-  // Renewal urgency: penalize if renewal is approaching (signals "act now")
+  // Renewal urgency
   const daysToRenewal = daysUntil(client.renewalDate)
   let renewalPenalty = 0
   if (daysToRenewal < 30 && daysToRenewal > 0) {
@@ -263,19 +312,31 @@ export function computeHealth(
   }
   score += renewalPenalty
 
+  // Payment status (only meaningful for billing clients)
+  let paymentPenalty = 0
+  let paymentLabel: string | null = null
+  const payment = computePaymentStatus(client, txs)
+  if (payment.state === 'overdue' && client.monthlyRetainer > 0) {
+    if (payment.daysSincePayment !== undefined) {
+      paymentPenalty = -Math.min((payment.daysSincePayment - 35) * 0.5 + 10, 25)
+      paymentLabel = `Payment overdue (${payment.daysSincePayment}d since last)`
+    } else {
+      paymentPenalty = -15
+      paymentLabel = 'No payment logged yet'
+    }
+    score += paymentPenalty
+  }
+
   const components: { label: string; impact: number }[] = [
     { label: `Status: ${client.status.replace('_', ' ')}`, impact: base },
   ]
-  if (contactPenalty !== 0) components.push({ label: `Stale contact (${daysSinceContact}d)`, impact: contactPenalty })
-  if (overduePenalty !== 0) components.push({ label: `${overdueCount} overdue item${overdueCount === 1 ? '' : 's'}`, impact: overduePenalty })
-  if (renewalPenalty !== 0) components.push({ label: `Renewal in ${daysToRenewal}d`, impact: renewalPenalty })
+  if (contactPenalty !== 0) components.push({ label: `Stale contact (${daysSinceContact}d)`, impact: Math.round(contactPenalty) })
+  if (overduePenalty !== 0) components.push({ label: `${overdueCount} overdue item${overdueCount === 1 ? '' : 's'}`, impact: Math.round(overduePenalty) })
+  if (renewalPenalty !== 0) components.push({ label: `Renewal in ${daysToRenewal}d`, impact: Math.round(renewalPenalty) })
+  if (paymentPenalty !== 0 && paymentLabel) components.push({ label: paymentLabel, impact: Math.round(paymentPenalty) })
 
   return {
     score: Math.max(0, Math.min(100, Math.round(score))),
-    base,
-    contactPenalty: Math.round(contactPenalty),
-    overduePenalty: Math.round(overduePenalty),
-    renewalPenalty: Math.round(renewalPenalty),
     components,
   }
 }

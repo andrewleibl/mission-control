@@ -3,10 +3,13 @@
 import { useState, useEffect, useMemo } from 'react'
 import { PageContainer, PageHeader, colors, cardStyle, cardStyleAccent, borders, mono } from '@/components/DesignSystem'
 import {
-  Client, ClientStatus, CommsEntry, ActionItem,
+  Client, ClientStatus, ServiceType, SERVICE_TYPE_LABELS,
+  CommsEntry, ActionItem,
   loadClients, saveClients, loadComms, loadActions, saveActions,
-  computeHealth, healthColor, daysSince, daysUntil, lastContactDate, openActionItems,
+  computeHealth, healthColor, daysSince, daysUntil, lastContactDate,
+  openActionItems, computePaymentStatus, FinanceTxLite,
 } from '@/lib/clients-data'
+import { loadTransactions } from '@/lib/finances'
 import ClientDetail from './_detail'
 
 type FilterKey = 'all' | 'active' | 'at-risk' | 'renewing' | 'stale'
@@ -52,6 +55,7 @@ export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([])
   const [comms, setComms] = useState<CommsEntry[]>([])
   const [actions, setActions] = useState<ActionItem[]>([])
+  const [txs, setTxs] = useState<FinanceTxLite[]>([])
   const [filter, setFilter] = useState<FilterKey>('all')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
@@ -60,15 +64,20 @@ export default function ClientsPage() {
     setClients(loadClients())
     setComms(loadComms())
     setActions(loadActions())
+    // Pull finance income txs to derive payment status. Only need a tiny shape.
+    setTxs(loadTransactions().map(t => ({
+      type: t.type, date: t.date, amount: t.amount, clientId: t.clientId, status: t.status,
+    })))
   }, [])
 
   // Compute health for every client (memoized — recomputes when data changes)
   const enriched = useMemo(() => clients.map(c => ({
     client: c,
-    health: computeHealth(c, comms, actions),
+    health: computeHealth(c, comms, actions, txs),
     lastContact: lastContactDate(c, comms),
     openItems: openActionItems(c.id, actions).length,
-  })), [clients, comms, actions])
+    payment: computePaymentStatus(c, txs),
+  })), [clients, comms, actions, txs])
 
   // KPI strip
   const totalActive = enriched.filter(e => e.client.status === 'active').length
@@ -179,13 +188,14 @@ export default function ClientsPage() {
           gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
           gap: 14,
         }}>
-          {visible.map(({ client, health, lastContact, openItems }) => (
+          {visible.map(({ client, health, lastContact, openItems, payment }) => (
             <ClientCard
               key={client.id}
               client={client}
               healthScore={health.score}
               lastContact={lastContact}
               openItems={openItems}
+              paymentState={payment.state}
               onClick={() => setSelectedId(client.id)}
             />
           ))}
@@ -198,6 +208,7 @@ export default function ClientsPage() {
           client={selectedClient}
           comms={comms}
           actions={actions}
+          txs={txs}
           onClose={() => setSelectedId(null)}
           onUpdateClient={updateClient}
           onAddAction={addAction}
@@ -220,12 +231,13 @@ export default function ClientsPage() {
 
 // ---- Client Card ----
 function ClientCard({
-  client, healthScore, lastContact, openItems, onClick,
+  client, healthScore, lastContact, openItems, paymentState, onClick,
 }: {
   client: Client
   healthScore: number
   lastContact: string
   openItems: number
+  paymentState: 'current' | 'overdue' | 'no-billing'
   onClick: () => void
 }) {
   const hColor = healthColor(healthScore)
@@ -242,9 +254,10 @@ function ClientCard({
   const staleContact = daysContact > 14
   const renewingSoon = renewalDays < 30 && renewalDays > 0
 
-  // Lead delta
-  const leadDelta = client.leadsMTD - client.prevMonthLeads
-  const cplDelta = client.cpl - client.prevMonthCpl
+  const paymentChip =
+    paymentState === 'current' ? { label: 'PAID', color: colors.accent, bg: 'rgba(56,161,87,0.12)' } :
+    paymentState === 'overdue' ? { label: 'OVERDUE', color: colors.red, bg: 'rgba(255,123,114,0.12)' } :
+    null
 
   return (
     <div
@@ -282,7 +295,7 @@ function ClientCard({
         </span>
       </div>
 
-      {/* Health + key metrics */}
+      {/* Health + service type + retainer */}
       <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -299,25 +312,26 @@ function ClientCard({
           </div>
         </div>
 
-        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, fontSize: 12 }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div>
-            <div style={{ ...mono, fontSize: 9, color: colors.textMuted, letterSpacing: '0.08em', fontWeight: 600, marginBottom: 2 }}>MTD LEADS</div>
-            <div style={{ ...mono, fontSize: 14, fontWeight: 600, color: colors.text, fontVariantNumeric: 'tabular-nums' }}>
-              {client.leadsMTD}
-              {leadDelta !== 0 && client.prevMonthLeads > 0 && (
-                <span style={{ fontSize: 11, marginLeft: 6, color: leadDelta > 0 ? colors.accent : colors.red }}>
-                  {leadDelta > 0 ? '▲' : '▼'}{Math.abs(leadDelta)}
-                </span>
-              )}
+            <div style={{ ...mono, fontSize: 9, color: colors.textMuted, letterSpacing: '0.08em', fontWeight: 600, marginBottom: 2 }}>SERVICE</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: colors.text }}>
+              {SERVICE_TYPE_LABELS[client.serviceType]}
             </div>
           </div>
           <div>
-            <div style={{ ...mono, fontSize: 9, color: colors.textMuted, letterSpacing: '0.08em', fontWeight: 600, marginBottom: 2 }}>CPL</div>
-            <div style={{ ...mono, fontSize: 14, fontWeight: 600, color: colors.text, fontVariantNumeric: 'tabular-nums' }}>
-              {client.cpl > 0 ? fmtMoney(client.cpl) : '—'}
-              {cplDelta !== 0 && client.prevMonthCpl > 0 && (
-                <span style={{ fontSize: 11, marginLeft: 6, color: cplDelta < 0 ? colors.accent : colors.red }}>
-                  {cplDelta > 0 ? '▲' : '▼'}{fmtMoney(Math.abs(cplDelta))}
+            <div style={{ ...mono, fontSize: 9, color: colors.textMuted, letterSpacing: '0.08em', fontWeight: 600, marginBottom: 2 }}>RETAINER</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ ...mono, fontSize: 14, fontWeight: 600, color: colors.text, fontVariantNumeric: 'tabular-nums' }}>
+                {client.monthlyRetainer > 0 ? `${fmtMoney(client.monthlyRetainer)}/mo` : 'Project'}
+              </span>
+              {paymentChip && (
+                <span style={{
+                  ...mono,
+                  fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 3,
+                  background: paymentChip.bg, color: paymentChip.color, letterSpacing: '0.06em',
+                }}>
+                  {paymentChip.label}
                 </span>
               )}
             </div>
@@ -370,7 +384,9 @@ function AddClientModal({
   const [name, setName] = useState('')
   const [business, setBusiness] = useState('')
   const [status, setStatus] = useState<ClientStatus>('onboarding')
-  const [monthlySpend, setMonthlySpend] = useState('')
+  const [serviceType, setServiceType] = useState<ServiceType>('ads')
+  const [monthlyRetainer, setMonthlyRetainer] = useState('')
+  const todayIso = new Date().toISOString().slice(0, 10)
 
   function handleSave() {
     if (!name.trim() || !business.trim()) return
@@ -381,13 +397,11 @@ function AddClientModal({
       name: name.trim(),
       business: business.trim(),
       status,
-      monthlySpend: parseFloat(monthlySpend) || 0,
-      leadsMTD: 0,
-      prevMonthLeads: 0,
-      cpl: 0,
-      prevMonthCpl: 0,
+      serviceType,
+      monthlyRetainer: parseFloat(monthlyRetainer) || 0,
+      startDate: todayIso,
       renewalDate: 'N/A',
-      lastContact: new Date().toISOString().slice(0, 10),
+      lastContact: todayIso,
       notes: '',
       createdAt: Date.now(),
     })
@@ -401,6 +415,7 @@ function AddClientModal({
     fontFamily: 'inherit',
   }
   const labelStyle: React.CSSProperties = {
+    ...mono,
     fontSize: 11, color: colors.textMuted, fontWeight: 600,
     letterSpacing: '0.06em', textTransform: 'uppercase' as const,
     display: 'block', marginBottom: 6,
@@ -437,8 +452,18 @@ function AddClientModal({
             </select>
           </div>
           <div>
-            <label style={labelStyle}>Monthly Spend ($)</label>
-            <input type="number" placeholder="0" value={monthlySpend} onChange={e => setMonthlySpend(e.target.value)} style={inputStyle} />
+            <label style={labelStyle}>Service Type</label>
+            <select value={serviceType} onChange={e => setServiceType(e.target.value as ServiceType)} style={{ ...inputStyle, cursor: 'pointer' }}>
+              <option value="ads">Ads</option>
+              <option value="web">Web Design</option>
+              <option value="retainer">Retainer</option>
+              <option value="project">Project</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label style={labelStyle}>Monthly Retainer ($) — what they pay you</label>
+            <input type="number" placeholder="0 for project-only" value={monthlyRetainer} onChange={e => setMonthlyRetainer(e.target.value)} style={inputStyle} />
           </div>
         </div>
 
