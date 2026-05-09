@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Pencil } from 'lucide-react'
-import { colors, cardStyle, cardStyleAccent, borders, mono } from '@/components/DesignSystem'
+import { colors, cardStyle, borders, mono } from '@/components/DesignSystem'
 import {
   Client, ClientStatus, ServiceType, SERVICE_TYPE_LABELS,
   CommsEntry, CommsType, ActionItem, FinanceTxLite,
@@ -10,11 +10,10 @@ import {
   openActionItems, computePaymentStatus, computeLTV,
 } from '@/lib/clients-data'
 
-type DetailTab = 'overview' | 'performance' | 'comms' | 'account'
+type DetailTab = 'overview' | 'comms' | 'account'
 
 const TABS: { key: DetailTab; label: string }[] = [
   { key: 'overview', label: 'Overview' },
-  { key: 'performance', label: 'Performance' },
   { key: 'comms', label: 'Comms' },
   { key: 'account', label: 'Account' },
 ]
@@ -140,13 +139,6 @@ export default function ClientDetail({
               onAddAction={onAddAction}
               onToggleAction={onToggleAction}
               onDeleteAction={onDeleteAction}
-            />
-          )}
-          {tab === 'performance' && (
-            <PlaceholderSection
-              phase="Phase 4 — Optional"
-              title="Performance"
-              description="Reserved for clients with ad campaigns. Time-series of leads, CPL, spend (optional, pulled from Meta API)."
             />
           )}
           {tab === 'comms' && (
@@ -912,19 +904,6 @@ function Empty({ children }: { children: React.ReactNode }) {
       padding: '14px 16px', background: colors.cardBgElevated,
       borderRadius: borders.radius.medium, color: colors.textMuted, fontSize: 12,
     }}>{children}</div>
-  )
-}
-
-// ---- Placeholder for Performance / Comms / Account tabs ----
-function PlaceholderSection({ phase, title, description }: { phase: string; title: string; description: string }) {
-  return (
-    <div style={{ ...cardStyleAccent, padding: 28, textAlign: 'center' }}>
-      <div style={{ ...mono, fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', color: colors.accent, textTransform: 'uppercase' as const, marginBottom: 10 }}>
-        {phase}
-      </div>
-      <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{title}</div>
-      <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.6 }}>{description}</div>
-    </div>
   )
 }
 
