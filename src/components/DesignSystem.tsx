@@ -53,6 +53,16 @@ export const typography = {
   },
 }
 
+// Dual-font system:
+//   Default (DM Sans, inherited from <html>): page titles, subtitles, buttons,
+//     tab labels, conversational content, business names, narrative text.
+//   `mono` style: data elements — KPI labels in uppercase, numbers, dates,
+//     status pills, anything that reads as "data" rather than prose.
+// Spread `...mono` into any inline style block to opt that element into Roboto Mono.
+export const mono: React.CSSProperties = {
+  fontFamily: 'var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace',
+}
+
 export const spacing = {
   page: '32px',
   section: '24px',

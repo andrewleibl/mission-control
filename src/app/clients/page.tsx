@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { PageContainer, PageHeader, colors, cardStyle, cardStyleAccent, borders } from '@/components/DesignSystem'
+import { PageContainer, PageHeader, colors, cardStyle, cardStyleAccent, borders, mono } from '@/components/DesignSystem'
 import {
   Client, ClientStatus, CommsEntry, ActionItem,
   loadClients, saveClients, loadComms, loadActions,
@@ -143,7 +143,7 @@ export default function ClientsPage() {
               fontSize: 12, fontWeight: 600, cursor: 'pointer',
               fontFamily: 'inherit',
             }}>
-              {f.label} <span style={{ opacity: 0.6, marginLeft: 4 }}>{count}</span>
+              {f.label} <span style={{ ...mono, opacity: 0.6, marginLeft: 4 }}>{count}</span>
             </button>
           )
         })}
@@ -249,6 +249,7 @@ function ClientCard({
           </div>
         </div>
         <span style={{
+          ...mono,
           fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 4,
           background: sBg, color: sColor,
           letterSpacing: '0.06em', whiteSpace: 'nowrap' as const,
@@ -266,18 +267,18 @@ function ClientCard({
           borderRadius: borders.radius.medium,
           border: `1px solid ${hColor === 'green' ? 'rgba(56,161,87,0.2)' : hColor === 'yellow' ? 'rgba(227,179,65,0.2)' : 'rgba(255,123,114,0.2)'}`,
         }}>
-          <div style={{ fontSize: 24, fontWeight: 700, color: healthHex, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+          <div style={{ ...mono, fontSize: 24, fontWeight: 700, color: healthHex, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
             {healthScore}
           </div>
-          <div style={{ fontSize: 8, color: colors.textMuted, letterSpacing: '0.08em', fontWeight: 600, marginTop: 2 }}>
+          <div style={{ ...mono, fontSize: 8, color: colors.textMuted, letterSpacing: '0.08em', fontWeight: 600, marginTop: 2 }}>
             HEALTH
           </div>
         </div>
 
         <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, fontSize: 12 }}>
           <div>
-            <div style={{ fontSize: 9, color: colors.textMuted, letterSpacing: '0.08em', fontWeight: 600, marginBottom: 2 }}>MTD LEADS</div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: colors.text, fontVariantNumeric: 'tabular-nums' }}>
+            <div style={{ ...mono, fontSize: 9, color: colors.textMuted, letterSpacing: '0.08em', fontWeight: 600, marginBottom: 2 }}>MTD LEADS</div>
+            <div style={{ ...mono, fontSize: 14, fontWeight: 600, color: colors.text, fontVariantNumeric: 'tabular-nums' }}>
               {client.leadsMTD}
               {leadDelta !== 0 && client.prevMonthLeads > 0 && (
                 <span style={{ fontSize: 11, marginLeft: 6, color: leadDelta > 0 ? colors.accent : colors.red }}>
@@ -287,8 +288,8 @@ function ClientCard({
             </div>
           </div>
           <div>
-            <div style={{ fontSize: 9, color: colors.textMuted, letterSpacing: '0.08em', fontWeight: 600, marginBottom: 2 }}>CPL</div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: colors.text, fontVariantNumeric: 'tabular-nums' }}>
+            <div style={{ ...mono, fontSize: 9, color: colors.textMuted, letterSpacing: '0.08em', fontWeight: 600, marginBottom: 2 }}>CPL</div>
+            <div style={{ ...mono, fontSize: 14, fontWeight: 600, color: colors.text, fontVariantNumeric: 'tabular-nums' }}>
               {client.cpl > 0 ? fmtMoney(client.cpl) : '—'}
               {cplDelta !== 0 && client.prevMonthCpl > 0 && (
                 <span style={{ fontSize: 11, marginLeft: 6, color: cplDelta < 0 ? colors.accent : colors.red }}>
@@ -303,12 +304,12 @@ function ClientCard({
       {/* Bottom row */}
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: colors.textMuted, paddingTop: 4, borderTop: `1px solid ${colors.border}` }}>
         <span>
-          Contact: <span style={{ color: staleContact ? colors.yellow : colors.text }}>{formatDays(daysContact)} ago</span>
+          Contact: <span style={{ ...mono, color: staleContact ? colors.yellow : colors.text }}>{formatDays(daysContact)} ago</span>
         </span>
         <span>
-          Renewal: <span style={{ color: renewingSoon ? colors.yellow : colors.text }}>{isFinite(renewalDays) ? formatDays(renewalDays) : '—'}</span>
+          Renewal: <span style={{ ...mono, color: renewingSoon ? colors.yellow : colors.text }}>{isFinite(renewalDays) ? formatDays(renewalDays) : '—'}</span>
         </span>
-        <span>
+        <span style={mono}>
           {openItems > 0 ? (
             <span style={{ color: colors.yellow }}>{openItems} open</span>
           ) : (
@@ -324,10 +325,10 @@ function ClientCard({
 function Kpi({ label, value, accent }: { label: string; value: string; accent: string }) {
   return (
     <div style={{ ...cardStyleAccent, padding: '14px 18px', flex: 1, minWidth: 0 }}>
-      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', color: colors.textMuted, textTransform: 'uppercase' as const, marginBottom: 6 }}>
+      <div style={{ ...mono, fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', color: colors.textMuted, textTransform: 'uppercase' as const, marginBottom: 6 }}>
         {label}
       </div>
-      <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', color: accent, fontVariantNumeric: 'tabular-nums' }}>
+      <div style={{ ...mono, fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', color: accent, fontVariantNumeric: 'tabular-nums' }}>
         {value}
       </div>
     </div>
@@ -349,7 +350,7 @@ function SidePanelPlaceholder({ clientId, clients, onClose }: { clientId: string
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
           <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: colors.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: 4 }}>
+            <div style={{ ...mono, fontSize: 11, fontWeight: 600, color: colors.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: 4 }}>
               {STATUS_LABELS[client.status]}
             </div>
             <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>
