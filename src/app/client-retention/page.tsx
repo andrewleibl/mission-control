@@ -1,1976 +1,785 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from 'react'
 import {
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  Calendar as CalendarIcon,
-  Video,
-  Phone,
-  MessageSquare,
-  X,
-  Clock,
-  GripVertical,
-  Trash2,
-  TrendingUp,
-  TrendingDown,
-  Target,
-  DollarSign,
-  Users,
-} from "lucide-react";
+  ChevronLeft, ChevronRight, Plus, X,
+  Video, Phone, MessageSquare, Mail, Users as UsersIcon, FileText, Flag,
+  Pencil, Trash2, Check, ExternalLink,
+  type LucideIcon,
+} from 'lucide-react'
+import { PageContainer, PageHeader, colors, cardStyle, cardStyleAccent, borders, mono } from '@/components/DesignSystem'
+import {
+  RetentionEvent, EventType, EVENT_TYPE_LABELS,
+  loadEvents, saveEvents, commsEntryFromEvent,
+  toIso, fromIso, startOfWeek, addDays, addMonths,
+  eventsThisWeek, overdueEvents, upcomingEvents, daysSinceLastEvent,
+} from '@/lib/retention-data'
+import {
+  Client, CommsEntry,
+  loadClients, loadComms, saveComms,
+} from '@/lib/clients-data'
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// =================================================================
+// Type lookups
+// =================================================================
 
-interface ReportData {
-  spend: number;
-  leads: number;
-  cpl: number;
-  ctr: number;
-  leadsChange: number;
-  cplChange: number;
-  direction: "positive" | "negative" | "neutral";
-  campaignStatus: {
-    summary: string;
-    whatsWorking?: string[];
-    keepBallRolling?: string[];
-    whatChanged?: string[];
-    fixes?: string[];
-    optimization?: string[];
-  };
-  changesThisWeek: string[];
-  changeImpact: string;
-  nextWeek: {
-    expectation: string;
-    targets: string[];
-    focusAreas: string[];
-  };
-  htmlReportUrl: string;
+const TYPE_COLOR: Record<EventType, { fg: string; bg: string }> = {
+  loom: { fg: colors.red, bg: 'rgba(255,123,114,0.12)' },
+  call: { fg: colors.accent, bg: 'rgba(56,161,87,0.12)' },
+  text: { fg: colors.yellow, bg: 'rgba(227,179,65,0.12)' },
+  meeting: { fg: colors.purple, bg: 'rgba(159,122,234,0.12)' },
+  report: { fg: colors.blue, bg: 'rgba(99,179,237,0.12)' },
+  milestone: { fg: colors.orange, bg: 'rgba(246,173,85,0.12)' },
 }
 
-interface RetentionEvent {
-  id: string;
-  title: string;
-  client: string;
-  type: "loom" | "biweekly" | "text" | "report" | "start" | "end";
-  date: string; // YYYY-MM-DD
-  time: string;
-  notes: string;
-  completed: boolean;
-  reportData?: ReportData; // Only for weekly reports
+const TYPE_ICON: Record<EventType, LucideIcon> = {
+  loom: Video,
+  call: Phone,
+  text: MessageSquare,
+  meeting: UsersIcon,
+  report: FileText,
+  milestone: Flag,
 }
 
-type ViewType = "day" | "week" | "month";
+type ViewMode = 'day' | 'week' | 'month'
+type FilterKey = 'all' | 'upcoming' | 'overdue' | 'completed'
 
-// ─── Component ─────────────────────────────────────────────────────────────────
+const FILTERS: { key: FilterKey; label: string }[] = [
+  { key: 'all', label: 'All' },
+  { key: 'upcoming', label: 'Upcoming' },
+  { key: 'overdue', label: 'Overdue' },
+  { key: 'completed', label: 'Completed' },
+]
 
-export default function ClientRetentionPage() {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [view, setView] = useState<ViewType>("week");
-  const [events, setEvents] = useState<RetentionEvent[]>([
-    {
-      id: "pj-weekly-001",
-      title: "PJ Weekly Report",
-      client: "PJ Sparks",
-      type: "report",
-      date: "2026-03-27",
-      time: "",
-      notes: "Week of March 20-27, 2026",
-      completed: false,
-      reportData: {
-        spend: 217.33,
-        leads: 1,
-        cpl: 217.33,
-        ctr: 0.91,
-        leadsChange: 0,
-        cplChange: -1.5,
-        direction: "negative",
-        campaignStatus: {
-          summary: "Campaign is stable but underperforming on lead volume. 1 lead at $217 CPL is above target.",
-          whatChanged: [
-            "Lead volume too low (1 lead/week)",
-            "High CPL indicates audience saturation",
-            "Creative fatigue likely setting in"
-          ],
-          fixes: [
-            "Pause lowest-performing creative (CTR < 1%)",
-            "Expand targeting radius by 5 miles",
-            "Test new hook angles in ad copy",
-            "Reduce budget on underperforming ad sets by 20%"
-          ]
-        },
-        changesThisWeek: [
-          "Paused 2 creatives showing fatigue (CTR < 1.5%)",
-          "Adjusted budget allocation",
-          "Reviewed targeting parameters"
-        ],
-        changeImpact: "Changes attempted but market conditions shifted — need more aggressive fixes.",
-        nextWeek: {
-          expectation: "Expect 2-3 day recovery period after implementing fixes, then stabilization.",
-          targets: [
-            "Target Leads: 3-4",
-            "Target CPL: $80-100",
-            "Target Spend: $240-280"
-          ],
-          focusAreas: [
-            "Monitor daily",
-            "Aggressive creative rotation",
-            "Budget reallocation"
-          ]
-        },
-        htmlReportUrl: "/loom-recording"
-      }
-    },
-    {
-      id: "hector-weekly-001",
-      title: "Weekly Breakdown Loom",
-      client: "Hector Huizar",
-      type: "loom",
-      date: "2026-03-28",
-      time: "10:00",
-      notes: "Weekly performance breakdown for Valley of the Sun Landscape. Mar 19-25: 7 leads, $202.56 spent.",
-      completed: false,
-      reportData: {
-        spend: 202.56,
-        leads: 7,
-        cpl: 28.94,
-        ctr: 0.71,
-        leadsChange: 133,
-        cplChange: -56,
-        direction: "positive",
-        campaignStatus: {
-          summary: "Excellent week — 7 leads generated, highest volume in past month. CPL dropped to $28.94 (down from $65.49), more than 50% improvement. Campaign found its rhythm.",
-          whatsWorking: [
-            "Lead volume jumped to 7 (from 3 last week)",
-            "CPL nearly cut in half — $28.94 vs $65.49",
-            "CTR holding steady at 0.71%",
-            "Consistent $30/day budget pacing"
-          ],
-          fixes: [
-            "Maintain current creative set — performing well",
-            "Keep $30/day budget through next week",
-            "Monitor for any fatigue signs around day 5-6",
-            "Prepare backup creative if volume dips"
-          ]
-        },
-        changesThisWeek: [
-          "Lead volume increased 133% (3 → 7 leads)",
-          "CPL improved 56% ($65.49 → $28.94)",
-          "Reached 3,348 people, 6,218 impressions",
-          "Campaign entering optimal performance phase"
-        ],
-        changeImpact: "Campaign has broken through previous plateau. The 7-lead week shows the targeting and creative are now aligned. This is the performance level we want to maintain.",
-        nextWeek: {
-          expectation: "Stabilize at 5-7 leads per week with CPL under $35. Watch for any drop-off as we enter week 4 of this campaign.",
-          targets: [
-            "Target Leads: 5-7 (maintain momentum)",
-            "Target CPL: $25-35 (stay efficient)",
-            "Target Spend: $210-250 weekly"
-          ],
-          focusAreas: [
-            "Monitor daily for lead consistency",
-            "Watch CTR — if it drops below 0.6%, rotate creative",
-            "Maintain budget at $30/day",
-            "Document what's working for future campaigns"
-          ]
-        },
-        htmlReportUrl: "/loom-recording"
-      }
-    },
-    {
-      id: "ricardo-weekly-001",
-      title: "Weekly Breakdown Loom",
-      client: "Ricardo Madera",
-      type: "loom",
-      date: "2026-03-28",
-      time: "11:00",
-      notes: "Weekly performance breakdown for Madera Landscape. Mar 19-25: 2 leads, both on Mar 25th.",
-      completed: false,
-      reportData: {
-        spend: 86.86,
-        leads: 2,
-        cpl: 43.43,
-        ctr: 0.93,
-        leadsChange: 0,
-        cplChange: 79,
-        direction: "negative",
-        campaignStatus: {
-          summary: "Solid week with 2 leads. Both came through on Mar 25th — strong finish to the week. CPL at $43 is manageable but up from prior weeks.",
-          whatsWorking: [
-            "2 leads generated — consistent volume",
-            "Both leads same day (Mar 25th) — strong Friday push",
-            "CTR up to 0.93% — engagement improving",
-            "Reach of 2,148 — solid audience penetration"
-          ],
-          fixes: [
-            "CPL at $43 (up from $24 last week) — trend to watch",
-            "Concentrated on single day — need more distribution",
-            "Monitor if $43 CPL becomes new baseline",
-            "Test creative variations to bring costs down"
-          ]
-        },
-        changesThisWeek: [
-          "Mar 19-24: 0 leads",
-          "Mar 25: 2 leads",
-          "Total: 2 leads, $86.86 spent",
-          "CPL: $43.43 (vs $24.33 prior week)"
-        ],
-        changeImpact: "2 leads with strong Friday finish. CPL elevated but acceptable. Watch for consistency and distribution next week.",
-        nextWeek: {
-          expectation: "Stabilize at 2-3 leads per week with CPL back under $35. Watch for consistency.",
-          targets: [
-            "Target Leads: 2-3",
-            "Target CPL: $30-35 (down from $43)",
-            "Target Spend: $210/week"
-          ],
-          focusAreas: [
-            "Target 2-3 leads distributed across the week",
-            "Bring CPL back to $30-35 range",
-            "Monitor daily pacing — avoid single-day clustering",
-            "Maintain $30/day budget"
-          ]
-        },
-        htmlReportUrl: "/loom-recording"
-      }
-    }
-  ]);
-  const [showModal, setShowModal] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [editingEvent, setEditingEvent] = useState<RetentionEvent | null>(null);
-  const [draggedEvent, setDraggedEvent] = useState<RetentionEvent | null>(null);
+const MONTHS_LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+const WEEKDAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 
-  // Form state
-  const [formTitle, setFormTitle] = useState("");
-  const [formClient, setFormClient] = useState("");
-  const [formType, setFormType] = useState<"loom" | "biweekly" | "text" | "report" | "start" | "end">("loom");
-  const [formTime, setFormTime] = useState("09:00");
-  const [formNotes, setFormNotes] = useState("");
+const TODAY_ISO = toIso(new Date())
 
-  // Load events from localStorage on mount, or use defaults if empty
+function fmtTime(s?: string): string { return s || '' }
+
+// =================================================================
+// Page
+// =================================================================
+export default function RetentionPage() {
+  const [events, setEvents] = useState<RetentionEvent[]>([])
+  const [clients, setClients] = useState<Client[]>([])
+  const [comms, setComms] = useState<CommsEntry[]>([])
+  const [view, setView] = useState<ViewMode>('month')
+  const [cursor, setCursor] = useState<Date>(new Date())
+  const [filter, setFilter] = useState<FilterKey>('all')
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
+  const [modal, setModal] = useState<
+    | { kind: 'add'; date: string }
+    | { kind: 'edit'; event: RetentionEvent }
+    | null
+  >(null)
+
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('mc_retention_events_v2');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed.length > 0) {
-          setEvents(parsed);
-        }
-      }
-    } catch {
-      // ignore
+    setEvents(loadEvents())
+    setClients(loadClients())
+    setComms(loadComms())
+  }, [])
+
+  function persistEvents(next: RetentionEvent[]) { setEvents(next); saveEvents(next) }
+  function persistComms(next: CommsEntry[]) { setComms(next); saveComms(next) }
+
+  // ─── Two-way sync handlers ─────────────────────────────────────
+
+  function addEvent(eventData: Omit<RetentionEvent, 'id' | 'createdAt' | 'linkedCommsId'>) {
+    const eventId = `re_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+    const commsId = `c_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+    const newComms: CommsEntry = {
+      id: commsId,
+      createdAt: Date.now(),
+      ...commsEntryFromEvent({ ...eventData, id: eventId, createdAt: Date.now() }),
     }
-  }, []);
-
-  // Save events to localStorage whenever they change
-  useEffect(() => {
-    try {
-      localStorage.setItem('mc_retention_events_v2', JSON.stringify(events));
-    } catch {
-      // ignore
+    const newEvent: RetentionEvent = {
+      ...eventData,
+      id: eventId,
+      createdAt: Date.now(),
+      linkedCommsId: commsId,
     }
-  }, [events]);
+    persistEvents([newEvent, ...events])
+    persistComms([newComms, ...comms])
+  }
 
-  // ─── Calendar Logic ──────────────────────────────────────────────────────────
-
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
-
-  const firstDayOfMonth = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-  const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-  ];
-
-  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-  // Navigation functions based on view
-  const prevPeriod = () => {
-    if (view === "month") {
-      setCurrentDate(new Date(year, month - 1, 1));
-    } else if (view === "week") {
-      const newDate = new Date(currentDate);
-      newDate.setDate(newDate.getDate() - 7);
-      setCurrentDate(newDate);
-    } else {
-      const newDate = new Date(currentDate);
-      newDate.setDate(newDate.getDate() - 1);
-      setCurrentDate(newDate);
+  function updateEvent(updated: RetentionEvent) {
+    persistEvents(events.map(e => e.id === updated.id ? updated : e))
+    // Sync the linked CommsEntry if it exists
+    if (updated.linkedCommsId) {
+      const synced = commsEntryFromEvent(updated)
+      persistComms(comms.map(c => c.id === updated.linkedCommsId ? { ...c, ...synced } : c))
     }
-  };
+  }
 
-  const nextPeriod = () => {
-    if (view === "month") {
-      setCurrentDate(new Date(year, month + 1, 1));
-    } else if (view === "week") {
-      const newDate = new Date(currentDate);
-      newDate.setDate(newDate.getDate() + 7);
-      setCurrentDate(newDate);
-    } else {
-      const newDate = new Date(currentDate);
-      newDate.setDate(newDate.getDate() + 1);
-      setCurrentDate(newDate);
+  function deleteEvent(id: string) {
+    const ev = events.find(e => e.id === id)
+    persistEvents(events.filter(e => e.id !== id))
+    if (ev?.linkedCommsId) {
+      persistComms(comms.filter(c => c.id !== ev.linkedCommsId))
     }
-  };
+    if (selectedEventId === id) setSelectedEventId(null)
+  }
 
-  // Get week start (Sunday)
-  const getWeekStart = (date: Date) => {
-    const d = new Date(date);
-    const day = d.getDay();
-    const diff = d.getDate() - day;
-    return new Date(d.setDate(diff));
-  };
+  function toggleCompleted(id: string) {
+    persistEvents(events.map(e => e.id === id ? { ...e, completed: !e.completed } : e))
+  }
 
-  const weekStart = getWeekStart(currentDate);
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekEnd.getDate() + 6);
+  // ─── Derived state ─────────────────────────────────────────────
 
-  const formatDateKey = (d: number) => {
-    return `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-  };
+  // KPI numbers
+  const weekCount = eventsThisWeek(events).length
+  const overdueCount = overdueEvents(events).length
+  const upcomingCount = upcomingEvents(events, 7).length
+  const staleCount = clients.filter(c => daysSinceLastEvent(c.id, events) > 14).length
 
-  const getEventsForDate = (dateKey: string) => {
-    return events.filter((e) => e.date === dateKey);
-  };
-
-  // ─── Event Handlers ────────────────────────────────────────────────────────
-
-  const openAddModal = (dateKey: string) => {
-    setSelectedDate(dateKey);
-    setEditingEvent(null);
-    setFormTitle("");
-    setFormClient("");
-    setFormType("loom");
-    setFormTime("09:00");
-    setFormNotes("");
-    setShowModal(true);
-  };
-
-  const openEditModal = (event: RetentionEvent) => {
-    setEditingEvent(event);
-    setSelectedDate(event.date);
-    setFormTitle(event.title);
-    setFormClient(event.client);
-    setFormType(event.type);
-    setFormTime(event.time);
-    setFormNotes(event.notes);
-    setShowModal(true);
-  };
-
-  const saveEvent = () => {
-    if (!formTitle || !formClient || !selectedDate) return;
-
-    if (editingEvent) {
-      // Update existing
-      setEvents((prev) =>
-        prev.map((e) =>
-          e.id === editingEvent.id
-            ? { ...e, title: formTitle, client: formClient, type: formType, time: formTime, notes: formNotes }
-            : e
-        )
-      );
-    } else {
-      // Add new
-      const newEvent: RetentionEvent = {
-        id: crypto.randomUUID(),
-        title: formTitle,
-        client: formClient,
-        type: formType,
-        date: selectedDate,
-        time: formTime,
-        notes: formNotes,
-        completed: false,
-      };
-      setEvents((prev) => [...prev, newEvent]);
+  // Filtered events for visible calendar
+  const filteredEvents = useMemo(() => {
+    switch (filter) {
+      case 'upcoming': return events.filter(e => e.date >= TODAY_ISO && !e.completed)
+      case 'overdue': return events.filter(e => e.date < TODAY_ISO && !e.completed)
+      case 'completed': return events.filter(e => e.completed)
+      case 'all':
+      default: return events
     }
-    setShowModal(false);
-  };
+  }, [events, filter])
 
-  const deleteEvent = (id: string) => {
-    setEvents((prev) => prev.filter((e) => e.id !== id));
-    setShowModal(false);
-  };
+  // ─── Period nav ────────────────────────────────────────────────
 
-  const toggleCompleted = (id: string) => {
-    setEvents((prev) =>
-      prev.map((e) => (e.id === id ? { ...e, completed: !e.completed } : e))
-    );
-  };
+  function navigate(dir: -1 | 1) {
+    if (view === 'day') setCursor(addDays(cursor, dir))
+    else if (view === 'week') setCursor(addDays(cursor, dir * 7))
+    else setCursor(addMonths(cursor, dir))
+  }
+  function jumpToToday() { setCursor(new Date()) }
 
-  // Drag and drop
-  const handleDragStart = (event: RetentionEvent) => {
-    setDraggedEvent(event);
-  };
-
-  const handleDrop = (dateKey: string) => {
-    if (draggedEvent) {
-      setEvents((prev) =>
-        prev.map((e) => (e.id === draggedEvent.id ? { ...e, date: dateKey } : e))
-      );
-      setDraggedEvent(null);
+  const periodLabel = useMemo(() => {
+    if (view === 'day') return cursor.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+    if (view === 'week') {
+      const s = startOfWeek(cursor)
+      const e = addDays(s, 6)
+      return `${MONTHS_LONG[s.getMonth()].slice(0, 3)} ${s.getDate()} – ${MONTHS_LONG[e.getMonth()].slice(0, 3)} ${e.getDate()}, ${e.getFullYear()}`
     }
-  };
+    return `${MONTHS_LONG[cursor.getMonth()]} ${cursor.getFullYear()}`
+  }, [view, cursor])
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
-
-  // ─── Render ──────────────────────────────────────────────────────────────────
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "loom": return <Video size={14} />;
-      case "biweekly": return <Phone size={14} />;
-      case "text": return <MessageSquare size={14} />;
-      case "report": return <Clock size={14} />;
-      case "start": return <CalendarIcon size={14} />;
-      case "end": return <CalendarIcon size={14} />;
-      default: return <CalendarIcon size={14} />;
-    }
-  };
-
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case "loom": return "#E53E3E"; // Red
-      case "biweekly": return "#38A169"; // Green
-      case "text": return "#D69E2E"; // Yellow
-      case "report": return "#4299E1"; // Blue
-      case "start": return "#805AD5"; // Purple
-      case "end": return "#DD6B20"; // Orange
-      default: return "#718096";
-    }
-  };
+  const selectedEvent = selectedEventId ? events.find(e => e.id === selectedEventId) : null
 
   return (
-    <div style={{ padding: "32px", maxWidth: "1400px", margin: "0 auto", position: "relative", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif" }}>
-      {/* Red Glow Backdrops */}
-      <div
-        style={{
-          position: "fixed",
-          top: "-15%",
-          right: "-10%",
-          width: "800px",
-          height: "800px",
-          background: "radial-gradient(circle, rgba(229, 62, 62, 0.25) 0%, transparent 60%)",
-          pointerEvents: "none",
-          zIndex: 0,
-          filter: "blur(80px)",
-        }}
-      />
-      <div
-        style={{
-          position: "fixed",
-          bottom: "-15%",
-          left: "-10%",
-          width: "700px",
-          height: "700px",
-          background: "radial-gradient(circle, rgba(229, 62, 62, 0.2) 0%, transparent 55%)",
-          pointerEvents: "none",
-          zIndex: 0,
-          filter: "blur(70px)",
-        }}
-      />
-      <div
-        style={{
-          position: "fixed",
-          top: "40%",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "1000px",
-          height: "400px",
-          background: "radial-gradient(ellipse, rgba(229, 62, 62, 0.08) 0%, transparent 70%)",
-          pointerEvents: "none",
-          zIndex: 0,
-          filter: "blur(100px)",
-        }}
+    <PageContainer>
+      <PageHeader
+        title="Retention"
+        subtitle="Touchpoint calendar — schedule and log every client interaction."
+        action={
+          <button
+            onClick={() => setModal({ kind: 'add', date: TODAY_ISO })}
+            style={primaryButtonStyle}
+          >
+            <Plus size={14} strokeWidth={2.5} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+            Add Event
+          </button>
+        }
       />
 
-      {/* Header */}
-      <div style={{ marginBottom: "32px" }}>
-        <h1
-          style={{
-            fontSize: "32px",
-            fontWeight: 800,
-            marginBottom: "8px",
-            background: "linear-gradient(135deg, #F7FAFC 0%, #E53E3E 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          Client Retention
-        </h1>
-        <p style={{ color: "#A0AEC0", fontSize: "14px", fontWeight: 400 }}>
-          Track touchpoints, Loom videos, calls, and reports. Drag events to reschedule.
-        </p>
+      {/* KPI Strip */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+        <Kpi label="This Week" value={String(weekCount)} accent={weekCount > 0 ? colors.accent : colors.textMuted} />
+        <Kpi label="Overdue" value={String(overdueCount)} accent={overdueCount > 0 ? colors.red : colors.textMuted} />
+        <Kpi label="Upcoming 7d" value={String(upcomingCount)} accent={upcomingCount > 0 ? colors.accent : colors.textMuted} />
+        <Kpi label="Stale Clients" value={String(staleCount)} accent={staleCount > 0 ? colors.yellow : colors.textMuted} />
+      </div>
+
+      {/* Filter chips */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' as const }}>
+        {FILTERS.map(f => {
+          const active = filter === f.key
+          const count = f.key === 'all' ? events.length :
+            f.key === 'upcoming' ? events.filter(e => e.date >= TODAY_ISO && !e.completed).length :
+            f.key === 'overdue' ? overdueCount :
+            events.filter(e => e.completed).length
+          return (
+            <button key={f.key} onClick={() => setFilter(f.key)} style={{
+              padding: '6px 14px',
+              borderRadius: borders.radius.medium,
+              border: `1px solid ${active ? colors.accent : colors.border}`,
+              background: active ? 'rgba(56,161,87,0.1)' : 'transparent',
+              color: active ? colors.accent : colors.textMuted,
+              fontSize: 12, fontWeight: 600, cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}>
+              {f.label} <span style={{ ...mono, opacity: 0.6, marginLeft: 4 }}>{count}</span>
+            </button>
+          )
+        })}
       </div>
 
       {/* Calendar Header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: "24px",
-          background: "linear-gradient(135deg, #1A1A1A 0%, #1A1A1A 50%, rgba(229, 62, 62, 0.05) 100%)",
-          padding: "16px 20px",
-          borderRadius: "12px",
-          flexWrap: "wrap",
-          gap: "16px",
-          border: "1px solid rgba(229, 62, 62, 0.1)",
-          boxShadow: "0 0 40px rgba(229, 62, 62, 0.1)",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <button
-            onClick={prevPeriod}
-            style={{
-              background: "#2A2A2A",
-              border: "1px solid #3A3A3A",
-              borderRadius: "8px",
-              padding: "8px",
-              cursor: "pointer",
-              color: "#F7FAFC",
-            }}
-          >
-            <ChevronLeft size={20} />
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button onClick={() => navigate(-1)} style={iconBtnStyle} title="Previous">
+            <ChevronLeft size={16} />
           </button>
-          <h2 style={{ fontSize: "20px", fontWeight: 700, color: "#F7FAFC", whiteSpace: "nowrap" }}>
-            {view === "month" && `${monthNames[month]} ${year}`}
-            {view === "week" && `Week of ${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
-            {view === "day" && currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-          </h2>
-          <button
-            onClick={nextPeriod}
-            style={{
-              background: "#2A2A2A",
-              border: "1px solid #3A3A3A",
-              borderRadius: "8px",
-              padding: "8px",
-              cursor: "pointer",
-              color: "#F7FAFC",
-            }}
-          >
-            <ChevronRight size={20} />
+          <button onClick={() => navigate(1)} style={iconBtnStyle} title="Next">
+            <ChevronRight size={16} />
           </button>
+          <button onClick={jumpToToday} style={pillBtnStyle}>Today</button>
+          <span style={{ fontSize: 16, fontWeight: 600, color: colors.text, marginLeft: 8 }}>{periodLabel}</span>
         </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          {/* View Toggle */}
-          <div
-            style={{
-              display: "flex",
-              background: "#0D0D0D",
-              borderRadius: "8px",
-              padding: "4px",
-              border: "1px solid #3A3A3A",
-            }}
-          >
-            {(["day", "week", "month"] as ViewType[]).map((v) => (
-              <button
-                key={v}
-                onClick={() => setView(v)}
-                style={{
-                  padding: "6px 12px",
-                  borderRadius: "6px",
-                  border: "none",
-                  background: view === v ? "#E53E3E" : "transparent",
-                  color: view === v ? "#fff" : "#A0AEC0",
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  textTransform: "capitalize",
-                }}
-              >
-                {v}
-              </button>
-            ))}
-          </div>
-
-          <button
-            onClick={() => openAddModal(formatDateKey(currentDate.getDate()))}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              background: "#E53E3E",
-              border: "none",
-              borderRadius: "8px",
-              padding: "10px 16px",
-              color: "#fff",
-              fontWeight: 600,
-              cursor: "pointer",
-            }}
-          >
-            <Plus size={16} />
-            Add Event
-          </button>
-        </div>
+        <ViewToggle value={view} onChange={setView} />
       </div>
 
-      {/* Legend */}
-      <div style={{ display: "flex", gap: "20px", marginBottom: "20px", flexWrap: "wrap" }}>
-        {[
-          { type: "loom", label: "Loom Video", color: "#E53E3E" },
-          { type: "biweekly", label: "Bi-Weekly Call", color: "#38A169" },
-          { type: "text", label: "Text", color: "#D69E2E" },
-          { type: "report", label: "Weekly Report", color: "#4299E1" },
-          { type: "start", label: "Start of Campaign", color: "#805AD5" },
-          { type: "end", label: "End of Campaign", color: "#DD6B20" },
-        ].map((item) => (
-          <div key={item.type} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <div
-              style={{
-                width: "12px",
-                height: "12px",
-                borderRadius: "3px",
-                background: item.color,
-              }}
-            />
-            <span style={{ fontSize: "13px", color: "#A0AEC0" }}>{item.label}</span>
-          </div>
+      {/* Calendar Body */}
+      <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+        {view === 'month' && (
+          <MonthGrid
+            cursor={cursor}
+            events={filteredEvents}
+            clients={clients}
+            onSelectEvent={setSelectedEventId}
+            onAddForDay={iso => setModal({ kind: 'add', date: iso })}
+          />
+        )}
+        {view === 'week' && (
+          <PlaceholderView title="Week View" subtitle="Phase 2 — next iteration." />
+        )}
+        {view === 'day' && (
+          <PlaceholderView title="Day View" subtitle="Phase 2 — next iteration." />
+        )}
+      </div>
+
+      {/* Side panel */}
+      {selectedEvent && (
+        <SidePanel
+          event={selectedEvent}
+          client={clients.find(c => c.id === selectedEvent.clientId)}
+          onClose={() => setSelectedEventId(null)}
+          onEdit={() => { setModal({ kind: 'edit', event: selectedEvent }); setSelectedEventId(null) }}
+          onDelete={() => deleteEvent(selectedEvent.id)}
+          onToggleCompleted={() => toggleCompleted(selectedEvent.id)}
+        />
+      )}
+
+      {/* Add/Edit modal */}
+      {modal && (
+        <EventModal
+          mode={modal.kind}
+          defaultDate={modal.kind === 'add' ? modal.date : modal.event.date}
+          existing={modal.kind === 'edit' ? modal.event : undefined}
+          clients={clients}
+          onClose={() => setModal(null)}
+          onSave={data => {
+            if (modal.kind === 'add') addEvent(data)
+            else updateEvent({ ...modal.event, ...data })
+            setModal(null)
+          }}
+        />
+      )}
+    </PageContainer>
+  )
+}
+
+// =================================================================
+// Sub-components
+// =================================================================
+
+function Kpi({ label, value, accent }: { label: string; value: string; accent: string }) {
+  return (
+    <div style={{ ...cardStyleAccent, padding: '14px 18px', flex: 1, minWidth: 0 }}>
+      <div style={{ ...mono, fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', color: colors.textMuted, textTransform: 'uppercase' as const, marginBottom: 6 }}>
+        {label}
+      </div>
+      <div style={{ ...mono, fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', color: accent, fontVariantNumeric: 'tabular-nums' }}>
+        {value}
+      </div>
+    </div>
+  )
+}
+
+const iconBtnStyle: React.CSSProperties = {
+  width: 30, height: 30, borderRadius: 6,
+  background: 'transparent', border: `1px solid ${colors.border}`,
+  color: colors.textMuted, cursor: 'pointer',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  fontFamily: 'inherit',
+}
+
+const pillBtnStyle: React.CSSProperties = {
+  padding: '6px 14px', borderRadius: 6,
+  background: 'transparent', border: `1px solid ${colors.border}`,
+  color: colors.textMuted, cursor: 'pointer',
+  fontSize: 12, fontWeight: 600, fontFamily: 'inherit',
+}
+
+const primaryButtonStyle: React.CSSProperties = {
+  background: colors.accent, border: 'none', borderRadius: borders.radius.medium,
+  color: '#fff', fontSize: 13, fontWeight: 600, padding: '8px 14px', cursor: 'pointer',
+  whiteSpace: 'nowrap' as const, fontFamily: 'inherit',
+  display: 'inline-flex', alignItems: 'center',
+}
+
+function ViewToggle({ value, onChange }: { value: ViewMode; onChange: (v: ViewMode) => void }) {
+  return (
+    <div style={{
+      display: 'flex',
+      background: colors.cardBg,
+      border: `1px solid ${colors.border}`,
+      borderRadius: borders.radius.medium,
+      padding: 2,
+    }}>
+      {(['day', 'week', 'month'] as ViewMode[]).map(v => {
+        const active = value === v
+        return (
+          <button key={v} onClick={() => onChange(v)} style={{
+            padding: '5px 14px',
+            borderRadius: 6, border: 'none', cursor: 'pointer',
+            background: active ? colors.accent : 'transparent',
+            color: active ? '#fff' : colors.textMuted,
+            fontSize: 12, fontWeight: 600, textTransform: 'capitalize' as const,
+            fontFamily: 'inherit',
+          }}>{v}</button>
+        )
+      })}
+    </div>
+  )
+}
+
+function PlaceholderView({ title, subtitle }: { title: string; subtitle: string }) {
+  return (
+    <div style={{ padding: 60, textAlign: 'center' }}>
+      <div style={{ ...mono, fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', color: colors.accent, textTransform: 'uppercase' as const, marginBottom: 10 }}>
+        {subtitle}
+      </div>
+      <div style={{ fontSize: 18, fontWeight: 600 }}>{title}</div>
+    </div>
+  )
+}
+
+// ---- Month Grid ----
+function MonthGrid({
+  cursor, events, clients, onSelectEvent, onAddForDay,
+}: {
+  cursor: Date
+  events: RetentionEvent[]
+  clients: Client[]
+  onSelectEvent: (id: string) => void
+  onAddForDay: (iso: string) => void
+}) {
+  const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1)
+  const gridStart = startOfWeek(first)
+  const cells = Array.from({ length: 42 }, (_, i) => addDays(gridStart, i))
+  const inMonth = (d: Date) => d.getMonth() === cursor.getMonth()
+
+  return (
+    <div>
+      {/* Weekday headers */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: `1px solid ${colors.border}` }}>
+        {WEEKDAYS.map(w => (
+          <div key={w} style={{
+            ...mono,
+            padding: '10px 12px', fontSize: 10, fontWeight: 600, letterSpacing: '0.08em',
+            color: colors.textMuted, textAlign: 'left',
+          }}>{w}</div>
         ))}
       </div>
-
-      {/* Calendar Views */}
-      <div
-        style={{
-          background: "linear-gradient(180deg, #1A1A1A 0%, rgba(229, 62, 62, 0.15) 100%)",
-          borderRadius: "12px",
-          padding: "20px",
-          border: "1px solid rgba(229, 62, 62, 0.25)",
-          boxShadow: "inset 0 0 100px rgba(229, 62, 62, 0.15), 0 0 60px rgba(229, 62, 62, 0.12)",
-          position: "relative",
-        }}
-      >
-        {/* Red Glow Backdrop - Month View */}
-        {view === "month" && (
-          <>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+        {cells.map((d, i) => {
+          const iso = toIso(d)
+          const cellEvents = events.filter(e => e.date === iso)
+          const isToday = iso === TODAY_ISO
+          const dim = !inMonth(d)
+          return (
             <div
-              style={{
-                position: "absolute",
-                top: "5%",
-                left: "50%",
-                transform: "translateX(-50%)",
-                width: "900px",
-                height: "600px",
-                background: "radial-gradient(circle, rgba(229, 62, 62, 0.35) 0%, transparent 55%)",
-                pointerEvents: "none",
-                zIndex: 0,
-                filter: "blur(80px)",
+              key={i}
+              onClick={e => {
+                if ((e.target as HTMLElement).closest('[data-event-chip]')) return
+                onAddForDay(iso)
               }}
-            />
-            <div
               style={{
-                position: "absolute",
-                bottom: "10%",
-                right: "5%",
-                width: "500px",
-                height: "400px",
-                background: "radial-gradient(circle, rgba(229, 62, 62, 0.2) 0%, transparent 60%)",
-                pointerEvents: "none",
-                zIndex: 0,
-                filter: "blur(60px)",
+                minHeight: 110,
+                padding: '6px 8px',
+                borderRight: ((i + 1) % 7 !== 0) ? `1px solid ${colors.border}` : undefined,
+                borderBottom: i < 35 ? `1px solid ${colors.border}` : undefined,
+                background: isToday ? 'rgba(56,161,87,0.05)' : 'transparent',
+                cursor: 'pointer',
+                opacity: dim ? 0.35 : 1,
+                display: 'flex', flexDirection: 'column', gap: 4,
+                transition: 'background 0.1s',
               }}
-            />
-          </>
-        )}
-        {/* Red Glow Backdrop - Week View */}
-        {view === "week" && (
-          <>
-            <div
-              style={{
-                position: "absolute",
-                top: "10%",
-                right: "-15%",
-                width: "700px",
-                height: "700px",
-                background: "radial-gradient(circle, rgba(229, 62, 62, 0.4) 0%, transparent 50%)",
-                pointerEvents: "none",
-                zIndex: 0,
-                filter: "blur(100px)",
-              }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                bottom: "20%",
-                left: "-10%",
-                width: "600px",
-                height: "500px",
-                background: "radial-gradient(circle, rgba(229, 62, 62, 0.25) 0%, transparent 55%)",
-                pointerEvents: "none",
-                zIndex: 0,
-                filter: "blur(80px)",
-              }}
-            />
-          </>
-        )}
-        {/* Red Glow Backdrop - Day View */}
-        {view === "day" && (
-          <>
-            <div
-              style={{
-                position: "absolute",
-                bottom: "-20%",
-                left: "-20%",
-                width: "900px",
-                height: "900px",
-                background: "radial-gradient(circle, rgba(229, 62, 62, 0.5) 0%, transparent 45%)",
-                pointerEvents: "none",
-                zIndex: 0,
-                filter: "blur(120px)",
-              }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                top: "10%",
-                right: "-10%",
-                width: "500px",
-                height: "500px",
-                background: "radial-gradient(circle, rgba(229, 62, 62, 0.3) 0%, transparent 50%)",
-                pointerEvents: "none",
-                zIndex: 0,
-                filter: "blur(90px)",
-              }}
-            />
-          </>
-        )}
-        {/* ─── MONTH VIEW ─── */}
-        {view === "month" && (
-          <>
-            {/* Day Headers */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(7, 1fr)",
-                gap: "8px",
-                marginBottom: "12px",
-              }}
+              onMouseEnter={e => { if (!isToday) e.currentTarget.style.background = 'rgba(255,255,255,0.02)' }}
+              onMouseLeave={e => { if (!isToday) e.currentTarget.style.background = 'transparent' }}
             >
-              {dayNames.map((day) => (
-                <div
-                  key={day}
-                  style={{
-                    textAlign: "center",
-                    fontSize: "12px",
-                    fontWeight: 700,
-                    color: "#718096",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                  }}
-                >
-                  {day}
-                </div>
-              ))}
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{
+                  ...mono,
+                  fontSize: 12, fontWeight: isToday ? 700 : 500,
+                  color: isToday ? colors.accent : colors.text,
+                  fontVariantNumeric: 'tabular-nums' as const,
+                }}>{d.getDate()}</span>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, overflow: 'hidden' }}>
+                {cellEvents.slice(0, 3).map(e => {
+                  const c = clients.find(c => c.id === e.clientId)
+                  return (
+                    <EventChip
+                      key={e.id}
+                      event={e}
+                      clientName={c?.business ?? 'Unknown'}
+                      onClick={() => onSelectEvent(e.id)}
+                    />
+                  )
+                })}
+                {cellEvents.length > 3 && (
+                  <span style={{ ...mono, fontSize: 10, color: colors.textMuted, paddingLeft: 4 }}>
+                    +{cellEvents.length - 3} more
+                  </span>
+                )}
+              </div>
             </div>
-
-            {/* Calendar Days */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(7, 1fr)",
-                gap: "8px",
-              }}
-            >
-              {/* Empty cells */}
-              {Array.from({ length: firstDayOfMonth }).map((_, i) => (
-                <div key={`empty-${i}`} style={{ aspectRatio: "1" }} />
-              ))}
-
-              {/* Days */}
-              {Array.from({ length: daysInMonth }).map((_, i) => {
-                const day = i + 1;
-                const dateKey = formatDateKey(day);
-                const dayEvents = getEventsForDate(dateKey);
-                const isToday =
-                  new Date().toDateString() ===
-                  new Date(year, month, day).toDateString();
-
-                return (
-                  <div
-                    key={day}
-                    onDragOver={handleDragOver}
-                    onDrop={() => handleDrop(dateKey)}
-                    onClick={() => openAddModal(dateKey)}
-                    style={{
-                      aspectRatio: "1",
-                      background: "#0D0D0D",
-                      borderRadius: "8px",
-                      padding: "8px",
-                      cursor: "pointer",
-                      border: isToday ? "2px solid #E53E3E" : "1px solid #2A2A2A",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "4px",
-                      minHeight: "80px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: "14px",
-                        fontWeight: 600,
-                        color: isToday ? "#E53E3E" : "#F7FAFC",
-                        marginBottom: "4px",
-                      }}
-                    >
-                      {day}
-                    </div>
-                    {dayEvents.slice(0, 3).map((event) => (
-                      <div
-                        key={event.id}
-                        draggable
-                        onDragStart={() => handleDragStart(event)}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openEditModal(event);
-                        }}
-                        style={{
-                          fontSize: "10px",
-                          padding: "4px 6px",
-                          borderRadius: "4px",
-                          background: getTypeColor(event.type) + "20",
-                          color: getTypeColor(event.type),
-                          border: `1px solid ${getTypeColor(event.type)}40`,
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "4px",
-                          cursor: "grab",
-                          opacity: event.completed ? 0.5 : 1,
-                          textDecoration: event.completed ? "line-through" : "none",
-                        }}
-                      >
-                        <GripVertical size={10} />
-                        {event.type === "biweekly" ? `${event.time} ` : ""}{event.client.substring(0, 8)}
-                      </div>
-                    ))}
-                    {dayEvents.length > 3 && (
-                      <div
-                        style={{
-                          fontSize: "10px",
-                          color: "#718096",
-                          textAlign: "center",
-                        }}
-                      >
-                        +{dayEvents.length - 3} more
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </>
-        )}
-
-        {/* ─── WEEK VIEW ─── */}
-        {view === "week" && (
-          <>
-            {/* Day Headers */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "8px", marginBottom: "12px" }}>
-              {Array.from({ length: 7 }).map((_, i) => {
-                const date = new Date(weekStart);
-                date.setDate(date.getDate() + i);
-                const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-                const dayEvents = getEventsForDate(dateKey);
-                const isToday = new Date().toDateString() === date.toDateString();
-
-                return (
-                  <div
-                    key={i}
-                    onDragOver={handleDragOver}
-                    onDrop={() => handleDrop(dateKey)}
-                    onClick={() => openAddModal(dateKey)}
-                    style={{
-                      background: "#0D0D0D",
-                      borderRadius: "8px",
-                      padding: "12px",
-                      cursor: "pointer",
-                      border: isToday ? "2px solid #E53E3E" : "1px solid #2A2A2A",
-                      minHeight: "300px",
-                    }}
-                  >
-                    <div style={{ textAlign: "center", marginBottom: "12px" }}>
-                      <div style={{ fontSize: "12px", color: "#718096", fontWeight: 700 }}>
-                        {dayNames[date.getDay()]}
-                      </div>
-                      <div style={{ fontSize: "20px", fontWeight: 700, color: isToday ? "#E53E3E" : "#F7FAFC" }}>
-                        {date.getDate()}
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                      {dayEvents.sort((a, b) => a.time.localeCompare(b.time)).map((event) => (
-                        <div
-                          key={event.id}
-                          draggable
-                          onDragStart={() => handleDragStart(event)}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openEditModal(event);
-                          }}
-                          style={{
-                            fontSize: "11px",
-                            padding: "8px",
-                            borderRadius: "6px",
-                            background: getTypeColor(event.type) + "20",
-                            color: getTypeColor(event.type),
-                            border: `1px solid ${getTypeColor(event.type)}40`,
-                            cursor: "grab",
-                            opacity: event.completed ? 0.5 : 1,
-                            textDecoration: event.completed ? "line-through" : "none",
-                          }}
-                        >
-                          <div style={{ display: "flex", alignItems: "center", gap: "4px", marginBottom: "2px" }}>
-                            {getTypeIcon(event.type)}
-                            {event.type === "biweekly" && <span style={{ fontWeight: 600 }}>{event.time}</span>}
-                          </div>
-                          <div>{event.client}</div>
-                          <div style={{ fontSize: "10px", opacity: 0.8 }}>{event.title}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </>
-        )}
-
-        {/* ─── DAY VIEW ─── */}
-        {view === "day" && (
-          <>
-            {(() => {
-              const dateKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-${String(currentDate.getDate()).padStart(2, "0")}`;
-              const dayEvents = getEventsForDate(dateKey).sort((a, b) => a.time.localeCompare(b.time));
-
-              return (
-                <div style={{ minHeight: "400px" }}>
-                  <div
-                    onDragOver={handleDragOver}
-                    onDrop={() => handleDrop(dateKey)}
-                    onClick={() => openAddModal(dateKey)}
-                    style={{
-                      background: "#0D0D0D",
-                      borderRadius: "12px",
-                      padding: "24px",
-                      cursor: "pointer",
-                      border: "1px solid #2A2A2A",
-                      minHeight: "350px",
-                    }}
-                  >
-                    {dayEvents.length === 0 ? (
-                      <div style={{ textAlign: "center", padding: "60px 20px", color: "#718096" }}>
-                        <CalendarIcon size={48} style={{ marginBottom: "16px", opacity: 0.5 }} />
-                        <p>No events scheduled for this day.</p>
-                        <p style={{ fontSize: "14px", marginTop: "8px" }}>Click to add an event.</p>
-                      </div>
-                    ) : (
-                      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                        {dayEvents.map((event) => (
-                          <div
-                            key={event.id}
-                            draggable
-                            onDragStart={() => handleDragStart(event)}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openEditModal(event);
-                            }}
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "16px",
-                              padding: "16px",
-                              background: getTypeColor(event.type) + "10",
-                              borderRadius: "8px",
-                              border: `1px solid ${getTypeColor(event.type)}30`,
-                              cursor: "grab",
-                              opacity: event.completed ? 0.5 : 1,
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: "48px",
-                                height: "48px",
-                                borderRadius: "8px",
-                                background: getTypeColor(event.type) + "20",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                color: getTypeColor(event.type),
-                              }}
-                            >
-                              {getTypeIcon(event.type)}
-                            </div>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontSize: "14px", fontWeight: 700, color: "#F7FAFC", marginBottom: "4px" }}>
-                                {event.type === "biweekly" ? `${event.time} — ` : ""}{event.title}
-                              </div>
-                              <div style={{ fontSize: "13px", color: "#A0AEC0" }}>
-                                {event.client}
-                              </div>
-                              {event.notes && (
-                                <div style={{ fontSize: "12px", color: "#718096", marginTop: "4px" }}>
-                                  {event.notes}
-                                </div>
-                              )}
-                            </div>
-                            <div
-                              style={{
-                                width: "8px",
-                                height: "8px",
-                                borderRadius: "50%",
-                                background: event.completed ? "#38A169" : getTypeColor(event.type),
-                              }}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })()}
-          </>
-        )}
+          )
+        })}
       </div>
+    </div>
+  )
+}
 
-      {/* Event List */}
-      <div style={{ marginTop: "32px" }}>
-        <h3 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "16px", color: "#F7FAFC" }}>
-          Upcoming Events
-        </h3>
-        {events.length === 0 ? (
-          <p style={{ color: "#718096", fontSize: "14px" }}>
-            No events yet. Click any date or the "Add Event" button to create your first retention touchpoint.
-          </p>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            {events
-              .filter((e) => !e.completed)
-              .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-              .map((event) => (
-                <div
-                  key={event.id}
-                  onClick={() => openEditModal(event)}
-                  style={{
-                    background: "#1A1A1A",
-                    borderRadius: "8px",
-                    padding: "16px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "16px",
-                    cursor: "pointer",
-                    border: "1px solid #2A2A2A",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: "40px",
-                      height: "40px",
-                      borderRadius: "8px",
-                      background: getTypeColor(event.type) + "20",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: getTypeColor(event.type),
-                    }}
-                  >
-                    {getTypeIcon(event.type)}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 600, color: "#F7FAFC" }}>{event.title}</div>
-                    <div style={{ fontSize: "13px", color: "#A0AEC0" }}>
-                      {event.client} • {event.date}{event.type === "biweekly" ? ` at ${event.time}` : ""}
-                    </div>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleCompleted(event.id);
-                    }}
-                    style={{
-                      background: "transparent",
-                      border: `1px solid ${event.completed ? "#D69E2E" : "#38A169"}`,
-                      borderRadius: "6px",
-                      padding: "8px 12px",
-                      color: event.completed ? "#D69E2E" : "#38A169",
-                      cursor: "pointer",
-                      fontSize: "12px",
-                    }}
-                  >
-                    {event.completed ? "Mark Undone" : "Mark Done"}
-                  </button>
-                </div>
-              ))}
+// ---- Event Chip (in month cell) ----
+function EventChip({ event, clientName, onClick }: { event: RetentionEvent; clientName: string; onClick: () => void }) {
+  const colorPair = TYPE_COLOR[event.type]
+  const Icon = TYPE_ICON[event.type]
+  return (
+    <button
+      data-event-chip
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 4,
+        background: colorPair.bg,
+        borderRadius: 4,
+        padding: '2px 6px',
+        fontSize: 10,
+        opacity: event.completed ? 0.55 : 1,
+        textDecoration: event.completed ? 'line-through' : 'none',
+        border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+        whiteSpace: 'nowrap' as const, overflow: 'hidden',
+        textAlign: 'left' as const,
+      }}
+      title={`${EVENT_TYPE_LABELS[event.type]} — ${clientName}: ${event.title}`}
+    >
+      <Icon size={9} strokeWidth={2.25} color={colorPair.fg} style={{ flexShrink: 0 }} />
+      <span style={{ color: colorPair.fg, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        {clientName.length > 18 ? clientName.slice(0, 16) + '…' : clientName}
+      </span>
+    </button>
+  )
+}
+
+// ---- Side Panel (event detail) ----
+function SidePanel({
+  event, client, onClose, onEdit, onDelete, onToggleCompleted,
+}: {
+  event: RetentionEvent
+  client?: Client
+  onClose: () => void
+  onEdit: () => void
+  onDelete: () => void
+  onToggleCompleted: () => void
+}) {
+  const colorPair = TYPE_COLOR[event.type]
+  const Icon = TYPE_ICON[event.type]
+  const eventDate = fromIso(event.date)
+  const isPast = event.date < TODAY_ISO
+
+  return (
+    <>
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 90 }} />
+      <div style={{
+        position: 'fixed', top: 0, right: 0, bottom: 0, width: 400,
+        background: colors.cardBg, borderLeft: `1px solid ${colors.border}`,
+        zIndex: 91, padding: 28, overflowY: 'auto',
+        boxShadow: '-12px 0 40px rgba(0,0,0,0.4)',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+          <span style={{
+            ...mono,
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            fontSize: 10, fontWeight: 700, padding: '4px 9px', borderRadius: 4,
+            background: colorPair.bg, color: colorPair.fg,
+            letterSpacing: '0.08em',
+          }}>
+            <Icon size={11} strokeWidth={2.25} />
+            {EVENT_TYPE_LABELS[event.type].toUpperCase()}
+          </span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: 22, padding: 0, lineHeight: 1 }}>×</button>
+        </div>
+
+        <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', color: colors.text, marginBottom: 4 }}>
+          {event.title}
+        </div>
+        <div style={{ ...mono, fontSize: 12, color: colors.textMuted, marginBottom: 20 }}>
+          {eventDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+          {event.time && ` · ${event.time}`}
+        </div>
+
+        {/* Client link */}
+        {client && (
+          <div style={{
+            ...cardStyleAccent, padding: '12px 14px', marginBottom: 16,
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          }}>
+            <div>
+              <div style={{ ...mono, fontSize: 9, color: colors.textMuted, letterSpacing: '0.08em', fontWeight: 600 }}>CLIENT</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: colors.text, marginTop: 2 }}>{client.business}</div>
+              <div style={{ fontSize: 11, color: colors.textMuted }}>{client.name}</div>
+            </div>
+            <a
+              href={`/clients`}
+              style={{
+                ...mono, fontSize: 10, fontWeight: 600, letterSpacing: '0.06em',
+                color: colors.accent, textDecoration: 'none',
+                display: 'inline-flex', alignItems: 'center', gap: 4,
+                padding: '6px 10px', borderRadius: 4,
+                border: `1px solid rgba(56,161,87,0.25)`,
+              }}
+            >
+              OPEN <ExternalLink size={10} strokeWidth={2.25} />
+            </a>
           </div>
         )}
-      </div>
 
-      {/* Modal */}
-      {showModal && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0, 0, 0, 0.8)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-          }}
-          onClick={() => setShowModal(false)}
-        >
-          {/* Red Glow Backdrop */}
-          <div
-            style={{
-              position: "fixed",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              width: "600px",
-              height: "600px",
-              background: "radial-gradient(circle, rgba(229, 62, 62, 0.35) 0%, transparent 60%)",
-              pointerEvents: "none",
-              zIndex: 999,
-              filter: "blur(80px)",
-            }}
-          />
-          <div
-            style={{
-              background: "#1A1A1A",
-              borderRadius: "12px",
-              padding: "24px 24px 0 24px",
-              width: "100%",
-              maxWidth: "480px",
-              maxHeight: "90vh",
-              overflow: "auto",
-              margin: "20px",
-              position: "relative",
-              zIndex: 1001,
-              border: "1px solid rgba(229, 62, 62, 0.2)",
-              boxShadow: "0 0 60px rgba(229, 62, 62, 0.15), inset 0 0 40px rgba(229, 62, 62, 0.05)",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* White calendar icon styles */}
-            <style>{`
-              input[type="date"]::-webkit-calendar-picker-indicator {
-                filter: invert(1);
-                cursor: pointer;
-              }
-            `}</style>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-              <h3 style={{ fontSize: "18px", fontWeight: 700, color: "#F7FAFC" }}>
-                {editingEvent ? "Edit Event" : "Add Event"}
-              </h3>
-              <button
-                onClick={() => setShowModal(false)}
-                style={{ background: "transparent", border: "none", color: "#718096", cursor: "pointer" }}
-              >
-                <X size={20} />
-              </button>
+        {/* Notes */}
+        {event.notes && (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ ...mono, fontSize: 10, fontWeight: 600, color: colors.textMuted, letterSpacing: '0.08em', marginBottom: 6 }}>NOTES</div>
+            <div style={{
+              padding: '10px 12px', background: colors.cardBgElevated,
+              borderRadius: borders.radius.medium, fontSize: 13, color: colors.text,
+              lineHeight: 1.5, whiteSpace: 'pre-wrap' as const,
+            }}>
+              {event.notes}
             </div>
+          </div>
+        )}
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px", width: "85%", margin: "0 auto", paddingBottom: "24px" }}>
-              {/* ─── WEEKLY REPORT BIG THREE BREAKDOWN ─── */}
-              {(editingEvent?.type === "report" || editingEvent?.type === "loom") && editingEvent?.reportData && (
-                <div
-                  style={{
-                    background: "#0D0D0D",
-                    border: "1px solid rgba(229, 62, 62, 0.3)",
-                    borderRadius: "12px",
-                    padding: "20px",
-                    marginBottom: "8px",
-                  }}
-                >
-                  {/* Header with link */}
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      marginBottom: "16px",
-                      paddingBottom: "12px",
-                      borderBottom: "1px solid #2A2A2A",
-                    }}
-                  >
-                    <h4
-                      style={{
-                        fontSize: "16px",
-                        fontWeight: 700,
-                        color: "#F7FAFC",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                      }}
-                    >
-                      <span style={{ color: "#E53E3E" }}>📊</span> Weekly Report Breakdown
-                    </h4>
-                    <a
-                      href={`${editingEvent.reportData.htmlReportUrl}?client=${editingEvent.client.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                        background: "#E53E3E",
-                        border: "none",
-                        borderRadius: "6px",
-                        padding: "8px 12px",
-                        color: "#fff",
-                        fontSize: "13px",
-                        fontWeight: 600,
-                        textDecoration: "none",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <Video size={14} />
-                      Open for Loom
-                    </a>
-                  </div>
+        {/* Status chips */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+          {event.completed ? (
+            <span style={{
+              ...mono, fontSize: 10, fontWeight: 700, padding: '4px 9px', borderRadius: 4,
+              background: 'rgba(56,161,87,0.12)', color: colors.accent, letterSpacing: '0.08em',
+            }}>COMPLETED</span>
+          ) : isPast ? (
+            <span style={{
+              ...mono, fontSize: 10, fontWeight: 700, padding: '4px 9px', borderRadius: 4,
+              background: 'rgba(255,123,114,0.12)', color: colors.red, letterSpacing: '0.08em',
+            }}>OVERDUE</span>
+          ) : (
+            <span style={{
+              ...mono, fontSize: 10, fontWeight: 700, padding: '4px 9px', borderRadius: 4,
+              background: 'rgba(99,179,237,0.12)', color: colors.blue, letterSpacing: '0.08em',
+            }}>UPCOMING</span>
+          )}
+          <span style={{
+            ...mono, fontSize: 10, fontWeight: 600, padding: '4px 9px', borderRadius: 4,
+            background: 'rgba(125,138,153,0.1)', color: colors.textMuted, letterSpacing: '0.06em',
+          }}>SYNCED → COMMS</span>
+        </div>
 
-                  {/* Stats Summary with Charts */}
-                  <div style={{ marginBottom: "24px" }}>
-                    {/* Main Stats Row */}
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(3, 1fr)",
-                        gap: "12px",
-                        marginBottom: "20px",
-                      }}
-                    >
-                      {/* Spend Card */}
-                      <div
-                        style={{
-                          background: "linear-gradient(135deg, #1A1A1A 0%, rgba(229, 62, 62, 0.1) 100%)",
-                          borderRadius: "12px",
-                          padding: "16px",
-                          border: "1px solid rgba(229, 62, 62, 0.15)",
-                          position: "relative",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <div
-                          style={{
-                            position: "absolute",
-                            top: "-20px",
-                            right: "-20px",
-                            width: "60px",
-                            height: "60px",
-                            background: "radial-gradient(circle, rgba(229, 62, 62, 0.2) 0%, transparent 70%)",
-                            filter: "blur(20px)",
-                          }}
-                        />
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                          <DollarSign size={16} style={{ color: "#E53E3E" }} />
-                          <span style={{ fontSize: "11px", color: "#718096", fontWeight: 600, letterSpacing: "0.05em" }}>
-                            SPEND
-                          </span>
-                        </div>
-                        <div style={{ fontSize: "24px", fontWeight: 700, color: "#F7FAFC", fontFamily: "'SF Mono', Monaco, monospace" }}>
-                          ${editingEvent.reportData.spend.toFixed(0)}
-                        </div>
-                        <div style={{ fontSize: "11px", color: "#718096", marginTop: "4px" }}>
-                          {(() => {
-                            const spendTarget = editingEvent.reportData.nextWeek?.targets?.[2] || '';
-                            const match = spendTarget.match(/\$([\d,]+)/);
-                            const budget = match ? match[1] : '210';
-                            return `of $${budget} budget`;
-                          })()}
-                        </div>
-                      </div>
-
-                      {/* Leads Card */}
-                      <div
-                        style={{
-                          background: "linear-gradient(135deg, #1A1A1A 0%, rgba(56, 161, 105, 0.08) 100%)",
-                          borderRadius: "12px",
-                          padding: "16px",
-                          border: "1px solid rgba(56, 161, 105, 0.15)",
-                          position: "relative",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <div
-                          style={{
-                            position: "absolute",
-                            top: "-20px",
-                            right: "-20px",
-                            width: "60px",
-                            height: "60px",
-                            background: "radial-gradient(circle, rgba(56, 161, 105, 0.2) 0%, transparent 70%)",
-                            filter: "blur(20px)",
-                          }}
-                        />
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                          <Users size={16} style={{ color: "#38A169" }} />
-                          <span style={{ fontSize: "11px", color: "#718096", fontWeight: 600, letterSpacing: "0.05em" }}>
-                            LEADS
-                          </span>
-                        </div>
-                        <div style={{ fontSize: "24px", fontWeight: 700, color: "#F7FAFC", fontFamily: "'SF Mono', Monaco, monospace" }}>
-                          {editingEvent.reportData.leads}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "11px",
-                            color: editingEvent.reportData.leadsChange >= 0 ? "#38A169" : "#E53E3E",
-                            marginTop: "4px",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "2px",
-                          }}
-                        >
-                          {editingEvent.reportData.leadsChange >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
-                          {Math.abs(editingEvent.reportData.leadsChange)}% vs last week
-                        </div>
-                      </div>
-
-                      {/* CPL Card */}
-                      <div
-                        style={{
-                          background: "linear-gradient(135deg, #1A1A1A 0%, rgba(214, 158, 46, 0.08) 100%)",
-                          borderRadius: "12px",
-                          padding: "16px",
-                          border: "1px solid rgba(214, 158, 46, 0.15)",
-                          position: "relative",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <div
-                          style={{
-                            position: "absolute",
-                            top: "-20px",
-                            right: "-20px",
-                            width: "60px",
-                            height: "60px",
-                            background: "radial-gradient(circle, rgba(214, 158, 46, 0.2) 0%, transparent 70%)",
-                            filter: "blur(20px)",
-                          }}
-                        />
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                          <Target size={16} style={{ color: "#D69E2E" }} />
-                          <span style={{ fontSize: "11px", color: "#718096", fontWeight: 600, letterSpacing: "0.05em" }}>
-                            CPL
-                          </span>
-                        </div>
-                        <div style={{ fontSize: "24px", fontWeight: 700, color: "#F7FAFC", fontFamily: "'SF Mono', Monaco, monospace" }}>
-                          ${editingEvent.reportData.cpl.toFixed(0)}
-                        </div>
-                        <div style={{ fontSize: "11px", color: "#718096", marginTop: "4px" }}>
-                          target: {editingEvent.reportData.nextWeek?.targets?.[1]?.replace('Target CPL: ', '') || '$40-60'}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Mini Bar Chart - Weekly Performance */}
-                    <div
-                      style={{
-                        background: "#0D0D0D",
-                        borderRadius: "12px",
-                        padding: "16px",
-                        border: "1px solid #2A2A2A",
-                      }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-                        <TrendingUp size={14} style={{ color: "#718096" }} />
-                        <span style={{ fontSize: "12px", color: "#718096", fontWeight: 600 }}>
-                          WEEKLY LEAD TREND
-                        </span>
-                      </div>
-                      <div style={{ display: "flex", alignItems: "flex-end", gap: "8px", height: "60px", padding: "0 4px" }}>
-                        {[0.3, 0.5, 0.4, 0.7, 0.6, 0.8, 0.4].map((h, i) => (
-                          <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                            <div
-                              style={{
-                                width: "100%",
-                                height: `${h * 60}px`,
-                                background: i === 5 ? "linear-gradient(180deg, #E53E3E 0%, #C53030 100%)" : "#2A2A2A",
-                                borderRadius: "2px",
-                                transition: "all 0.3s ease",
-                              }}
-                            />
-                            <span style={{ fontSize: "9px", color: "#4A5568" }}>{["M", "T", "W", "T", "F", "S", "S"][i]}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Direction Badge */}
-                  <div
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      padding: "6px 12px",
-                      borderRadius: "20px",
-                      fontSize: "13px",
-                      fontWeight: 600,
-                      marginBottom: "16px",
-                      background:
-                        editingEvent.reportData.direction === "positive"
-                          ? "rgba(56, 161, 105, 0.2)"
-                          : editingEvent.reportData.direction === "negative"
-                          ? "rgba(229, 62, 62, 0.2)"
-                          : "rgba(214, 158, 46, 0.2)",
-                      color:
-                        editingEvent.reportData.direction === "positive"
-                          ? "#38A169"
-                          : editingEvent.reportData.direction === "negative"
-                          ? "#E53E3E"
-                          : "#D69E2E",
-                      border:
-                        editingEvent.reportData.direction === "positive"
-                          ? "1px solid rgba(56, 161, 105, 0.3)"
-                          : editingEvent.reportData.direction === "negative"
-                          ? "1px solid rgba(229, 62, 62, 0.3)"
-                          : "1px solid rgba(214, 158, 46, 0.3)",
-                    }}
-                  >
-                    <span>
-                      {editingEvent.reportData.direction === "positive"
-                        ? "▲"
-                        : editingEvent.reportData.direction === "negative"
-                        ? "▼"
-                        : "●"}
-                    </span>
-                    {editingEvent.reportData.direction === "positive"
-                      ? "Positive Direction"
-                      : editingEvent.reportData.direction === "negative"
-                      ? "Needs Attention"
-                      : "Stable"}
-                  </div>
-
-                  {/* BIG THREE POINTS */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                    {/* Point 1 */}
-                    <div
-                      style={{
-                        background: "#1A1A1A",
-                        borderRadius: "8px",
-                        padding: "16px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: "14px",
-                          fontWeight: 700,
-                          color: "#F7FAFC",
-                          marginBottom: "8px",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: "24px",
-                            height: "24px",
-                            background: "#E53E3E",
-                            borderRadius: "6px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: "12px",
-                          }}
-                        >
-                          1
-                        </span>
-                        How Is The Campaign Going?
-                      </div>
-                      <p
-                        style={{
-                          fontSize: "14px",
-                          color: "#A0AEC0",
-                          lineHeight: "1.6",
-                          marginBottom: "12px",
-                        }}
-                      >
-                        {editingEvent.reportData.campaignStatus.summary}
-                      </p>
-                      {editingEvent.reportData.campaignStatus.whatsWorking && (
-                        <>
-                          <div
-                            style={{
-                              fontSize: "12px",
-                              color: "#718096",
-                              marginBottom: "8px",
-                              textTransform: "uppercase",
-                              letterSpacing: "0.05em",
-                            }}
-                          >
-                            ✓ What&apos;s Working
-                          </div>
-                          <ul
-                            style={{
-                              listStyle: "none",
-                              padding: 0,
-                              margin: 0,
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: "6px",
-                            }}
-                          >
-                            {editingEvent.reportData.campaignStatus.whatsWorking.map(
-                              (item, i) => (
-                                <li
-                                  key={i}
-                                  style={{
-                                    fontSize: "13px",
-                                    color: "#F7FAFC",
-                                    paddingLeft: "16px",
-                                    position: "relative",
-                                  }}
-                                >
-                                  <span
-                                    style={{
-                                      position: "absolute",
-                                      left: "0",
-                                      color: "#38A169",
-                                    }}
-                                  >
-                                    →
-                                  </span>
-                                  {item}
-                                </li>
-                              )
-                            )}
-                          </ul>
-                        </>
-                      )}
-                      {editingEvent.reportData.campaignStatus.fixes && (
-                        <>
-                          <div
-                            style={{
-                              fontSize: "12px",
-                              color: "#718096",
-                              marginBottom: "8px",
-                              marginTop: "12px",
-                              textTransform: "uppercase",
-                              letterSpacing: "0.05em",
-                            }}
-                          >
-                            ⚠ Fixes We&apos;re Implementing
-                          </div>
-                          <ul
-                            style={{
-                              listStyle: "none",
-                              padding: 0,
-                              margin: 0,
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: "6px",
-                            }}
-                          >
-                            {editingEvent.reportData.campaignStatus.fixes.map((item, i) => (
-                              <li
-                                key={i}
-                                style={{
-                                  fontSize: "13px",
-                                  color: "#F7FAFC",
-                                  paddingLeft: "16px",
-                                  position: "relative",
-                                }}
-                              >
-                                <span
-                                  style={{
-                                    position: "absolute",
-                                    left: "0",
-                                    color: "#E53E3E",
-                                  }}
-                                >
-                                  →
-                                </span>
-                                {item}
-                              </li>
-                            ))}
-                          </ul>
-                        </>
-                      )}
-                    </div>
-
-                    {/* Point 2 */}
-                    <div
-                      style={{
-                        background: "#1A1A1A",
-                        borderRadius: "8px",
-                        padding: "16px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: "14px",
-                          fontWeight: 700,
-                          color: "#F7FAFC",
-                          marginBottom: "8px",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: "24px",
-                            height: "24px",
-                            background: "#E53E3E",
-                            borderRadius: "6px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: "12px",
-                          }}
-                        >
-                          2
-                        </span>
-                        Changes Made This Week
-                      </div>
-                      <p
-                        style={{
-                          fontSize: "14px",
-                          color: "#A0AEC0",
-                          lineHeight: "1.6",
-                          marginBottom: "12px",
-                        }}
-                      >
-                        {editingEvent.reportData.changeImpact}
-                      </p>
-                      <ul
-                        style={{
-                          listStyle: "none",
-                          padding: 0,
-                          margin: 0,
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "6px",
-                        }}
-                      >
-                        {editingEvent.reportData.changesThisWeek.map((item, i) => (
-                          <li
-                            key={i}
-                            style={{
-                              fontSize: "13px",
-                              color: "#F7FAFC",
-                              paddingLeft: "16px",
-                              position: "relative",
-                            }}
-                          >
-                            <span
-                              style={{
-                                position: "absolute",
-                                left: "0",
-                                color: "#E53E3E",
-                              }}
-                            >
-                              →
-                            </span>
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {/* Point 3 */}
-                    <div
-                      style={{
-                        background: "#1A1A1A",
-                        borderRadius: "8px",
-                        padding: "16px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: "14px",
-                          fontWeight: 700,
-                          color: "#F7FAFC",
-                          marginBottom: "8px",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: "24px",
-                            height: "24px",
-                            background: "#E53E3E",
-                            borderRadius: "6px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: "12px",
-                          }}
-                        >
-                          3
-                        </span>
-                        What To Expect Next Week
-                      </div>
-                      <p
-                        style={{
-                          fontSize: "14px",
-                          color: "#A0AEC0",
-                          lineHeight: "1.6",
-                          marginBottom: "12px",
-                        }}
-                      >
-                        {editingEvent.reportData.nextWeek.expectation}
-                      </p>
-                      <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: "repeat(3, 1fr)",
-                          gap: "8px",
-                          marginBottom: "12px",
-                        }}
-                      >
-                        {editingEvent.reportData.nextWeek.targets.map((target, i) => {
-                          const [label, value] = target.split(":");
-                          return (
-                            <div
-                              key={i}
-                              style={{
-                                background: "#0D0D0D",
-                                borderRadius: "6px",
-                                padding: "10px",
-                                textAlign: "center",
-                              }}
-                            >
-                              <div
-                                style={{
-                                  fontSize: "10px",
-                                  color: "#718096",
-                                  textTransform: "uppercase",
-                                  marginBottom: "4px",
-                                }}
-                              >
-                                {label.trim()}
-                              </div>
-                              <div
-                                style={{
-                                  fontSize: "16px",
-                                  fontWeight: 700,
-                                  color: "#F7FAFC",
-                                }}
-                              >
-                                {value.trim()}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "12px",
-                          color: "#718096",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.05em",
-                          marginBottom: "8px",
-                        }}
-                      >
-                        Focus Areas
-                      </div>
-                      <ul
-                        style={{
-                          listStyle: "none",
-                          padding: 0,
-                          margin: 0,
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "6px",
-                        }}
-                      >
-                        {editingEvent.reportData.nextWeek.focusAreas.map((item, i) => (
-                          <li
-                            key={i}
-                            style={{
-                              fontSize: "13px",
-                              color: "#F7FAFC",
-                              paddingLeft: "16px",
-                              position: "relative",
-                            }}
-                          >
-                            <span
-                              style={{
-                                position: "absolute",
-                                left: "0",
-                                color: "#E53E3E",
-                              }}
-                            >
-                              →
-                            </span>
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#A0AEC0", marginBottom: "6px" }}>
-                  Title
-                </label>
-                <input
-                  type="text"
-                  value={formTitle}
-                  onChange={(e) => setFormTitle(e.target.value)}
-                  placeholder="e.g., Weekly Check-in Loom"
-                  style={{
-                    width: "100%",
-                    background: "#0D0D0D",
-                    border: "1px solid #3A3A3A",
-                    borderRadius: "8px",
-                    padding: "10px 12px",
-                    color: "#F7FAFC",
-                    fontSize: "14px",
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#A0AEC0", marginBottom: "6px" }}>
-                  Client
-                </label>
-                <select
-                  value={formClient}
-                  onChange={(e) => setFormClient(e.target.value)}
-                  style={{
-                    width: "100%",
-                    boxSizing: "border-box",
-                    display: "block",
-                    background: "#0D0D0D",
-                    border: "1px solid #3A3A3A",
-                    borderRadius: "8px",
-                    padding: "10px 12px",
-                    color: "#F7FAFC",
-                    fontSize: "14px",
-                    cursor: "pointer",
-                    height: "42px",
-                    lineHeight: "20px",
-                  }}
-                >
-                  <option value="" disabled>Select a client...</option>
-                  <option value="Ricardo">Ricardo</option>
-                  <option value="Hector">Hector</option>
-                  <option value="PJ">PJ</option>
-                  <option value="Vicelia">Vicelia</option>
-                </select>
-              </div>
-
-              <div>
-                <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#A0AEC0", marginBottom: "6px" }}>
-                  Date
-                </label>
-                <input
-                  type="date"
-                  value={selectedDate || ""}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  style={{
-                    width: "100%",
-                    background: "#0D0D0D",
-                    border: "1px solid #3A3A3A",
-                    borderRadius: "8px",
-                    padding: "10px 12px",
-                    color: "#F7FAFC",
-                    fontSize: "14px",
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#A0AEC0", marginBottom: "6px" }}>
-                  Notes
-                </label>
-                <textarea
-                  value={formNotes}
-                  onChange={(e) => setFormNotes(e.target.value)}
-                  placeholder="What to cover in this touchpoint..."
-                  rows={3}
-                  style={{
-                    width: "100%",
-                    background: "#0D0D0D",
-                    border: "1px solid #3A3A3A",
-                    borderRadius: "8px",
-                    padding: "10px 12px",
-                    color: "#F7FAFC",
-                    fontSize: "14px",
-                    resize: "vertical",
-                  }}
-                />
-              </div>
-
-              <div style={{ display: "flex", gap: "12px", marginTop: "8px", marginBottom: "0" }}>
-                {editingEvent && (
-                  <button
-                    onClick={() => deleteEvent(editingEvent.id)}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      background: "transparent",
-                      border: "1px solid #E53E3E",
-                      borderRadius: "8px",
-                      padding: "12px 16px",
-                      color: "#E53E3E",
-                      cursor: "pointer",
-                      fontWeight: 600,
-                    }}
-                  >
-                    <Trash2 size={16} />
-                    Delete
-                  </button>
-                )}
-                {editingEvent && (
-                  <button
-                    onClick={() => {
-                      toggleCompleted(editingEvent.id);
-                      // Update the editingEvent to reflect the change
-                      setEditingEvent(prev => prev ? { ...prev, completed: !prev.completed } : null);
-                    }}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      background: "transparent",
-                      border: `1px solid ${editingEvent.completed ? "#D69E2E" : "#38A169"}`,
-                      borderRadius: "8px",
-                      padding: "12px 16px",
-                      color: editingEvent.completed ? "#D69E2E" : "#38A169",
-                      cursor: "pointer",
-                      fontWeight: 600,
-                    }}
-                  >
-                    {editingEvent.completed ? "Mark Undone" : "Mark Done"}
-                  </button>
-                )}
-                <button
-                  onClick={saveEvent}
-                  disabled={!formTitle || !formClient}
-                  style={{
-                    flex: 1,
-                    background: !formTitle || !formClient ? "#3A3A3A" : "#E53E3E",
-                    border: "none",
-                    borderRadius: "8px",
-                    padding: "12px 16px",
-                    color: "#fff",
-                    cursor: !formTitle || !formClient ? "not-allowed" : "pointer",
-                    fontWeight: 600,
-                  }}
-                >
-                  {editingEvent ? "Update" : "Save"}
-                </button>
-              </div>
-            </div>
+        {/* Actions */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <button onClick={onToggleCompleted} style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            padding: '10px 0',
+            background: event.completed ? 'transparent' : colors.accent,
+            color: event.completed ? colors.textMuted : '#fff',
+            border: event.completed ? `1px solid ${colors.border}` : 'none',
+            borderRadius: borders.radius.medium,
+            fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+          }}>
+            <Check size={14} strokeWidth={2.5} />
+            {event.completed ? 'Mark as Open' : 'Mark Completed'}
+          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={onEdit} style={{
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              padding: '8px 0', background: 'transparent', color: colors.text,
+              border: `1px solid ${colors.border}`, borderRadius: borders.radius.medium,
+              fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+            }}>
+              <Pencil size={12} strokeWidth={2} /> Edit
+            </button>
+            <button onClick={onDelete} style={{
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              padding: '8px 0', background: 'transparent', color: colors.red,
+              border: `1px solid rgba(255,123,114,0.3)`, borderRadius: borders.radius.medium,
+              fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+            }}>
+              <Trash2 size={12} strokeWidth={2} /> Delete
+            </button>
           </div>
         </div>
-      )}
+      </div>
+    </>
+  )
+}
+
+// ---- Add/Edit Modal ----
+function EventModal({
+  mode, defaultDate, existing, clients, onClose, onSave,
+}: {
+  mode: 'add' | 'edit'
+  defaultDate: string
+  existing?: RetentionEvent
+  clients: Client[]
+  onClose: () => void
+  onSave: (data: Omit<RetentionEvent, 'id' | 'createdAt' | 'linkedCommsId'>) => void
+}) {
+  const [type, setType] = useState<EventType>(existing?.type ?? 'call')
+  const [date, setDate] = useState(existing?.date ?? defaultDate)
+  const [time, setTime] = useState(existing?.time ?? '')
+  const [clientId, setClientId] = useState(existing?.clientId ?? clients[0]?.id ?? '')
+  const [title, setTitle] = useState(existing?.title ?? '')
+  const [notes, setNotes] = useState(existing?.notes ?? '')
+  const [completed, setCompleted] = useState(existing?.completed ?? false)
+
+  function save() {
+    if (!title.trim() || !clientId) return
+    onSave({
+      clientId, type, date,
+      time: time || undefined,
+      title: title.trim(),
+      notes: notes.trim(),
+      completed,
+    })
+  }
+
+  const inputStyle: React.CSSProperties = {
+    background: colors.cardBg, border: `1px solid ${colors.border}`,
+    borderRadius: borders.radius.medium, padding: '10px 12px',
+    color: colors.text, fontSize: 14, outline: 'none', width: '100%',
+    fontFamily: 'inherit',
+  }
+  const labelStyle: React.CSSProperties = {
+    ...mono,
+    fontSize: 11, color: colors.textMuted, fontWeight: 600,
+    letterSpacing: '0.06em', textTransform: 'uppercase' as const,
+    display: 'block', marginBottom: 6,
+  }
+
+  return (
+    <div
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div style={{ ...cardStyle, width: 480, padding: 28, maxHeight: '92vh', overflowY: 'auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <span style={{ fontSize: 16, fontWeight: 600 }}>
+            {mode === 'add' ? 'Add Event' : 'Edit Event'}
+          </span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: 22, padding: 0, lineHeight: 1 }}>×</button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Type pills */}
+          <div>
+            <label style={labelStyle}>Type</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+              {(Object.keys(EVENT_TYPE_LABELS) as EventType[]).map(t => {
+                const active = type === t
+                const cp = TYPE_COLOR[t]
+                const Icon = TYPE_ICON[t]
+                return (
+                  <button
+                    key={t}
+                    onClick={() => setType(t)}
+                    style={{
+                      ...mono,
+                      padding: '8px 0',
+                      borderRadius: borders.radius.medium,
+                      border: `1px solid ${active ? cp.fg : colors.border}`,
+                      background: active ? cp.bg : 'transparent',
+                      color: active ? cp.fg : colors.textMuted,
+                      fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                      letterSpacing: '0.06em',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                      fontFamily: 'var(--font-mono), monospace',
+                    }}
+                  >
+                    <Icon size={11} strokeWidth={2.25} />
+                    {EVENT_TYPE_LABELS[t].toUpperCase()}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: 12 }}>
+            <div>
+              <label style={labelStyle}>Date</label>
+              <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{ ...inputStyle, ...mono }} />
+            </div>
+            <div>
+              <label style={labelStyle}>Time (opt.)</label>
+              <input type="time" value={time} onChange={e => setTime(e.target.value)} style={{ ...inputStyle, ...mono }} />
+            </div>
+          </div>
+
+          <div>
+            <label style={labelStyle}>Client</label>
+            <select value={clientId} onChange={e => setClientId(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
+              {clients.length === 0 && <option value="">— No clients yet —</option>}
+              {clients.map(c => <option key={c.id} value={c.id}>{c.business} · {c.name}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label style={labelStyle}>Title <span style={{ color: colors.red }}>*</span></label>
+            <input
+              type="text" autoFocus
+              placeholder="What's the touchpoint?"
+              value={title} onChange={e => setTitle(e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+
+          <div>
+            <label style={labelStyle}>Notes (optional)</label>
+            <textarea
+              placeholder="Talking points, context, anything to remember..."
+              value={notes} onChange={e => setNotes(e.target.value)}
+              style={{ ...inputStyle, minHeight: 80, resize: 'vertical' as const, lineHeight: 1.5 }}
+            />
+          </div>
+
+          {mode === 'edit' && (
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: colors.text, cursor: 'pointer' }}>
+              <input type="checkbox" checked={completed} onChange={e => setCompleted(e.target.checked)} />
+              Mark as completed
+            </label>
+          )}
+        </div>
+
+        <div style={{
+          ...mono,
+          marginTop: 14, padding: '8px 12px', fontSize: 10,
+          background: 'rgba(125,138,153,0.06)', color: colors.textMuted,
+          borderRadius: borders.radius.medium, letterSpacing: '0.04em',
+        }}>
+          {mode === 'add'
+            ? 'NOTE: Saving will also create a Comms entry on the client.'
+            : 'NOTE: Saving will update the linked Comms entry on the client.'}
+        </div>
+
+        <button onClick={save} style={{
+          marginTop: 16, width: '100%', padding: '11px 0',
+          background: colors.accent, border: 'none', borderRadius: borders.radius.medium,
+          color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+        }}>
+          {mode === 'add' ? 'Save Event' : 'Save Changes'}
+        </button>
+      </div>
     </div>
-  );
+  )
 }
