@@ -173,28 +173,31 @@ export default function Sidebar() {
     )
   }
 
-  // Desktop
+  // Desktop — spacer reserves 240px in the flex layout; fixed aside overlays it
   return (
-    <aside
-      style={{
-        ...asideStyle,
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        height: '100vh',
-        zIndex: 100,
-      }}
-    >
-      <div style={{ padding: '24px 20px 20px', borderBottom: `1px solid ${colors.border}` }}>
-        <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.18em', color: colors.accent, textTransform: 'uppercase' as const }}>
-          Mission Control
+    <>
+      <div style={{ width: 240, flexShrink: 0 }} />
+      <aside
+        style={{
+          ...asideStyle,
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          height: '100vh',
+          zIndex: 100,
+        }}
+      >
+        <div style={{ padding: '24px 20px 20px', borderBottom: `1px solid ${colors.border}` }}>
+          <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.18em', color: colors.accent, textTransform: 'uppercase' as const }}>
+            Mission Control
+          </div>
+          <div style={{ fontSize: 10, color: colors.textSubtle, marginTop: 4, letterSpacing: '0.12em', textTransform: 'uppercase' as const }}>
+            Straight Point Marketing
+          </div>
         </div>
-        <div style={{ fontSize: 10, color: colors.textSubtle, marginTop: 4, letterSpacing: '0.12em', textTransform: 'uppercase' as const }}>
-          Straight Point Marketing
-        </div>
-      </div>
-      {navLinks}
-      {footer}
-    </aside>
+        {navLinks}
+        {footer}
+      </aside>
+    </>
   )
 }
