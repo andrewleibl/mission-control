@@ -189,7 +189,7 @@ export const BackdropCenter = () => (
 )
 
 export const PageContainer = ({ children }: { children: React.ReactNode }) => (
-  <div style={{
+  <div className="page-container" style={{
     padding: spacing.page,
     maxWidth: '1400px',
     margin: '0 auto',

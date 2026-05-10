@@ -30,60 +30,46 @@ export default function Sidebar() {
     return () => window.removeEventListener('resize', check)
   }, [])
 
-  // Close mobile menu on route change
   useEffect(() => { setMobileOpen(false) }, [pathname])
 
-  // Desktop sidebar
-  const sidebarContent = (
-    <>
-      {/* Logo */}
-      <div style={{ padding: '24px 20px 20px', borderBottom: `1px solid ${colors.border}` }}>
-        <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.18em', color: colors.accent, textTransform: 'uppercase' as const }}>
-          Mission Control
-        </div>
-        <div style={{ fontSize: 10, color: colors.textSubtle, marginTop: 4, letterSpacing: '0.12em', textTransform: 'uppercase' as const }}>
-          Straight Point Marketing
-        </div>
-      </div>
+  const navLinks = (
+    <nav style={{ flex: 1, padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {navItems.map(({ href, label, Icon }) => {
+        const active = pathname === href || pathname.startsWith(href + '/')
+        return (
+          <Link
+            key={href}
+            href={href}
+            onClick={() => setMobileOpen(false)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 11,
+              padding: '9px 14px', margin: '0 4px', borderRadius: 6,
+              fontSize: 13, fontWeight: 600, textDecoration: 'none',
+              color: active ? colors.text : colors.textMuted,
+              background: active ? 'rgba(56,161,87,0.1)' : 'transparent',
+              borderLeft: `2px solid ${active ? colors.accent : 'transparent'}`,
+              paddingLeft: 12,
+              transition: 'background 0.12s, color 0.12s',
+            }}
+          >
+            <Icon size={15} strokeWidth={1.85} color={active ? colors.accent : colors.textMuted} />
+            <span>{label}</span>
+          </Link>
+        )
+      })}
+    </nav>
+  )
 
-      {/* Nav */}
-      <nav style={{ flex: 1, padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {navItems.map(({ href, label, Icon }) => {
-          const active = pathname === href || pathname.startsWith(href + '/')
-          return (
-            <Link
-              key={href}
-              href={href}
-              onClick={() => setMobileOpen(false)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 11,
-                padding: '9px 14px', margin: '0 4px', borderRadius: 6,
-                fontSize: 13, fontWeight: 600, textDecoration: 'none',
-                color: active ? colors.text : colors.textMuted,
-                background: active ? 'rgba(56,161,87,0.1)' : 'transparent',
-                borderLeft: `2px solid ${active ? colors.accent : 'transparent'}`,
-                paddingLeft: 12,
-                transition: 'background 0.12s, color 0.12s',
-              }}
-            >
-              <Icon size={15} strokeWidth={1.85} color={active ? colors.accent : colors.textMuted} />
-              <span>{label}</span>
-            </Link>
-          )
-        })}
-      </nav>
-
-      {/* Footer */}
-      <div style={{ padding: '16px 20px', borderTop: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{ width: 32, height: 32, background: 'rgba(56,161,87,0.15)', border: `1px solid rgba(56,161,87,0.25)`, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
-          🔱
-        </div>
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: colors.text }}>Poseidon</div>
-          <div style={{ fontSize: 10, color: colors.textSubtle, letterSpacing: '0.08em' }}>v1.0.0</div>
-        </div>
+  const footer = (
+    <div style={{ padding: '16px 20px', borderTop: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{ width: 32, height: 32, background: 'rgba(56,161,87,0.15)', border: `1px solid rgba(56,161,87,0.25)`, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
+        🔱
       </div>
-    </>
+      <div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: colors.text }}>Poseidon</div>
+        <div style={{ fontSize: 10, color: colors.textSubtle, letterSpacing: '0.08em' }}>v1.0.0</div>
+      </div>
+    </div>
   )
 
   const asideStyle: React.CSSProperties = {
@@ -98,9 +84,9 @@ export default function Sidebar() {
   if (isMobile) {
     return (
       <>
-        {/* Hamburger button — always visible on mobile */}
+        {/* Hamburger — always shows ≡ */}
         <button
-          onClick={() => setMobileOpen(!mobileOpen)}
+          onClick={() => setMobileOpen(true)}
           style={{
             position: 'fixed',
             top: 14,
@@ -108,7 +94,7 @@ export default function Sidebar() {
             zIndex: 120,
             width: 40,
             height: 40,
-            background: mobileOpen ? colors.cardBg : 'rgba(13,17,23,0.85)',
+            background: 'rgba(13,17,23,0.85)',
             backdropFilter: 'blur(8px)',
             border: `1px solid ${colors.border}`,
             borderRadius: 8,
@@ -118,9 +104,9 @@ export default function Sidebar() {
             cursor: 'pointer',
             color: colors.text,
           }}
-          aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+          aria-label="Open menu"
         >
-          {mobileOpen ? <X size={18} strokeWidth={2} /> : <Menu size={18} strokeWidth={2} />}
+          <Menu size={18} strokeWidth={2} />
         </button>
 
         {/* Overlay */}
@@ -150,7 +136,38 @@ export default function Sidebar() {
             boxShadow: mobileOpen ? '4px 0 40px rgba(0,0,0,0.5)' : 'none',
           }}
         >
-          {sidebarContent}
+          {/* Header: logo on left, X close on RIGHT */}
+          <div style={{ padding: '24px 20px 20px', borderBottom: `1px solid ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.18em', color: colors.accent, textTransform: 'uppercase' as const }}>
+                Mission Control
+              </div>
+              <div style={{ fontSize: 10, color: colors.textSubtle, marginTop: 4, letterSpacing: '0.12em', textTransform: 'uppercase' as const }}>
+                Straight Point Marketing
+              </div>
+            </div>
+            <button
+              onClick={() => setMobileOpen(false)}
+              style={{
+                background: 'transparent',
+                border: `1px solid ${colors.border}`,
+                borderRadius: 6,
+                width: 30,
+                height: 30,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                color: colors.textMuted,
+                flexShrink: 0,
+              }}
+              aria-label="Close menu"
+            >
+              <X size={15} strokeWidth={2} />
+            </button>
+          </div>
+          {navLinks}
+          {footer}
         </aside>
       </>
     )
@@ -168,7 +185,16 @@ export default function Sidebar() {
         zIndex: 100,
       }}
     >
-      {sidebarContent}
+      <div style={{ padding: '24px 20px 20px', borderBottom: `1px solid ${colors.border}` }}>
+        <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.18em', color: colors.accent, textTransform: 'uppercase' as const }}>
+          Mission Control
+        </div>
+        <div style={{ fontSize: 10, color: colors.textSubtle, marginTop: 4, letterSpacing: '0.12em', textTransform: 'uppercase' as const }}>
+          Straight Point Marketing
+        </div>
+      </div>
+      {navLinks}
+      {footer}
     </aside>
   )
 }
