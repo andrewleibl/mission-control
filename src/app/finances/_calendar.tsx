@@ -199,7 +199,7 @@ export default function CalendarView({ txs, rules, clients, onAddForDay, onAppro
       </div>
 
       {/* Body */}
-      <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+      <div className="retention-cal-body" style={{ ...cardStyle, padding: 0, overflowX: 'auto' }}>
         {view === 'month' && (
           <MonthGrid
             cursor={cursor}
@@ -326,7 +326,7 @@ function MonthGrid({
   const inMonth = (d: Date) => d.getMonth() === cursor.getMonth()
 
   return (
-    <div>
+    <div style={{ minWidth: 420 }}>
       {/* Weekday headers */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: `1px solid ${colors.border}` }}>
         {WEEKDAYS.map(w => (
@@ -421,7 +421,7 @@ function WeekGrid({
   const days = Array.from({ length: 7 }, (_, i) => addDays(start, i))
 
   return (
-    <div>
+    <div style={{ minWidth: 560 }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: `1px solid ${colors.border}` }}>
         {days.map((d, i) => {
           const isToday = toIso(d) === TODAY_ISO
