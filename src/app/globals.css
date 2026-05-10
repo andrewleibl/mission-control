@@ -27,6 +27,11 @@
   box-sizing: border-box;
 }
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 body {
   background: var(--bg);
   color: var(--text);
@@ -278,7 +283,13 @@ button {
 
   /* Push content down so hamburger doesn't overlap the page header */
   .main-content > div {
-    padding-top: 64px !important;
+    padding-top: 68px !important;
+  }
+
+  /* Prevent any child from bleeding past the viewport */
+  .main-content {
+    overflow-x: hidden;
+    max-width: 100vw;
   }
 
   /* ── KPI strip ────────────────────────── */
@@ -345,6 +356,22 @@ button {
   }
 
   main { padding: 12px !important; }
+
+  /* Retention calendar header: wrap to two rows */
+  .retention-cal-header {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .retention-period-label {
+    font-size: 13px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .retention-period-label {
+    font-size: 14px !important;
+  }
 }
 
 /* Global table scroll on mobile — no component changes needed */

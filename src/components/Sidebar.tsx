@@ -150,28 +150,6 @@ export default function Sidebar() {
             boxShadow: mobileOpen ? '4px 0 40px rgba(0,0,0,0.5)' : 'none',
           }}
         >
-          {/* Close button inside the panel */}
-          <button
-            onClick={() => setMobileOpen(false)}
-            style={{
-              position: 'absolute',
-              top: 14,
-              right: 14,
-              width: 32,
-              height: 32,
-              background: 'transparent',
-              border: `1px solid ${colors.border}`,
-              borderRadius: 6,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              color: colors.textMuted,
-              zIndex: 1,
-            }}
-          >
-            <X size={16} strokeWidth={2} />
-          </button>
           {sidebarContent}
         </aside>
       </>

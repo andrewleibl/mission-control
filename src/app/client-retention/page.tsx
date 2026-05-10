@@ -218,10 +218,10 @@ export default function RetentionPage() {
       </div>
 
       {/* Calendar Header */}
-      <div style={{
+      <div className="retention-cal-header" style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
           <button onClick={() => navigate(-1)} style={iconBtnStyle} title="Previous">
             <ChevronLeft size={16} />
           </button>
@@ -229,7 +229,7 @@ export default function RetentionPage() {
             <ChevronRight size={16} />
           </button>
           <button onClick={jumpToToday} style={pillBtnStyle}>Today</button>
-          <span style={{ fontSize: 16, fontWeight: 600, color: colors.text, marginLeft: 8 }}>{periodLabel}</span>
+          <span className="retention-period-label" style={{ fontSize: 16, fontWeight: 600, color: colors.text, marginLeft: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{periodLabel}</span>
         </div>
         <ViewToggle value={view} onChange={setView} />
       </div>
