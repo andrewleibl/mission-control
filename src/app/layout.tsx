@@ -29,9 +29,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${dmSans.variable} ${robotoMono.variable}`}>
       <body style={{ margin: 0, padding: 0, background: '#07090D' }}>
-        <div style={{ display: 'flex' }}>
+        <div style={{ display: 'flex', minHeight: '100vh' }}>
+          {/* Spacer holds the sidebar column in flex flow; sidebar overlays it (fixed) */}
+          <div className="sidebar-spacer" style={{ width: 240, flexShrink: 0 }} />
           <Sidebar />
-          <main className="main-content" style={{ flex: 1 }}>
+          <main style={{ flex: 1, minWidth: 0 }}>
             {children}
           </main>
         </div>

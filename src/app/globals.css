@@ -236,8 +236,10 @@ button {
   }
 }
 
-/* Main content offset — controlled here so media query can override */
-.main-content { margin-left: 240px; }
+/* Sidebar spacer collapses on mobile so hamburger layout takes over */
+@media (max-width: 768px) {
+  .sidebar-spacer { display: none !important; }
+}
 
 /* =====================================================
    KPI strip: flex row on desktop → 2×2 grid on mobile
@@ -277,14 +279,13 @@ button {
 
 @media (max-width: 768px) {
   /* ── Layout ─────────────────────────── */
-  .main-content {
-    margin-left: 0 !important;
+  main {
     overflow-x: hidden;
     max-width: 100vw;
   }
 
   /* Push content down so hamburger doesn't overlap the page header */
-  .main-content > div {
+  main > div {
     padding-top: 68px !important;
   }
 
