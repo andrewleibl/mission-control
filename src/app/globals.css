@@ -231,6 +231,9 @@ button {
   }
 }
 
+/* Main content offset — controlled here so media query can override */
+.main-content { margin-left: 240px; }
+
 /* =====================================================
    KPI strip: flex row on desktop → 2×2 grid on mobile
    ===================================================== */
@@ -269,44 +272,13 @@ button {
 
 @media (max-width: 768px) {
   /* ── Layout ─────────────────────────── */
-  body { display: block !important; }
-
-  aside {
-    width: 100% !important;
-    height: auto !important;
-    position: sticky !important;
-    top: 0;
-    z-index: 100;
-  }
-
-  nav {
-    display: flex !important;
-    overflow-x: auto !important;
-    padding: 6px 8px 8px !important;
-    gap: 2px !important;
-    scrollbar-width: none;
-  }
-  nav::-webkit-scrollbar { display: none; }
-
-  /* Nav items: compact icon+label pill on mobile */
-  .sidebar-nav-item {
-    padding: 8px 10px !important;
-    border-radius: 8px !important;
-    border-left: none !important;
-    border-bottom: 2px solid transparent;
-    flex-shrink: 0;
-  }
-  .sidebar-nav-item.active {
-    border-left: none !important;
-    border-bottom-color: var(--accent) !important;
-  }
-
-  /* Hide text labels in sidebar on mobile — icons only */
-  .sidebar-nav-label { display: none !important; }
-
-  main {
+  .main-content {
     margin-left: 0 !important;
-    padding: 16px !important;
+  }
+
+  /* Push content down so hamburger doesn't overlap the page header */
+  .main-content > div {
+    padding-top: 64px !important;
   }
 
   /* ── KPI strip ────────────────────────── */
