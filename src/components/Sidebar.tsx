@@ -9,7 +9,7 @@ import {
 import { colors } from '@/components/DesignSystem'
 
 const navItems: { href: string; label: string; Icon: LucideIcon }[] = [
-  { href: '/today', label: 'Today', Icon: ListChecks },
+  { href: '/today', label: 'Tasks', Icon: ListChecks },
   { href: '/client-retention', label: 'Retention', Icon: HeartHandshake },
   { href: '/finances', label: 'Finances', Icon: Wallet },
   { href: '/clients', label: 'Clients', Icon: Users },

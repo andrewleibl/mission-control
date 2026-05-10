@@ -143,7 +143,7 @@ export default function TodayPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Today"
+        title="Tasks"
         subtitle="Agency-level tasks. What needs to get done — across clients, ops, and admin."
         action={
           <button
