@@ -13,7 +13,7 @@ export default function GrowthPage() {
   const [goals, setGoals] = useState<Goal[]>([])
   const [horizonFilter, setHorizonFilter] = useState<GoalHorizon | 'all'>('all')
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [showAddModal, setShowAddModal] = useState(false)
+  const [goalModal, setGoalModal] = useState<{ mode: 'add' } | { mode: 'edit'; goal: Goal } | null>(null)
   const [showCompleted, setShowCompleted] = useState(false)
 
   useEffect(() => { setGoals(loadGoals()) }, [])
@@ -50,7 +50,7 @@ export default function GrowthPage() {
         title="Growth"
         subtitle="Where you're going and the steps to get there."
         action={
-          <button onClick={() => setShowAddModal(true)} style={primaryButtonStyle}>
+          <button onClick={() => setGoalModal({ mode: 'add' })} style={primaryButtonStyle}>
             <Plus size={14} strokeWidth={2.5} style={{ marginRight: 4, verticalAlign: 'middle' }} />
             Add Goal
           </button>
@@ -119,10 +119,20 @@ export default function GrowthPage() {
           onClose={() => setSelectedId(null)}
           onUpdate={updateGoal}
           onDelete={() => deleteGoal(selectedGoal.id)}
+          onEdit={() => setGoalModal({ mode: 'edit', goal: selectedGoal })}
         />
       )}
-      {showAddModal && (
-        <GoalModal onClose={() => setShowAddModal(false)} onSave={addGoal} />
+      {goalModal && (
+        <GoalModal
+          mode={goalModal.mode}
+          existing={goalModal.mode === 'edit' ? goalModal.goal : undefined}
+          onClose={() => setGoalModal(null)}
+          onSave={g => {
+            if (goalModal.mode === 'edit') updateGoal(g)
+            else addGoal(g)
+            setGoalModal(null)
+          }}
+        />
       )}
     </PageContainer>
   )
@@ -207,7 +217,7 @@ function GoalCard({ goal, onClick }: { goal: Goal; onClick: () => void }) {
 }
 
 // ================================================================= Detail Panel
-function GoalDetailPanel({ goal, onClose, onUpdate, onDelete }: { goal: Goal; onClose: () => void; onUpdate: (g: Goal) => void; onDelete: () => void }) {
+function GoalDetailPanel({ goal, onClose, onUpdate, onDelete, onEdit }: { goal: Goal; onClose: () => void; onUpdate: (g: Goal) => void; onDelete: () => void; onEdit: () => void }) {
   const [editingCurrentValue, setEditingCurrentValue] = useState(false)
   const [currentValueDraft, setCurrentValueDraft] = useState(String(goal.currentValue))
   const [addingMilestone, setAddingMilestone] = useState(false)
@@ -281,7 +291,18 @@ function GoalDetailPanel({ goal, onClose, onUpdate, onDelete }: { goal: Goal; on
                 {HORIZON_LABELS[goal.horizon].toUpperCase()}
               </span>
             </div>
-            <button onClick={onClose} style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: 22, padding: 0 }}>×</button>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <button onClick={onEdit} style={{
+                ...mono, display: 'inline-flex', alignItems: 'center', gap: 4,
+                fontSize: 10, fontWeight: 600, letterSpacing: '0.06em',
+                background: 'transparent', border: `1px solid ${colors.border}`,
+                borderRadius: 4, padding: '4px 9px', color: colors.textMuted,
+                cursor: 'pointer', fontFamily: 'var(--font-mono), monospace',
+              }}>
+                <Pencil size={10} strokeWidth={2} /> EDIT
+              </button>
+              <button onClick={onClose} style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: 22, padding: 0 }}>×</button>
+            </div>
           </div>
 
           <div style={{ fontSize: 22, fontWeight: 700, color: colors.text, marginBottom: 16 }}>{goal.title}</div>
@@ -398,28 +419,31 @@ function GoalDetailPanel({ goal, onClose, onUpdate, onDelete }: { goal: Goal; on
 }
 
 // ================================================================= Add Modal
-function GoalModal({ onClose, onSave }: { onClose: () => void; onSave: (g: Goal) => void }) {
-  const [title, setTitle] = useState('')
-  const [category, setCategory] = useState<GoalCategory>('revenue')
-  const [horizon, setHorizon] = useState<GoalHorizon>('90d')
-  const [unit, setUnit] = useState('$')
-  const [targetValue, setTargetValue] = useState('')
-  const [currentValue, setCurrentValue] = useState('')
-  const [deadline, setDeadline] = useState('')
-  const [description, setDescription] = useState('')
+function GoalModal({ mode, existing, onClose, onSave }: { mode: 'add' | 'edit'; existing?: Goal; onClose: () => void; onSave: (g: Goal) => void }) {
+  const [title, setTitle] = useState(existing?.title ?? '')
+  const [category, setCategory] = useState<GoalCategory>(existing?.category ?? 'revenue')
+  const [horizon, setHorizon] = useState<GoalHorizon>(existing?.horizon ?? '90d')
+  const [unit, setUnit] = useState(existing?.unit ?? '$')
+  const [targetValue, setTargetValue] = useState(existing?.targetValue ? String(existing.targetValue) : '')
+  const [currentValue, setCurrentValue] = useState(existing?.currentValue ? String(existing.currentValue) : '')
+  const [deadline, setDeadline] = useState(existing?.deadline ?? '')
+  const [description, setDescription] = useState(existing?.description ?? '')
 
   function save() {
     const target = parseFloat(targetValue.replace(/[^0-9.]/g, ''))
     const current = parseFloat(currentValue.replace(/[^0-9.]/g, '') || '0')
     if (!title.trim() || isNaN(target)) return
-    onSave({
-      id: `g_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-      title: title.trim(), description: description.trim() || undefined,
-      category, horizon, unit,
-      targetValue: target, currentValue: current || 0,
-      deadline: deadline || undefined, status: 'active',
-      milestones: [], createdAt: Date.now(),
-    })
+    onSave(existing
+      ? { ...existing, title: title.trim(), description: description.trim() || undefined, category, horizon, unit, targetValue: target, currentValue: current, deadline: deadline || undefined }
+      : {
+          id: `g_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+          title: title.trim(), description: description.trim() || undefined,
+          category, horizon, unit,
+          targetValue: target, currentValue: current || 0,
+          deadline: deadline || undefined, status: 'active',
+          milestones: [], createdAt: Date.now(),
+        }
+    )
     onClose()
   }
 
@@ -443,7 +467,7 @@ function GoalModal({ onClose, onSave }: { onClose: () => void; onSave: (g: Goal)
       onClick={e => { if (e.target === e.currentTarget) onClose() }}>
       <div style={{ ...cardStyle, width: 500, padding: 28, maxHeight: '92vh', overflowY: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <span style={{ fontSize: 16, fontWeight: 600 }}>Add Goal</span>
+          <span style={{ fontSize: 16, fontWeight: 600 }}>{mode === 'edit' ? 'Edit Goal' : 'Add Goal'}</span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: 22, padding: 0, lineHeight: 1 }}>×</button>
         </div>
 
@@ -537,7 +561,7 @@ function GoalModal({ onClose, onSave }: { onClose: () => void; onSave: (g: Goal)
         </div>
 
         <button onClick={save} style={{ marginTop: 20, width: '100%', padding: '11px 0', background: colors.accent, border: 'none', borderRadius: borders.radius.medium, color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-          Add Goal
+          {mode === 'edit' ? 'Save Changes' : 'Add Goal'}
         </button>
       </div>
     </div>

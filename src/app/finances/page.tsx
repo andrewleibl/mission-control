@@ -387,10 +387,11 @@ function RecurringTab({
 }
 
 function AllTransactionsTab({
-  txs, onDelete,
+  txs, onDelete, onEdit,
 }: {
   txs: Transaction[]
   onDelete: (id: string) => void
+  onEdit: (tx: Transaction) => void
 }) {
   const sorted = useMemo(() => [...confirmed(txs)].sort((a, b) => b.date.localeCompare(a.date)), [txs])
 
@@ -407,7 +408,7 @@ function AllTransactionsTab({
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
-            {['Date', 'Type', 'Category', 'Client', 'Note', 'Amount', ''].map(h => (
+            {['Date', 'Type', 'Category', 'Client', 'Note', 'Amount', '', ''].map((h, i) => (
               <th key={h} style={{
                 padding: '10px 16px', textAlign: h === 'Amount' ? 'right' : 'left',
                 fontSize: 11, fontWeight: 600, letterSpacing: '0.06em',
@@ -440,7 +441,10 @@ function AllTransactionsTab({
                 <td style={{ padding: '11px 16px', fontSize: 14, fontWeight: 600, color: tx.type === 'income' ? colors.accent : colors.red, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
                   {tx.type === 'income' ? '+' : '−'}{fmt(tx.amount)}
                 </td>
-                <td style={{ padding: '11px 16px', textAlign: 'right' }}>
+                <td style={{ padding: '11px 8px', textAlign: 'right' }}>
+                  <button onClick={() => onEdit(tx)} style={{ fontSize: 11, color: colors.textMuted, background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5 }} title="Edit">✏</button>
+                </td>
+                <td style={{ padding: '11px 8px', textAlign: 'right' }}>
                   <button onClick={() => onDelete(tx.id)} style={{ fontSize: 12, color: colors.textMuted, background: 'none', border: 'none', cursor: 'pointer', opacity: 0.4 }}>✕</button>
                 </td>
               </tr>
@@ -458,6 +462,7 @@ function AllTransactionsTab({
 type TxModalState =
   | { kind: 'add'; date: string }
   | { kind: 'edit-confirm'; projection: ProjectedTransaction }
+  | { kind: 'edit'; tx: Transaction }
   | null
 
 export default function FinancesPage() {
@@ -510,13 +515,12 @@ export default function FinancesPage() {
   function handleTxModalSave(tx: Transaction) {
     if (txModal?.kind === 'edit-confirm') {
       persistTxs(approveProjection(txs, txModal.projection, {
-        amount: tx.amount,
-        category: tx.category,
-        clientId: tx.clientId,
-        note: tx.note,
-        date: tx.date,
+        amount: tx.amount, category: tx.category, clientId: tx.clientId, note: tx.note, date: tx.date,
       }))
       showToast('Recurring entry confirmed')
+    } else if (txModal?.kind === 'edit') {
+      persistTxs(txs.map(t => t.id === txModal.tx.id ? { ...t, ...tx, id: txModal.tx.id, createdAt: txModal.tx.createdAt, recurringId: txModal.tx.recurringId } : t))
+      showToast('Transaction updated')
     } else {
       persistTxs([tx, ...txs])
       showToast('Transaction added')
@@ -629,7 +633,7 @@ export default function FinancesPage() {
         <RecurringTab rules={rules} onAdd={() => setShowRuleModal(true)} onDelete={deleteRule} />
       )}
       {tab === 'all' && (
-        <AllTransactionsTab txs={txs} onDelete={deleteTx} />
+        <AllTransactionsTab txs={txs} onDelete={deleteTx} onEdit={tx => setTxModal({ kind: 'edit', tx })} />
       )}
 
       {txModal && (
@@ -640,17 +644,12 @@ export default function FinancesPage() {
           defaults={
             txModal.kind === 'add'
               ? { date: txModal.date }
-              : {
-                  type: txModal.projection.type,
-                  date: txModal.projection.date,
-                  amount: txModal.projection.amount,
-                  category: txModal.projection.category,
-                  clientId: txModal.projection.clientId,
-                  note: txModal.projection.note,
-                }
+              : txModal.kind === 'edit'
+              ? { type: txModal.tx.type, date: txModal.tx.date, amount: txModal.tx.amount, category: txModal.tx.category, clientId: txModal.tx.clientId, note: txModal.tx.note }
+              : { type: txModal.projection.type, date: txModal.projection.date, amount: txModal.projection.amount, category: txModal.projection.category, clientId: txModal.projection.clientId, note: txModal.projection.note }
           }
-          title={txModal.kind === 'edit-confirm' ? 'Edit & Confirm' : undefined}
-          submitLabel={txModal.kind === 'edit-confirm' ? 'Confirm Transaction' : undefined}
+          title={txModal.kind === 'edit-confirm' ? 'Edit & Confirm' : txModal.kind === 'edit' ? 'Edit Transaction' : undefined}
+          submitLabel={txModal.kind === 'edit-confirm' ? 'Confirm Transaction' : txModal.kind === 'edit' ? 'Save Changes' : undefined}
         />
       )}
       {showRuleModal && <AddRecurringModal onClose={() => setShowRuleModal(false)} onSave={addRule} clients={clients} />}

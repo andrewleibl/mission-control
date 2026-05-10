@@ -15,6 +15,7 @@ export default function SOPsPage() {
   const [categoryFilter, setCategoryFilter] = useState<SOPCategory | 'all'>('all')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [editingSOP, setEditingSOP] = useState<SOP | null>(null)
 
   useEffect(() => {
     setSOPs(loadSOPs())
@@ -192,6 +193,7 @@ export default function SOPsPage() {
                     onReset={() => resetRun(sop.id)}
                     onUpdate={updateSOP}
                     onDelete={() => deleteSOP(sop.id)}
+                    onEditMeta={() => setEditingSOP(sop)}
                   />
                 )}
               </div>
@@ -201,13 +203,20 @@ export default function SOPsPage() {
       )}
 
       {showAddModal && <SOPModal onClose={() => setShowAddModal(false)} onSave={addSOP} />}
+      {editingSOP && (
+        <SOPMetaModal
+          sop={editingSOP}
+          onClose={() => setEditingSOP(null)}
+          onSave={updated => { persistSOPs(sops.map(s => s.id === updated.id ? updated : s)); setEditingSOP(null) }}
+        />
+      )}
     </PageContainer>
   )
 }
 
 // ================================================================= SOP Detail (inline expanded)
 function SOPDetail({
-  sop, runState, onToggleStep, onReset, onUpdate, onDelete,
+  sop, runState, onToggleStep, onReset, onUpdate, onDelete, onEditMeta,
 }: {
   sop: SOP
   runState: SOPRunState
@@ -215,6 +224,7 @@ function SOPDetail({
   onReset: () => void
   onUpdate: (s: SOP) => void
   onDelete: () => void
+  onEditMeta: () => void
 }) {
   const [editMode, setEditMode] = useState(false)
   const [editingStepId, setEditingStepId] = useState<string | null>(null)
@@ -262,6 +272,11 @@ function SOPDetail({
           {done > 0 && (
             <button onClick={onReset} style={{ ...mono, display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', background: 'transparent', border: `1px solid ${colors.border}`, borderRadius: 4, padding: '4px 9px', color: colors.textMuted, cursor: 'pointer', fontFamily: 'var(--font-mono), monospace' }}>
               <RotateCcw size={10} strokeWidth={2} /> RESET
+            </button>
+          )}
+          {editMode && (
+            <button onClick={onEditMeta} style={{ ...mono, display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', background: 'transparent', border: `1px solid ${colors.border}`, borderRadius: 4, padding: '4px 9px', color: colors.textMuted, cursor: 'pointer', fontFamily: 'var(--font-mono), monospace' }}>
+              <Pencil size={10} strokeWidth={2} /> EDIT INFO
             </button>
           )}
           <button onClick={() => setEditMode(!editMode)} style={{ ...mono, display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', background: editMode ? 'rgba(56,161,87,0.1)' : 'transparent', border: `1px solid ${editMode ? colors.accent : colors.border}`, borderRadius: 4, padding: '4px 9px', color: editMode ? colors.accent : colors.textMuted, cursor: 'pointer', fontFamily: 'var(--font-mono), monospace' }}>
@@ -441,6 +456,73 @@ function SOPModal({ onClose, onSave }: { onClose: () => void; onSave: (s: SOP) =
 
         <button onClick={save} style={{ marginTop: 14, width: '100%', padding: '11px 0', background: colors.accent, border: 'none', borderRadius: borders.radius.medium, color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
           Create SOP
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ================================================================= Edit SOP metadata modal
+function SOPMetaModal({ sop, onClose, onSave }: { sop: SOP; onClose: () => void; onSave: (s: SOP) => void }) {
+  const [title, setTitle] = useState(sop.title)
+  const [description, setDescription] = useState(sop.description ?? '')
+  const [category, setCategory] = useState<SOPCategory>(sop.category)
+
+  function save() {
+    if (!title.trim()) return
+    onSave({ ...sop, title: title.trim(), description: description.trim() || undefined, category, lastUpdated: Date.now() })
+  }
+
+  const inputStyle: React.CSSProperties = {
+    background: colors.cardBg, border: `1px solid ${colors.border}`,
+    borderRadius: borders.radius.medium, padding: '10px 12px',
+    color: colors.text, fontSize: 14, outline: 'none', width: '100%', fontFamily: 'inherit',
+  }
+  const labelStyle: React.CSSProperties = {
+    ...mono, fontSize: 11, color: colors.textMuted, fontWeight: 600,
+    letterSpacing: '0.06em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 6,
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}>
+      <div style={{ ...cardStyle, width: 460, padding: 28 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <span style={{ fontSize: 16, fontWeight: 600 }}>Edit SOP</span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: 22, padding: 0, lineHeight: 1 }}>×</button>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div>
+            <label style={labelStyle}>Title <span style={{ color: colors.red }}>*</span></label>
+            <input autoFocus type="text" value={title} onChange={e => setTitle(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') save() }} style={inputStyle} />
+          </div>
+          <div>
+            <label style={labelStyle}>Category</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+              {CATEGORY_ORDER.map(c => {
+                const cp = CATEGORY_COLOR[c]
+                return (
+                  <button key={c} onClick={() => setCategory(c)} style={{
+                    ...mono, padding: '6px 0', fontSize: 9, fontWeight: 700, letterSpacing: '0.06em',
+                    borderRadius: borders.radius.medium,
+                    border: `1px solid ${category === c ? cp.fg : colors.border}`,
+                    background: category === c ? cp.bg : 'transparent',
+                    color: category === c ? cp.fg : colors.textMuted,
+                    cursor: 'pointer', fontFamily: 'var(--font-mono), monospace',
+                  }}>
+                    {CATEGORY_LABELS[c].toUpperCase().slice(0, 9)}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+          <div>
+            <label style={labelStyle}>Description</label>
+            <textarea value={description} onChange={e => setDescription(e.target.value)} style={{ ...inputStyle, minHeight: 60, resize: 'vertical' as const, lineHeight: 1.5 }} />
+          </div>
+        </div>
+        <button onClick={save} style={{ marginTop: 20, width: '100%', padding: '11px 0', background: colors.accent, border: 'none', borderRadius: borders.radius.medium, color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+          Save Changes
         </button>
       </div>
     </div>
