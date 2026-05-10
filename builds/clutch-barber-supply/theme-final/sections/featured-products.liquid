@@ -1,0 +1,304 @@
+<section class="products-section" aria-labelledby="featured-products-heading">
+  <div class="container">
+    <header class="section-header">
+      <span class="section-eyebrow">{{ section.settings.eyebrow | default: 'Top Picks' }}</span>
+      <h2 class="section-title" id="featured-products-heading">{{ section.settings.heading | default: 'Best Sellers' }}</h2>
+      {%- if section.settings.subheading != blank -%}
+        <p class="section-subtitle">{{ section.settings.subheading }}</p>
+      {%- endif -%}
+    </header>
+
+    {%- assign product_list = section.settings.product_list -%}
+
+    {%- if product_list.count > 0 -%}
+      {%- comment %} Live Shopify — use actual product objects {%- endcomment %}
+      <div class="products-grid">
+        {%- for product in product_list limit: section.settings.products_to_show -%}
+          <article class="product-card" itemscope itemtype="https://schema.org/Product">
+            <a href="{{ product.url }}" class="product-card-image-wrap" aria-label="{{ product.title }}">
+              {%- if product.compare_at_price > product.price -%}
+                <span class="badge-sale" aria-label="On sale">SALE</span>
+              {%- endif -%}
+              {%- if product.featured_image -%}
+                <img
+                  src="{{ product.featured_image | image_url: width: 600 }}"
+                  alt="{{ product.featured_image.alt | default: product.title | escape }}"
+                  width="600"
+                  height="600"
+                  loading="lazy"
+                  itemprop="image"
+                >
+              {%- else -%}
+                <div class="product-card-image-placeholder">No image</div>
+              {%- endif -%}
+            </a>
+            <div class="product-card-body">
+              <p class="product-card-vendor" itemprop="brand">{{ product.vendor }}</p>
+              <h3 class="product-card-title" itemprop="name">
+                <a href="{{ product.url }}">{{ product.title }}</a>
+              </h3>
+              <div class="product-card-rating" aria-label="4.8 out of 5 stars">
+                <span class="stars" aria-hidden="true">★★★★★</span>
+                <span class="rating-count">(4.8) · 24 reviews</span>
+              </div>
+              <div class="product-card-price" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+                <span class="price-current" itemprop="price" content="{{ product.price | divided_by: 100.0 }}">
+                  {{ product.price | money }}
+                </span>
+                {%- if product.compare_at_price > product.price -%}
+                  <span class="price-compare" aria-label="Original price {{ product.compare_at_price | money }}">
+                    {{ product.compare_at_price | money }}
+                  </span>
+                {%- endif -%}
+              </div>
+              <div class="product-card-actions">
+                {%- form 'product', product -%}
+                  <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+                  <button type="submit" name="add" class="btn-add-to-cart" aria-label="Add {{ product.title }} to cart">
+                    Add to Cart
+                  </button>
+                {%- endform -%}
+              </div>
+            </div>
+          </article>
+        {%- endfor -%}
+      </div>
+
+    {%- else -%}
+      {%- comment %} Static preview with real product data {%- endcomment %}
+      <div class="products-grid">
+
+        <!-- Product 1: Morono Razor Handle (SALE) -->
+        <article class="product-card">
+          <a href="/products/morono-razor-handle" class="product-card-image-wrap" aria-label="Morono Razor Handle">
+            <span class="badge-sale" aria-label="On sale">SALE</span>
+            <img
+              src="https://cdn.shopify.com/s/files/1/0569/2791/2099/files/626849F3-0852-4E77-AE1D-18EA97D7B738.jpg?v=1772930127"
+              alt="Morono Razor Handle — professional straight razor handle"
+              width="600"
+              height="600"
+              loading="lazy"
+            >
+          </a>
+          <div class="product-card-body">
+            <p class="product-card-vendor">Morono</p>
+            <h3 class="product-card-title"><a href="/products/morono-razor-handle">Morono Razor Handle</a></h3>
+            <div class="product-card-rating" aria-label="4.8 out of 5 stars">
+              <span class="stars" aria-hidden="true">★★★★★</span>
+              <span class="rating-count">(4.8) · 31 reviews</span>
+            </div>
+            <div class="product-card-price">
+              <span class="price-current">$75.00</span>
+              <span class="price-compare" aria-label="Original price $80.00">$80.00</span>
+            </div>
+            <div class="product-card-actions">
+              <button class="btn-add-to-cart" onclick="alert('Add to cart — connect to Shopify in production')">Add to Cart</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Product 2: NoClogg 20 (SALE) -->
+        <article class="product-card">
+          <a href="/products/noclogg-20-compressor" class="product-card-image-wrap" aria-label="NoClogg 20 Compressor">
+            <span class="badge-sale" aria-label="On sale">SALE</span>
+            <img
+              src="https://cdn.shopify.com/s/files/1/0569/2791/2099/files/19C8033C-F56F-48F5-8E63-47408F80E428.png?v=1772190358"
+              alt="NoClogg 20 No Clogg Compressor 2.0"
+              width="600"
+              height="600"
+              loading="lazy"
+            >
+          </a>
+          <div class="product-card-body">
+            <p class="product-card-vendor">NoClogg</p>
+            <h3 class="product-card-title"><a href="/products/noclogg-20-compressor">NoClogg 20 (No Clogg Compressor 2.0)</a></h3>
+            <div class="product-card-rating" aria-label="4.8 out of 5 stars">
+              <span class="stars" aria-hidden="true">★★★★★</span>
+              <span class="rating-count">(4.8) · 18 reviews</span>
+            </div>
+            <div class="product-card-price">
+              <span class="price-current">$109.00</span>
+              <span class="price-compare" aria-label="Original price $120.00">$120.00</span>
+            </div>
+            <div class="product-card-actions">
+              <button class="btn-add-to-cart" onclick="alert('Add to cart — connect to Shopify in production')">Add to Cart</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Product 3: Andis Master Cordless -->
+        <article class="product-card">
+          <a href="/products/andis-master-cordless" class="product-card-image-wrap" aria-label="Andis Master Cordless Clipper">
+            <div class="product-card-image-placeholder" style="background: linear-gradient(135deg, #1a1a1a, #2a2a2a); display:flex; align-items:center; justify-content:center; aspect-ratio:1; color:#555; font-size:0.8rem; flex-direction:column; gap:0.5rem;">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/></svg>
+              <span>Andis</span>
+            </div>
+          </a>
+          <div class="product-card-body">
+            <p class="product-card-vendor">Andis</p>
+            <h3 class="product-card-title"><a href="/products/andis-master-cordless">Andis Master Cordless Clipper</a></h3>
+            <div class="product-card-rating" aria-label="4.8 out of 5 stars">
+              <span class="stars" aria-hidden="true">★★★★★</span>
+              <span class="rating-count">(4.8) · 47 reviews</span>
+            </div>
+            <div class="product-card-price">
+              <span class="price-current">$179.99</span>
+            </div>
+            <div class="product-card-actions">
+              <button class="btn-add-to-cart" onclick="alert('Add to cart — connect to Shopify in production')">Add to Cart</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Product 4: JRL 2020C Clipper -->
+        <article class="product-card">
+          <a href="/products/jrl-2020c-clipper" class="product-card-image-wrap" aria-label="JRL 2020C Professional Clipper">
+            <div class="product-card-image-placeholder" style="background: linear-gradient(135deg, #1a1a1a, #2a2a2a); display:flex; align-items:center; justify-content:center; aspect-ratio:1; color:#555; font-size:0.8rem; flex-direction:column; gap:0.5rem;">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/></svg>
+              <span>JRL</span>
+            </div>
+          </a>
+          <div class="product-card-body">
+            <p class="product-card-vendor">JRL</p>
+            <h3 class="product-card-title"><a href="/products/jrl-2020c-clipper">JRL 2020C Professional Clipper</a></h3>
+            <div class="product-card-rating" aria-label="4.9 out of 5 stars">
+              <span class="stars" aria-hidden="true">★★★★★</span>
+              <span class="rating-count">(4.9) · 52 reviews</span>
+            </div>
+            <div class="product-card-price">
+              <span class="price-current">$219.99</span>
+            </div>
+            <div class="product-card-actions">
+              <button class="btn-add-to-cart" onclick="alert('Add to cart — connect to Shopify in production')">Add to Cart</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Product 5: Babyliss FX870 -->
+        <article class="product-card">
+          <a href="/products/babyliss-fx870-trimmer" class="product-card-image-wrap" aria-label="Babyliss FX870 Skeleton Trimmer">
+            <div class="product-card-image-placeholder" style="background: linear-gradient(135deg, #1a1a1a, #2a2a2a); display:flex; align-items:center; justify-content:center; aspect-ratio:1; color:#555; font-size:0.8rem; flex-direction:column; gap:0.5rem;">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/></svg>
+              <span>Babyliss Pro</span>
+            </div>
+          </a>
+          <div class="product-card-body">
+            <p class="product-card-vendor">Babyliss Pro</p>
+            <h3 class="product-card-title"><a href="/products/babyliss-fx870-trimmer">Babyliss FX870 Skeleton Trimmer</a></h3>
+            <div class="product-card-rating" aria-label="4.7 out of 5 stars">
+              <span class="stars" aria-hidden="true">★★★★★</span>
+              <span class="rating-count">(4.7) · 38 reviews</span>
+            </div>
+            <div class="product-card-price">
+              <span class="price-current">$149.99</span>
+            </div>
+            <div class="product-card-actions">
+              <button class="btn-add-to-cart" onclick="alert('Add to cart — connect to Shopify in production')">Add to Cart</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Product 6: Gamma+ Absolute Hitter -->
+        <article class="product-card">
+          <a href="/products/gamma-plus-absolute-hitter" class="product-card-image-wrap" aria-label="Gamma+ Absolute Hitter Trimmer">
+            <div class="product-card-image-placeholder" style="background: linear-gradient(135deg, #1a1a1a, #2a2a2a); display:flex; align-items:center; justify-content:center; aspect-ratio:1; color:#555; font-size:0.8rem; flex-direction:column; gap:0.5rem;">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/></svg>
+              <span>Gamma+</span>
+            </div>
+          </a>
+          <div class="product-card-body">
+            <p class="product-card-vendor">Gamma+</p>
+            <h3 class="product-card-title"><a href="/products/gamma-plus-absolute-hitter">Gamma+ Absolute Hitter Trimmer</a></h3>
+            <div class="product-card-rating" aria-label="4.8 out of 5 stars">
+              <span class="stars" aria-hidden="true">★★★★★</span>
+              <span class="rating-count">(4.8) · 29 reviews</span>
+            </div>
+            <div class="product-card-price">
+              <span class="price-current">$159.99</span>
+            </div>
+            <div class="product-card-actions">
+              <button class="btn-add-to-cart" onclick="alert('Add to cart — connect to Shopify in production')">Add to Cart</button>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    {%- endif -%}
+
+    {%- if section.settings.show_view_all -%}
+      <div class="text-center mt-4">
+        <a href="{{ section.settings.view_all_link | default: '/collections/all' }}" class="btn btn-outline">
+          {{ section.settings.view_all_text | default: 'View All Products' }}
+        </a>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Featured Products",
+  "tag": "section",
+  "class": "featured-products-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow label",
+      "default": "Top Picks"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Section heading",
+      "default": "Best Sellers"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Section subheading",
+      "info": "Optional — leave blank to hide"
+    },
+    {
+      "type": "product_list",
+      "id": "product_list",
+      "label": "Products",
+      "limit": 12,
+      "info": "Select up to 12 products. If empty, static preview products are shown."
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "Products to show",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "default": 6
+    },
+    {
+      "type": "checkbox",
+      "id": "show_view_all",
+      "label": "Show 'View All' button",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "view_all_text",
+      "label": "'View All' button text",
+      "default": "View All Products"
+    },
+    {
+      "type": "url",
+      "id": "view_all_link",
+      "label": "'View All' button link",
+      "default": "/collections/all"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Featured Products",
+      "category": "Products"
+    }
+  ]
+}
+{% endschema %}

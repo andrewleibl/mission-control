@@ -64,6 +64,7 @@ export default function Sidebar() {
             <Link
               key={href}
               href={href}
+              className={`sidebar-nav-item${active ? ' active' : ''}`}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -82,7 +83,7 @@ export default function Sidebar() {
               }}
             >
               <Icon size={15} strokeWidth={1.85} color={active ? colors.accent : colors.textMuted} />
-              <span>{label}</span>
+              <span className="sidebar-nav-label">{label}</span>
             </Link>
           )
         })}

@@ -1,0 +1,919 @@
+{% comment %}
+  Product Template - Reorganized Layout
+  Left: Image gallery + description
+  Right: Info, pricing, trust, dropdowns, CTA
+{% endcomment %}
+
+<div class="page-with-glow">
+
+<div class="product-page product-page--optimized">
+  {% comment %} LEFT SIDE: Image Gallery + Description {% endcomment %}
+  <div class="product-left">
+    <div class="product-gallery">
+      <div class="product-gallery__main">
+        {% if product.featured_image %}
+          <img src="{{ product.featured_image | image_url: width: 800 }}" alt="{{ product.featured_image.alt | escape }}" id="mainImage">
+        {% else %}
+          <span style="color: var(--clutch-text-dim);">Product Image</span>
+        {% endif %}
+      </div>
+      {% if product.images.size > 1 %}
+        <div class="product-gallery__thumbs">
+          {% for image in product.images %}
+            <div class="product-gallery__thumb {% if forloop.first %}active{% endif %}" onclick="changeImage('{{ image | image_url: width: 800 }}', this)">
+              <img src="{{ image | image_url: width: 150 }}" alt="{{ image.alt | escape }}" loading="lazy">
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+    
+    {% comment %} Description below images {% endcomment %}
+    <div class="product-description">
+      {{ product.description }}
+    </div>
+  </div>
+
+  {% comment %} RIGHT SIDE: Product Info {% endcomment %}
+  <div class="product-right">
+    <div class="product-info">
+      <div class="product-info__brand">{{ product.vendor }}</div>
+      <h1 class="product-info__title">{{ product.title }}</h1>
+      
+      {% comment %} Live Viewer Count {% endcomment %}
+      <div class="viewing-now">
+        <span class="viewing-dot"></span>
+        <span class="viewing-text"><strong id="viewerCount">3</strong> people are viewing this product right now</span>
+      </div>
+      
+      <div class="product-info__price">
+        <span class="product-info__price-current">{{ product.price | money }}</span>
+        {% if product.compare_at_price > product.price %}
+          <span class="product-info__price-compare">{{ product.compare_at_price | money }}</span>
+          <span class="product-info__savings">Save {{ product.compare_at_price | minus: product.price | money }}</span>
+        {% endif %}
+      </div>
+      
+      {% comment %} Trust Bar {% endcomment %}
+      <div class="product-trust-bar">
+        <div class="trust-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.5"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.5"/></svg>
+          <span>Secure Checkout</span>
+        </div>
+        <div class="trust-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 14l2 2 6-6" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/></svg>
+          <span>30-Day Returns</span>
+        </div>
+        <div class="trust-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 13h6l-1 9 9-11h-6l1-9z" stroke="currentColor" stroke-width="1.5"/></svg>
+          <span>Fast Shipping</span>
+        </div>
+      </div>
+      
+      {% comment %} Info Accordion {% endcomment %}
+      <div class="product-info-accordion">
+        <details class="info-item">
+          <summary>
+            <span>Shipping Information</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5"/></svg>
+          </summary>
+          <div class="info-content">
+            <ul>
+              <li><strong>Free Shipping</strong> on orders over $50 (Continental US only)</li>
+              <li>We process orders within 1-2 business days. Same-day shipping for orders placed before 2:00 PM CST</li>
+              <li>In-Store Pickup available — select at checkout. We'll email when ready (usually within 24 hours)</li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="info-item">
+          <summary>
+            <span>Returns & Refunds</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5"/></svg>
+          </summary>
+          <div class="info-content">
+            <ul>
+              <li><strong>30-day return policy</strong> — must contact us first. Items must be unworn/unused with original packaging and receipt</li>
+              <li>Customers pay for return shipping (we'll provide the label). Defective items get free return shipping</li>
+              <li>All sales final on clippers, trimmers and other products unless defective or non-operational</li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="info-item">
+          <summary>
+            <span>Contact Us</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5"/></svg>
+          </summary>
+          <div class="info-content">
+            <ul>
+              <li><strong>Email:</strong> <a href="mailto:viceliatinde20@gmail.com">viceliatinde20@gmail.com</a> — We reply within 24 hours</li>
+              <li><strong>Phone:</strong> <a href="tel:+12146771059">(214) 677-1059</a> — Mon–Fri 9am–6pm, Sat 9am–12pm CST</li>
+              <li><strong>Store:</strong> 113 South Center, Grand Prairie, TX 75050 — Visit our <a href="/pages/contact">contact page</a> for details</li>
+            </ul>
+          </div>
+        </details>
+      </div>
+      
+      {% form 'product', product %}
+        {% if product.variants.size > 1 %}
+          <div class="product-options">
+            <label class="product-options__label">Select Option</label>
+            <div class="product-options__values">
+              {% for variant in product.variants %}
+                <button type="button" class="product-option {% if variant == product.selected_or_first_available_variant %}selected{% endif %} {% unless variant.available %}disabled{% endunless %}" 
+                        onclick="selectVariant('{{ variant.id }}', {{ variant.price }}, {{ variant.compare_at_price | default: 0 }}, {{ variant.available | json }})" 
+                        data-variant-id="{{ variant.id }}">
+                  {{ variant.title }}
+                </button>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+        
+        <input type="hidden" name="id" id="variantId" value="{{ product.selected_or_first_available_variant.id }}">
+        
+        <div class="quantity-selector">
+          <span class="quantity-selector__label">Quantity</span>
+          <div class="quantity-selector__control">
+            <button type="button" onclick="updateQuantity(-1)">−</button>
+            <input type="number" name="quantity" value="1" min="1" id="quantityInput">
+            <button type="button" onclick="updateQuantity(1)">+</button>
+          </div>
+        </div>
+        
+        <button type="submit" class="add-to-cart" id="addToCartBtn" {% unless product.available %}disabled{% endunless %}>
+          {% if product.available %}Add to Cart - {{ product.price | money }}{% else %}Sold Out{% endif %}
+        </button>
+      {% endform %}
+      
+      {% comment %} Payment Methods {% endcomment %}
+      <div class="product-payment-methods">
+        <p>We accept:</p>
+        <div class="payment-icons">
+          <span class="payment-icon">AMEX</span>
+          <span class="payment-icon">MC</span>
+          <span class="payment-icon">VISA</span>
+          <span class="payment-icon">PayPal</span>
+          <span class="payment-icon">Apple Pay</span>
+          <span class="payment-icon">Shop Pay</span>
+        </div>
+      </div>
+      
+      <div class="product-meta">
+        <div class="product-meta__item">
+          <span class="product-meta__label">SKU:</span>
+          <span class="product-meta__value" id="sku">{{ product.selected_or_first_available_variant.sku }}</span>
+        </div>
+        <div class="product-meta__item">
+          <span class="product-meta__label">Availability:</span>
+          <span class="product-meta__value" id="availability">{% if product.available %}In Stock{% else %}Out of Stock{% endif %}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% comment %} Reviews Marquee - Full Width {% endcomment %}
+<div class="product-reviews-marquee">
+  <div class="reviews-marquee-header">
+    <h3>What Barbers Are Saying</h3>
+    <a href="/pages/reviews" class="reviews-link">View All Reviews →</a>
+  </div>
+  <div class="reviews-marquee-container">
+    <div class="reviews-marquee-track">
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Man I'm glad I stopped by the shop today it's hard finding a good barber supply store but let me tell you this shop has everything you can ever want and need with great prices this shop a 10/10"</p>
+        <span class="review-author">— Erik Deleon</span>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Be careful when walking in to Clutch Barber supply. It's like walking in to Target, you can never walk out with just one thing. I love that they have just about EVERYTHING here!"</p>
+        <span class="review-author">— Scarlett Salas</span>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Bought 2 barber chairs here for my business. And this is by far the best barber supply store I've been to. Definitely recommend!"</p>
+        <span class="review-author">— dtx.outlaws</span>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Great atmosphere great store with all of your barber needs and if you can't find it in store don't you worry they will come in clutch and get it for you"</p>
+        <span class="review-author">— Fernando Perez</span>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Wonderful customer service! Best barber supply hands down! Pricing is perfect and well stocked! Highly recommend!"</p>
+        <span class="review-author">— Sabrina Reina</span>
+      </div>
+      {% comment %} Duplicate for seamless loop {% endcomment %}
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Man I'm glad I stopped by the shop today it's hard finding a good barber supply store but let me tell you this shop has everything you can ever want and need with great prices this shop a 10/10"</p>
+        <span class="review-author">— Erik Deleon</span>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Be careful when walking in to Clutch Barber supply. It's like walking in to Target, you can never walk out with just one thing. I love that they have just about EVERYTHING here!"</p>
+        <span class="review-author">— Scarlett Salas</span>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Bought 2 barber chairs here for my business. And this is by far the best barber supply store I've been to. Definitely recommend!"</p>
+        <span class="review-author">— dtx.outlaws</span>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Great atmosphere great store with all of your barber needs and if you can't find it in store don't you worry they will come in clutch and get it for you"</p>
+        <span class="review-author">— Fernando Perez</span>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Wonderful customer service! Best barber supply hands down! Pricing is perfect and well stocked! Highly recommend!"</p>
+        <span class="review-author">— Sabrina Reina</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+{% if product.metafields.custom.specifications %}
+  <div class="product-specs">
+    <h2>Specifications</h2>
+    {{ product.metafields.custom.specifications }}
+  </div>
+{% endif %}
+
+<script>
+function changeImage(src, thumb) {
+  document.getElementById('mainImage').src = src;
+  document.querySelectorAll('.product-gallery__thumb').forEach(t => t.classList.remove('active'));
+  thumb.classList.add('active');
+}
+
+function updateQuantity(change) {
+  const input = document.getElementById('quantityInput');
+  const newValue = parseInt(input.value) + change;
+  if (newValue >= 1) input.value = newValue;
+}
+
+function selectVariant(id, price, comparePrice, available) {
+  document.getElementById('variantId').value = id;
+  
+  // Update UI
+  document.querySelectorAll('.product-option').forEach(btn => btn.classList.remove('selected'));
+  document.querySelector(`[data-variant-id="${id}"]`).classList.add('selected');
+  
+  // Update price display
+  const priceDisplay = document.querySelector('.product-info__price-current');
+  const compareDisplay = document.querySelector('.product-info__price-compare');
+  
+  priceDisplay.textContent = formatMoney(price);
+  if (comparePrice > price) {
+    compareDisplay.textContent = formatMoney(comparePrice);
+    compareDisplay.style.display = '';
+  } else {
+    compareDisplay.style.display = 'none';
+  }
+  
+  // Update add to cart button
+  const btn = document.getElementById('addToCartBtn');
+  if (available) {
+    btn.disabled = false;
+    btn.textContent = `Add to Cart - ${formatMoney(price)}`;
+  } else {
+    btn.disabled = true;
+    btn.textContent = 'Sold Out';
+  }
+}
+
+function formatMoney(cents) {
+  return '$' + (cents / 100).toFixed(2);
+}
+
+// Viewer counter - changes every 10 seconds between 2-5
+function updateViewerCount() {
+  const min = 2;
+  const max = 5;
+  const count = Math.floor(Math.random() * (max - min + 1)) + min;
+  const viewerElement = document.getElementById('viewerCount');
+  if (viewerElement) {
+    viewerElement.textContent = count;
+  }
+}
+
+// Update every 10 seconds
+setInterval(updateViewerCount, 10000);
+
+// Initial update
+updateViewerCount();
+</script>
+
+<style>
+/* Product Page Layout - Optimized */
+.product-page {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.product-page--optimized {
+  grid-template-columns: 45% 55%;
+}
+
+@media (max-width: 900px) {
+  .product-page {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .product-page--optimized {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Left Side - Images */
+.product-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.product-gallery {
+  background: var(--clutch-navy);
+  border: 1px solid var(--clutch-border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.product-gallery__main {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.03);
+  padding: 1.5rem;
+  max-height: 495px;
+}
+
+.product-gallery__main img {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.product-gallery__main img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.product-gallery__thumbs {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-top: 1px solid var(--clutch-border);
+  overflow-x: auto;
+}
+
+.product-gallery__thumb {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.03);
+  border: 2px solid transparent;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem;
+}
+
+.product-gallery__thumb.active {
+  border-color: var(--clutch-copper);
+}
+
+.product-gallery__thumb img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Description */
+.product-description {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--clutch-text-muted);
+}
+
+/* Right Side - Info */
+.product-right {
+  display: flex;
+  flex-direction: column;
+}
+
+.product-info__brand {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--clutch-copper);
+  margin-bottom: 0.5rem;
+}
+
+.product-info__title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 1rem;
+  line-height: 1.2;
+}
+
+/* Viewing Now Counter */
+.viewing-now {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.8125rem;
+  color: var(--clutch-text-muted);
+  width: fit-content;
+}
+
+.viewing-dot {
+  width: 8px;
+  height: 8px;
+  background: #ef4444;
+  border-radius: 50%;
+  animation: pulse-red 2s ease-in-out infinite;
+}
+
+@keyframes pulse-red {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.2); }
+}
+
+.viewing-text strong {
+  color: #ef4444;
+  font-weight: 700;
+}
+
+/* Price */
+.product-info__price {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.product-info__price-current {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--clutch-copper);
+}
+
+.product-info__price-compare {
+  font-size: 1rem;
+  text-decoration: line-through;
+  color: var(--clutch-text-dim);
+}
+
+.product-info__savings {
+  padding: 0.25rem 0.5rem;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #22c55e;
+}
+
+/* Trust Bar */
+.product-trust-bar {
+  display: flex;
+  gap: 1.5rem;
+  padding: 0.75rem 0;
+  margin-bottom: 1.25rem;
+  border-top: 1px solid var(--clutch-border);
+  border-bottom: 1px solid var(--clutch-border);
+}
+
+.product-trust-bar .trust-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--clutch-text-muted);
+}
+
+.product-trust-bar .trust-item svg {
+  stroke: var(--clutch-copper);
+  flex-shrink: 0;
+}
+
+/* Info Accordion */
+.product-info-accordion {
+  margin-bottom: 1.5rem;
+}
+
+.product-info-accordion .info-item {
+  border-bottom: 1px solid var(--clutch-border);
+}
+
+.product-info-accordion .info-item summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--clutch-paper);
+  cursor: pointer;
+  list-style: none;
+}
+
+.product-info-accordion .info-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.product-info-accordion .info-item summary svg {
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.product-info-accordion .info-item[open] summary svg {
+  transform: rotate(180deg);
+}
+
+.product-info-accordion .info-content {
+  padding: 0 0 1rem;
+  font-size: 0.875rem;
+  color: var(--clutch-text-muted);
+}
+
+.product-info-accordion .info-content ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.product-info-accordion .info-content li {
+  margin-bottom: 0.5rem;
+}
+
+.product-info-accordion .info-content a {
+  color: var(--clutch-copper);
+  text-decoration: none;
+}
+
+/* Product Options */
+.product-options {
+  margin-bottom: 1rem;
+}
+
+.product-options__label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--clutch-paper);
+}
+
+.product-options__values {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.product-option {
+  padding: 0.5rem 1rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--clutch-border);
+  border-radius: 8px;
+  color: var(--clutch-paper);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.product-option:hover:not(.disabled) {
+  border-color: var(--clutch-copper);
+}
+
+.product-option.selected {
+  background: var(--clutch-copper);
+  border-color: var(--clutch-copper);
+  color: var(--clutch-ink);
+}
+
+.product-option.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Quantity Selector */
+.quantity-selector {
+  margin-bottom: 1rem;
+}
+
+.quantity-selector__label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--clutch-paper);
+}
+
+.quantity-selector__control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--clutch-border);
+  border-radius: 8px;
+  padding: 0.25rem;
+}
+
+.quantity-selector__control button {
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  color: var(--clutch-paper);
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+
+.quantity-selector__control input {
+  width: 50px;
+  text-align: center;
+  background: transparent;
+  border: none;
+  color: var(--clutch-paper);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Add to Cart */
+.add-to-cart {
+  width: 100%;
+  padding: 1rem;
+  background: var(--clutch-copper);
+  color: var(--clutch-ink);
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 1rem;
+}
+
+.add-to-cart:hover:not(:disabled) {
+  background: var(--clutch-copper-soft);
+  transform: translateY(-2px);
+}
+
+.add-to-cart:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Payment Methods */
+.product-payment-methods {
+  margin: 1rem 0;
+  padding: 1rem 0;
+  border-top: 1px solid var(--clutch-border);
+}
+
+.product-payment-methods p {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  color: var(--clutch-text-muted);
+}
+
+.product-payment-methods .payment-icons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.product-payment-methods .payment-icon {
+  padding: 0.25rem 0.5rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 4px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--clutch-text-muted);
+}
+
+/* Product Meta */
+.product-meta {
+  display: flex;
+  gap: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--clutch-border);
+  font-size: 0.8125rem;
+}
+
+.product-meta__label {
+  color: var(--clutch-text-dim);
+}
+
+.product-meta__value {
+  color: var(--clutch-paper);
+}
+
+/* Mobile adjustments - MINIMAL */
+@media (max-width: 768px) {
+  .product-trust-bar {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .product-info__title {
+    font-size: 1.25rem;
+  }
+
+  /* Container at 90% width */
+  .product-left {
+    width: 90% !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+  }
+
+  /* Gallery container */
+  .product-gallery {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  /* CRITICAL: Remove aspect-ratio square prison */
+  .product-gallery__main {
+    aspect-ratio: auto !important;
+    max-height: none !important;
+    height: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0.5rem !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Image: 100% width of container, auto height */
+  .product-gallery__main img {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 400px !important;
+    display: block !important;
+    margin: 0 auto !important;
+    object-fit: contain !important;
+  }
+
+  /* Thumbnails */
+  .product-gallery__thumbs {
+    display: flex !important;
+    width: 100% !important;
+    padding: 0.5rem !important;
+    gap: 0.5rem !important;
+    overflow-x: auto !important;
+    border-top: 1px solid var(--clutch-border) !important;
+  }
+
+  /* Description */
+  .product-description {
+    width: 100% !important;
+    max-width: 100% !important;
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+}
+
+/* Reviews Marquee */
+.product-reviews-marquee {
+  margin-top: 3rem;
+  padding: 2rem 0;
+  border-top: 1px solid var(--clutch-border);
+  overflow: hidden;
+}
+
+.reviews-marquee-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto 1.5rem;
+  padding: 0 1rem;
+}
+
+.reviews-marquee-header h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--clutch-paper);
+}
+
+.reviews-link {
+  font-size: 0.875rem;
+  color: var(--clutch-copper);
+  text-decoration: none;
+}
+
+.reviews-link:hover {
+  text-decoration: underline;
+}
+
+.reviews-marquee-container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.reviews-marquee-track {
+  display: flex;
+  gap: 1.5rem;
+  animation: marquee-scroll 40s linear infinite;
+  width: fit-content;
+}
+
+.reviews-marquee-container:hover .reviews-marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.review-card {
+  flex-shrink: 0;
+  width: 350px;
+  padding: 1.25rem;
+  background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+  border: 1px solid var(--clutch-border);
+  border-radius: 12px;
+}
+
+.review-card .review-stars {
+  color: var(--clutch-copper);
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.1em;
+}
+
+.review-card .review-text {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--clutch-text-muted);
+  margin: 0 0 1rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.review-card .review-author {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--clutch-paper);
+}
+
+@media (max-width: 768px) {
+  .review-card {
+    width: 280px;
+    padding: 1rem;
+  }
+  
+  .reviews-marquee-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+</style>
+
+{% schema %}
+{
+  "name": "Product Template"
+}
+{% endschema %}

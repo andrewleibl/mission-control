@@ -78,7 +78,7 @@ export default function SOPsPage() {
       />
 
       {/* KPI Strip */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+      <div className="kpi-strip" style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
         <Kpi label="Total SOPs" value={String(totalSOPs)} accent={colors.accent} />
         <Kpi label="Categories" value={String(totalCategories)} accent={colors.textMuted} />
         <Kpi label="Total Steps" value={String(totalSteps)} accent={colors.textMuted} />
@@ -413,7 +413,7 @@ function SOPModal({ onClose, onSave }: { onClose: () => void; onSave: (s: SOP) =
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}>
-      <div style={{ ...cardStyle, width: 460, padding: 28 }}>
+      <div className="modal-sheet" style={{ ...cardStyle, width: 460, padding: 28 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <span style={{ fontSize: 16, fontWeight: 600 }}>New SOP</span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: 22, padding: 0, lineHeight: 1 }}>×</button>
@@ -486,7 +486,7 @@ function SOPMetaModal({ sop, onClose, onSave }: { sop: SOP; onClose: () => void;
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}>
-      <div style={{ ...cardStyle, width: 460, padding: 28 }}>
+      <div className="modal-sheet" style={{ ...cardStyle, width: 460, padding: 28 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <span style={{ fontSize: 16, fontWeight: 600 }}>Edit SOP</span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: 22, padding: 0, lineHeight: 1 }}>×</button>

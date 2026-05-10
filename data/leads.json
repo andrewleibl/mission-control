@@ -1,0 +1,142 @@
+[
+  {
+    "id": "1775940876862-wqetuo6qr",
+    "name": "Test Lead",
+    "phone": "(555) 123-4567",
+    "location": "Dallas, TX",
+    "status": "Hot",
+    "score": 6,
+    "submittedAt": "2026-04-11T20:54:36.800Z",
+    "lastContacted": "2026-04-11T20:54:36.800Z",
+    "nextAction": "Call immediately and book estimate",
+    "answers": [
+      {
+        "question": "What type of project are you looking to get done?",
+        "answer": "Turf installation"
+      },
+      {
+        "question": "What's the main reason you're looking to get this done right now?",
+        "answer": "Yard needs fixing"
+      },
+      {
+        "question": "When are you realistically looking to start this project?",
+        "answer": "ASAP (1-2 weeks)"
+      },
+      {
+        "question": "Most projects range from $500-$5,000+. Where do you see yours?",
+        "answer": "$2,000-$5,000"
+      },
+      {
+        "question": "If everything looks right, are you ready to move forward with a quote this week?",
+        "answer": "Yes"
+      }
+    ],
+    "contactPoints": [],
+    "source": "ghl",
+    "clientId": "client-001",
+    "rawPayload": {
+      "contact": {
+        "firstName": "Test",
+        "lastName": "Lead",
+        "phone": "(555) 123-4567",
+        "city": "Dallas",
+        "state": "TX"
+      },
+      "formData": [
+        {
+          "name": "What type of project are you looking to get done?",
+          "value": "Turf installation"
+        },
+        {
+          "name": "What's the main reason you're looking to get this done right now?",
+          "value": "Yard needs fixing"
+        },
+        {
+          "name": "When are you realistically looking to start this project?",
+          "value": "ASAP (1-2 weeks)"
+        },
+        {
+          "name": "Most projects range from $500-$5,000+. Where do you see yours?",
+          "value": "$2,000-$5,000"
+        },
+        {
+          "name": "If everything looks right, are you ready to move forward with a quote this week?",
+          "value": "Yes"
+        }
+      ],
+      "createdAt": "2026-04-11T20:54:36.800Z"
+    },
+    "createdAt": "2026-04-11T20:54:36.858Z",
+    "updatedAt": "2026-04-11T20:54:36.858Z"
+  },
+  {
+    "id": "1775945040842-st8enadn9",
+    "name": "Test Lead",
+    "phone": "(555) 123-4567",
+    "location": "Dallas, TX",
+    "status": "Hot",
+    "score": 6,
+    "submittedAt": "2026-04-11T22:04:00.760Z",
+    "lastContacted": "2026-04-11T22:04:00.760Z",
+    "nextAction": "Call immediately and book estimate",
+    "answers": [
+      {
+        "question": "What type of project are you looking to get done?",
+        "answer": "Turf installation"
+      },
+      {
+        "question": "What's the main reason you're looking to get this done right now?",
+        "answer": "Yard needs fixing"
+      },
+      {
+        "question": "When are you realistically looking to start this project?",
+        "answer": "ASAP (1-2 weeks)"
+      },
+      {
+        "question": "Most projects range from $500-$5,000+. Where do you see yours?",
+        "answer": "$2,000-$5,000"
+      },
+      {
+        "question": "If everything looks right, are you ready to move forward with a quote this week?",
+        "answer": "Yes"
+      }
+    ],
+    "contactPoints": [],
+    "source": "ghl",
+    "clientId": "client-001",
+    "rawPayload": {
+      "contact": {
+        "firstName": "Test",
+        "lastName": "Lead",
+        "phone": "(555) 123-4567",
+        "city": "Dallas",
+        "state": "TX"
+      },
+      "formData": [
+        {
+          "name": "What type of project are you looking to get done?",
+          "value": "Turf installation"
+        },
+        {
+          "name": "What's the main reason you're looking to get this done right now?",
+          "value": "Yard needs fixing"
+        },
+        {
+          "name": "When are you realistically looking to start this project?",
+          "value": "ASAP (1-2 weeks)"
+        },
+        {
+          "name": "Most projects range from $500-$5,000+. Where do you see yours?",
+          "value": "$2,000-$5,000"
+        },
+        {
+          "name": "If everything looks right, are you ready to move forward with a quote this week?",
+          "value": "Yes"
+        }
+      ],
+      "createdAt": "2026-04-11T22:04:00.760Z"
+    },
+    "createdAt": "2026-04-11T22:04:00.841Z",
+    "updatedAt": "2026-04-11T22:04:00.841Z"
+  }
+]

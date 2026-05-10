@@ -1,0 +1,81 @@
+{% assign collection = collections[section.settings.collection] %}
+
+<section class="clutch-home-section clutch-home-featured-products">
+  <div class="clutch-home-section__inner">
+    <header class="clutch-home-section__header">
+      <p class="clutch-home-section__eyebrow">{{ section.settings.eyebrow }}</p>
+      <h2 class="clutch-home-section__title">{{ section.settings.title }}</h2>
+    </header>
+    
+    <div class="clutch-home-products__grid">
+      {% for product in collection.products limit: section.settings.products_to_show %}
+        <article class="clutch-home-products__card">
+          <a href="{{ product.url }}" class="clutch-home-products__image-link">
+            {% if product.featured_image %}
+              <img src="{{ product.featured_image | image_url: width: 400 }}" alt="{{ product.featured_image.alt | escape }}" loading="lazy">
+            {% else %}
+              <span class="clutch-home-products__image--placeholder">{{ product.title }}</span>
+            {% endif %}
+          </a>
+          <div class="clutch-home-products__body">
+            <p class="clutch-home-products__brand">{{ product.vendor }}</p>
+            <h3 class="clutch-home-products__name"><a href="{{ product.url }}">{{ product.title }}</a></h3>
+            <p class="clutch-home-products__price">{{ product.price | money }}</p>
+            
+            {% form 'product', product %}
+              <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+              <button type="submit" class="clutch-button clutch-button--copper" {% unless product.available %}disabled{% endunless %}>
+                {% if product.available %}Quick Add{% else %}Sold Out{% endif %}
+              </button>
+            {% endform %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Top Trending Products",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "default": "Top Barbers Picks",
+      "label": "Eyebrow Text"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "default": "Top Trending Products",
+      "label": "Title"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "default": 4,
+      "label": "Products to show"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Top Trending Products",
+      "settings": {
+        "eyebrow": "Top Barbers Picks",
+        "title": "Top Trending Products",
+        "collection": "all",
+        "products_to_show": 4
+      }
+    }
+  ]
+}
+{% endschema %}

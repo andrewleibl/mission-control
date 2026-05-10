@@ -231,43 +231,174 @@ button {
   }
 }
 
-@media (max-width: 720px) {
-  body {
-    display: block !important;
-  }
+/* =====================================================
+   KPI strip: flex row on desktop → 2×2 grid on mobile
+   ===================================================== */
+.kpi-strip {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+/* =====================================================
+   Responsive table: add horizontal scroll on mobile
+   ===================================================== */
+.responsive-table {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* =====================================================
+   Calendar wrapper: horizontal scroll on mobile
+   ===================================================== */
+.calendar-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* =====================================================
+   Card grids: auto-fill min 280px → 1 col on narrow
+   (goal-grid, client-grid use inline minmax which
+   already collapses — these classes add a safety floor)
+   ===================================================== */
+.responsive-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 768px) {
+  /* ── Layout ─────────────────────────── */
+  body { display: block !important; }
 
   aside {
     width: 100% !important;
     height: auto !important;
     position: sticky !important;
+    top: 0;
+    z-index: 100;
   }
 
   nav {
-    display: flex;
-    overflow-x: auto;
-    padding: 8px 12px 12px !important;
-    gap: 4px;
+    display: flex !important;
+    overflow-x: auto !important;
+    padding: 6px 8px 8px !important;
+    gap: 2px !important;
+    scrollbar-width: none;
+  }
+  nav::-webkit-scrollbar { display: none; }
+
+  /* Nav items: compact icon+label pill on mobile */
+  .sidebar-nav-item {
+    padding: 8px 10px !important;
+    border-radius: 8px !important;
+    border-left: none !important;
+    border-bottom: 2px solid transparent;
+    flex-shrink: 0;
+  }
+  .sidebar-nav-item.active {
+    border-left: none !important;
+    border-bottom-color: var(--accent) !important;
   }
 
-  .sidebar-item {
-    white-space: nowrap;
-    margin: 0;
-    border-left: none;
-    border-bottom: 3px solid transparent;
-  }
-
-  .sidebar-item.active {
-    border-left-color: transparent;
-    border-bottom-color: var(--accent);
-  }
+  /* Hide text labels in sidebar on mobile — icons only */
+  .sidebar-nav-label { display: none !important; }
 
   main {
     margin-left: 0 !important;
-    padding: 20px !important;
+    padding: 16px !important;
   }
 
+  /* ── KPI strip ────────────────────────── */
+  .kpi-strip {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    margin-bottom: 16px !important;
+  }
+
+  /* ── Modals: bottom sheet ──────────────── */
+  .modal-sheet {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 90vh !important;
+    border-radius: 16px 16px 0 0 !important;
+    overflow-y: auto !important;
+  }
+
+  /* ── Side panels: bottom sheet ─────────── */
+  .side-panel {
+    top: auto !important;
+    right: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    max-height: 88vh !important;
+    border-radius: 16px 16px 0 0 !important;
+    border-left: none !important;
+    border-top: 1px solid var(--border) !important;
+  }
+
+  /* ── Tables ────────────────────────────── */
+  .responsive-table {
+    overflow-x: auto;
+  }
+
+  /* ── Calendar ──────────────────────────── */
+  .calendar-scroll {
+    overflow-x: auto;
+    min-width: 0;
+  }
+
+  /* ── Misc ──────────────────────────────── */
   .meta-stat-grid,
   .meta-chart-grid {
     grid-template-columns: 1fr;
+  }
+
+  .responsive-card-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Extra small phones: single-col KPI strip */
+  .kpi-strip {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  main { padding: 12px !important; }
+}
+
+/* Global table scroll on mobile — no component changes needed */
+@media (max-width: 768px) {
+  .card-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Tables that live inside cards get horizontal scroll */
+  div[style*="overflow: hidden"] > table,
+  div[style*="overflow:hidden"] > table {
+    display: block;
+    overflow-x: auto;
+    min-width: 480px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Recharts chart containers: let them scroll */
+  .recharts-responsive-container {
+    min-width: 300px !important;
+  }
+
+  /* Prevent 2-column chart layouts from overflowing */
+  div[style*="grid-template-columns: 1fr 340px"],
+  div[style*="grid-template-columns: 1fr 360px"] {
+    grid-template-columns: 1fr !important;
   }
 }

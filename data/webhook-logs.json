@@ -1,0 +1,967 @@
+[
+  {
+    "id": "1775945040841-qokn8ziro",
+    "timestamp": "2026-04-11T22:04:00.841Z",
+    "source": "ghl",
+    "leadName": "Test Lead",
+    "leadId": "1775945040842-st8enadn9",
+    "status": "success",
+    "rawPayload": {
+      "contact": {
+        "firstName": "Test",
+        "lastName": "Lead",
+        "phone": "(555) 123-4567",
+        "city": "Dallas",
+        "state": "TX"
+      },
+      "formData": [
+        {
+          "name": "What type of project are you looking to get done?",
+          "value": "Turf installation"
+        },
+        {
+          "name": "What's the main reason you're looking to get this done right now?",
+          "value": "Yard needs fixing"
+        },
+        {
+          "name": "When are you realistically looking to start this project?",
+          "value": "ASAP (1-2 weeks)"
+        },
+        {
+          "name": "Most projects range from $500-$5,000+. Where do you see yours?",
+          "value": "$2,000-$5,000"
+        },
+        {
+          "name": "If everything looks right, are you ready to move forward with a quote this week?",
+          "value": "Yes"
+        }
+      ],
+      "createdAt": "2026-04-11T22:04:00.760Z"
+    },
+    "parsedLead": {
+      "id": "1775945040842-st8enadn9",
+      "name": "Test Lead",
+      "phone": "(555) 123-4567",
+      "location": "Dallas, TX",
+      "status": "Hot",
+      "score": 6,
+      "submittedAt": "2026-04-11T22:04:00.760Z",
+      "lastContacted": "2026-04-11T22:04:00.760Z",
+      "nextAction": "Call immediately and book estimate",
+      "answers": [
+        {
+          "question": "What type of project are you looking to get done?",
+          "answer": "Turf installation"
+        },
+        {
+          "question": "What's the main reason you're looking to get this done right now?",
+          "answer": "Yard needs fixing"
+        },
+        {
+          "question": "When are you realistically looking to start this project?",
+          "answer": "ASAP (1-2 weeks)"
+        },
+        {
+          "question": "Most projects range from $500-$5,000+. Where do you see yours?",
+          "answer": "$2,000-$5,000"
+        },
+        {
+          "question": "If everything looks right, are you ready to move forward with a quote this week?",
+          "answer": "Yes"
+        }
+      ],
+      "contactPoints": [],
+      "source": "ghl",
+      "clientId": "client-001",
+      "rawPayload": {
+        "contact": {
+          "firstName": "Test",
+          "lastName": "Lead",
+          "phone": "(555) 123-4567",
+          "city": "Dallas",
+          "state": "TX"
+        },
+        "formData": [
+          {
+            "name": "What type of project are you looking to get done?",
+            "value": "Turf installation"
+          },
+          {
+            "name": "What's the main reason you're looking to get this done right now?",
+            "value": "Yard needs fixing"
+          },
+          {
+            "name": "When are you realistically looking to start this project?",
+            "value": "ASAP (1-2 weeks)"
+          },
+          {
+            "name": "Most projects range from $500-$5,000+. Where do you see yours?",
+            "value": "$2,000-$5,000"
+          },
+          {
+            "name": "If everything looks right, are you ready to move forward with a quote this week?",
+            "value": "Yes"
+          }
+        ],
+        "createdAt": "2026-04-11T22:04:00.760Z"
+      },
+      "createdAt": "2026-04-11T22:04:00.841Z",
+      "updatedAt": "2026-04-11T22:04:00.841Z"
+    }
+  },
+  {
+    "id": "1775940876858-w5vorljt4",
+    "timestamp": "2026-04-11T20:54:36.858Z",
+    "source": "ghl",
+    "leadName": "Test Lead",
+    "leadId": "1775940876862-wqetuo6qr",
+    "status": "success",
+    "rawPayload": {
+      "contact": {
+        "firstName": "Test",
+        "lastName": "Lead",
+        "phone": "(555) 123-4567",
+        "city": "Dallas",
+        "state": "TX"
+      },
+      "formData": [
+        {
+          "name": "What type of project are you looking to get done?",
+          "value": "Turf installation"
+        },
+        {
+          "name": "What's the main reason you're looking to get this done right now?",
+          "value": "Yard needs fixing"
+        },
+        {
+          "name": "When are you realistically looking to start this project?",
+          "value": "ASAP (1-2 weeks)"
+        },
+        {
+          "name": "Most projects range from $500-$5,000+. Where do you see yours?",
+          "value": "$2,000-$5,000"
+        },
+        {
+          "name": "If everything looks right, are you ready to move forward with a quote this week?",
+          "value": "Yes"
+        }
+      ],
+      "createdAt": "2026-04-11T20:54:36.800Z"
+    },
+    "parsedLead": {
+      "id": "1775940876862-wqetuo6qr",
+      "name": "Test Lead",
+      "phone": "(555) 123-4567",
+      "location": "Dallas, TX",
+      "status": "Hot",
+      "score": 6,
+      "submittedAt": "2026-04-11T20:54:36.800Z",
+      "lastContacted": "2026-04-11T20:54:36.800Z",
+      "nextAction": "Call immediately and book estimate",
+      "answers": [
+        {
+          "question": "What type of project are you looking to get done?",
+          "answer": "Turf installation"
+        },
+        {
+          "question": "What's the main reason you're looking to get this done right now?",
+          "answer": "Yard needs fixing"
+        },
+        {
+          "question": "When are you realistically looking to start this project?",
+          "answer": "ASAP (1-2 weeks)"
+        },
+        {
+          "question": "Most projects range from $500-$5,000+. Where do you see yours?",
+          "answer": "$2,000-$5,000"
+        },
+        {
+          "question": "If everything looks right, are you ready to move forward with a quote this week?",
+          "answer": "Yes"
+        }
+      ],
+      "contactPoints": [],
+      "source": "ghl",
+      "clientId": "client-001",
+      "rawPayload": {
+        "contact": {
+          "firstName": "Test",
+          "lastName": "Lead",
+          "phone": "(555) 123-4567",
+          "city": "Dallas",
+          "state": "TX"
+        },
+        "formData": [
+          {
+            "name": "What type of project are you looking to get done?",
+            "value": "Turf installation"
+          },
+          {
+            "name": "What's the main reason you're looking to get this done right now?",
+            "value": "Yard needs fixing"
+          },
+          {
+            "name": "When are you realistically looking to start this project?",
+            "value": "ASAP (1-2 weeks)"
+          },
+          {
+            "name": "Most projects range from $500-$5,000+. Where do you see yours?",
+            "value": "$2,000-$5,000"
+          },
+          {
+            "name": "If everything looks right, are you ready to move forward with a quote this week?",
+            "value": "Yes"
+          }
+        ],
+        "createdAt": "2026-04-11T20:54:36.800Z"
+      },
+      "createdAt": "2026-04-11T20:54:36.858Z",
+      "updatedAt": "2026-04-11T20:54:36.858Z"
+    }
+  },
+  {
+    "id": "1775938836536-mqfp6kmmu",
+    "timestamp": "2026-04-11T20:20:36.536Z",
+    "source": "ghl",
+    "leadName": "Test Lead",
+    "leadId": "1775938836539-ctjdtl100",
+    "status": "success",
+    "rawPayload": {
+      "contact": {
+        "firstName": "Test",
+        "lastName": "Lead",
+        "phone": "(555) 123-4567",
+        "city": "Dallas",
+        "state": "TX"
+      },
+      "formData": [
+        {
+          "name": "What type of project are you looking to get done?",
+          "value": "Turf installation"
+        },
+        {
+          "name": "What's the main reason you're looking to get this done right now?",
+          "value": "Yard needs fixing"
+        },
+        {
+          "name": "When are you realistically looking to start this project?",
+          "value": "ASAP (1-2 weeks)"
+        },
+        {
+          "name": "Most projects range from $500-$5,000+. Where do you see yours?",
+          "value": "$2,000-$5,000"
+        },
+        {
+          "name": "If everything looks right, are you ready to move forward with a quote this week?",
+          "value": "Yes"
+        }
+      ],
+      "createdAt": "2026-04-11T20:20:36.491Z"
+    },
+    "parsedLead": {
+      "id": "1775938836539-ctjdtl100",
+      "name": "Test Lead",
+      "phone": "(555) 123-4567",
+      "location": "Dallas, TX",
+      "status": "Hot",
+      "score": 6,
+      "submittedAt": "2026-04-11T20:20:36.491Z",
+      "lastContacted": "2026-04-11T20:20:36.491Z",
+      "nextAction": "Call immediately and book estimate",
+      "answers": [
+        {
+          "question": "What type of project are you looking to get done?",
+          "answer": "Turf installation"
+        },
+        {
+          "question": "What's the main reason you're looking to get this done right now?",
+          "answer": "Yard needs fixing"
+        },
+        {
+          "question": "When are you realistically looking to start this project?",
+          "answer": "ASAP (1-2 weeks)"
+        },
+        {
+          "question": "Most projects range from $500-$5,000+. Where do you see yours?",
+          "answer": "$2,000-$5,000"
+        },
+        {
+          "question": "If everything looks right, are you ready to move forward with a quote this week?",
+          "answer": "Yes"
+        }
+      ],
+      "contactPoints": [],
+      "source": "ghl",
+      "rawPayload": {
+        "contact": {
+          "firstName": "Test",
+          "lastName": "Lead",
+          "phone": "(555) 123-4567",
+          "city": "Dallas",
+          "state": "TX"
+        },
+        "formData": [
+          {
+            "name": "What type of project are you looking to get done?",
+            "value": "Turf installation"
+          },
+          {
+            "name": "What's the main reason you're looking to get this done right now?",
+            "value": "Yard needs fixing"
+          },
+          {
+            "name": "When are you realistically looking to start this project?",
+            "value": "ASAP (1-2 weeks)"
+          },
+          {
+            "name": "Most projects range from $500-$5,000+. Where do you see yours?",
+            "value": "$2,000-$5,000"
+          },
+          {
+            "name": "If everything looks right, are you ready to move forward with a quote this week?",
+            "value": "Yes"
+          }
+        ],
+        "createdAt": "2026-04-11T20:20:36.491Z"
+      },
+      "createdAt": "2026-04-11T20:20:36.536Z",
+      "updatedAt": "2026-04-11T20:20:36.536Z"
+    }
+  },
+  {
+    "id": "1775938684040-foaap16qx",
+    "timestamp": "2026-04-11T20:18:04.040Z",
+    "source": "ghl",
+    "leadName": "Test Lead",
+    "leadId": "1775938684041-t3twugyuv",
+    "status": "success",
+    "rawPayload": {
+      "contact": {
+        "firstName": "Test",
+        "lastName": "Lead",
+        "phone": "(555) 123-4567",
+        "city": "Dallas",
+        "state": "TX"
+      },
+      "formData": [
+        {
+          "name": "What type of project are you looking to get done?",
+          "value": "Turf installation"
+        },
+        {
+          "name": "What's the main reason you're looking to get this done right now?",
+          "value": "Yard needs fixing"
+        },
+        {
+          "name": "When are you realistically looking to start this project?",
+          "value": "ASAP (1-2 weeks)"
+        },
+        {
+          "name": "Most projects range from $500-$5,000+. Where do you see yours?",
+          "value": "$2,000-$5,000"
+        },
+        {
+          "name": "If everything looks right, are you ready to move forward with a quote this week?",
+          "value": "Yes"
+        }
+      ],
+      "createdAt": "2026-04-11T20:18:04.030Z"
+    },
+    "parsedLead": {
+      "id": "1775938684041-t3twugyuv",
+      "name": "Test Lead",
+      "phone": "(555) 123-4567",
+      "location": "Dallas, TX",
+      "status": "Hot",
+      "score": 6,
+      "submittedAt": "2026-04-11T20:18:04.030Z",
+      "answers": [
+        {
+          "question": "What type of project are you looking to get done?",
+          "answer": "Turf installation"
+        },
+        {
+          "question": "What's the main reason you're looking to get this done right now?",
+          "answer": "Yard needs fixing"
+        },
+        {
+          "question": "When are you realistically looking to start this project?",
+          "answer": "ASAP (1-2 weeks)"
+        },
+        {
+          "question": "Most projects range from $500-$5,000+. Where do you see yours?",
+          "answer": "$2,000-$5,000"
+        },
+        {
+          "question": "If everything looks right, are you ready to move forward with a quote this week?",
+          "answer": "Yes"
+        }
+      ],
+      "source": "ghl",
+      "rawPayload": {
+        "contact": {
+          "firstName": "Test",
+          "lastName": "Lead",
+          "phone": "(555) 123-4567",
+          "city": "Dallas",
+          "state": "TX"
+        },
+        "formData": [
+          {
+            "name": "What type of project are you looking to get done?",
+            "value": "Turf installation"
+          },
+          {
+            "name": "What's the main reason you're looking to get this done right now?",
+            "value": "Yard needs fixing"
+          },
+          {
+            "name": "When are you realistically looking to start this project?",
+            "value": "ASAP (1-2 weeks)"
+          },
+          {
+            "name": "Most projects range from $500-$5,000+. Where do you see yours?",
+            "value": "$2,000-$5,000"
+          },
+          {
+            "name": "If everything looks right, are you ready to move forward with a quote this week?",
+            "value": "Yes"
+          }
+        ],
+        "createdAt": "2026-04-11T20:18:04.030Z"
+      },
+      "createdAt": "2026-04-11T20:18:04.040Z",
+      "updatedAt": "2026-04-11T20:18:04.040Z"
+    }
+  },
+  {
+    "id": "1775938682583-ik0okqdrx",
+    "timestamp": "2026-04-11T20:18:02.583Z",
+    "source": "ghl",
+    "leadName": "Test Lead",
+    "leadId": "1775938682585-mzbrgx8fv",
+    "status": "success",
+    "rawPayload": {
+      "contact": {
+        "firstName": "Test",
+        "lastName": "Lead",
+        "phone": "(555) 123-4567",
+        "city": "Dallas",
+        "state": "TX"
+      },
+      "formData": [
+        {
+          "name": "What type of project are you looking to get done?",
+          "value": "Turf installation"
+        },
+        {
+          "name": "What's the main reason you're looking to get this done right now?",
+          "value": "Yard needs fixing"
+        },
+        {
+          "name": "When are you realistically looking to start this project?",
+          "value": "ASAP (1-2 weeks)"
+        },
+        {
+          "name": "Most projects range from $500-$5,000+. Where do you see yours?",
+          "value": "$2,000-$5,000"
+        },
+        {
+          "name": "If everything looks right, are you ready to move forward with a quote this week?",
+          "value": "Yes"
+        }
+      ],
+      "createdAt": "2026-04-11T20:18:02.573Z"
+    },
+    "parsedLead": {
+      "id": "1775938682585-mzbrgx8fv",
+      "name": "Test Lead",
+      "phone": "(555) 123-4567",
+      "location": "Dallas, TX",
+      "status": "Hot",
+      "score": 6,
+      "submittedAt": "2026-04-11T20:18:02.573Z",
+      "answers": [
+        {
+          "question": "What type of project are you looking to get done?",
+          "answer": "Turf installation"
+        },
+        {
+          "question": "What's the main reason you're looking to get this done right now?",
+          "answer": "Yard needs fixing"
+        },
+        {
+          "question": "When are you realistically looking to start this project?",
+          "answer": "ASAP (1-2 weeks)"
+        },
+        {
+          "question": "Most projects range from $500-$5,000+. Where do you see yours?",
+          "answer": "$2,000-$5,000"
+        },
+        {
+          "question": "If everything looks right, are you ready to move forward with a quote this week?",
+          "answer": "Yes"
+        }
+      ],
+      "source": "ghl",
+      "rawPayload": {
+        "contact": {
+          "firstName": "Test",
+          "lastName": "Lead",
+          "phone": "(555) 123-4567",
+          "city": "Dallas",
+          "state": "TX"
+        },
+        "formData": [
+          {
+            "name": "What type of project are you looking to get done?",
+            "value": "Turf installation"
+          },
+          {
+            "name": "What's the main reason you're looking to get this done right now?",
+            "value": "Yard needs fixing"
+          },
+          {
+            "name": "When are you realistically looking to start this project?",
+            "value": "ASAP (1-2 weeks)"
+          },
+          {
+            "name": "Most projects range from $500-$5,000+. Where do you see yours?",
+            "value": "$2,000-$5,000"
+          },
+          {
+            "name": "If everything looks right, are you ready to move forward with a quote this week?",
+            "value": "Yes"
+          }
+        ],
+        "createdAt": "2026-04-11T20:18:02.573Z"
+      },
+      "createdAt": "2026-04-11T20:18:02.583Z",
+      "updatedAt": "2026-04-11T20:18:02.583Z"
+    }
+  },
+  {
+    "id": "1775938681863-iqg1rbsjd",
+    "timestamp": "2026-04-11T20:18:01.863Z",
+    "source": "ghl",
+    "leadName": "Test Lead",
+    "leadId": "1775938681865-lc6yjmvc2",
+    "status": "success",
+    "rawPayload": {
+      "contact": {
+        "firstName": "Test",
+        "lastName": "Lead",
+        "phone": "(555) 123-4567",
+        "city": "Dallas",
+        "state": "TX"
+      },
+      "formData": [
+        {
+          "name": "What type of project are you looking to get done?",
+          "value": "Turf installation"
+        },
+        {
+          "name": "What's the main reason you're looking to get this done right now?",
+          "value": "Yard needs fixing"
+        },
+        {
+          "name": "When are you realistically looking to start this project?",
+          "value": "ASAP (1-2 weeks)"
+        },
+        {
+          "name": "Most projects range from $500-$5,000+. Where do you see yours?",
+          "value": "$2,000-$5,000"
+        },
+        {
+          "name": "If everything looks right, are you ready to move forward with a quote this week?",
+          "value": "Yes"
+        }
+      ],
+      "createdAt": "2026-04-11T20:18:01.854Z"
+    },
+    "parsedLead": {
+      "id": "1775938681865-lc6yjmvc2",
+      "name": "Test Lead",
+      "phone": "(555) 123-4567",
+      "location": "Dallas, TX",
+      "status": "Hot",
+      "score": 6,
+      "submittedAt": "2026-04-11T20:18:01.854Z",
+      "answers": [
+        {
+          "question": "What type of project are you looking to get done?",
+          "answer": "Turf installation"
+        },
+        {
+          "question": "What's the main reason you're looking to get this done right now?",
+          "answer": "Yard needs fixing"
+        },
+        {
+          "question": "When are you realistically looking to start this project?",
+          "answer": "ASAP (1-2 weeks)"
+        },
+        {
+          "question": "Most projects range from $500-$5,000+. Where do you see yours?",
+          "answer": "$2,000-$5,000"
+        },
+        {
+          "question": "If everything looks right, are you ready to move forward with a quote this week?",
+          "answer": "Yes"
+        }
+      ],
+      "source": "ghl",
+      "rawPayload": {
+        "contact": {
+          "firstName": "Test",
+          "lastName": "Lead",
+          "phone": "(555) 123-4567",
+          "city": "Dallas",
+          "state": "TX"
+        },
+        "formData": [
+          {
+            "name": "What type of project are you looking to get done?",
+            "value": "Turf installation"
+          },
+          {
+            "name": "What's the main reason you're looking to get this done right now?",
+            "value": "Yard needs fixing"
+          },
+          {
+            "name": "When are you realistically looking to start this project?",
+            "value": "ASAP (1-2 weeks)"
+          },
+          {
+            "name": "Most projects range from $500-$5,000+. Where do you see yours?",
+            "value": "$2,000-$5,000"
+          },
+          {
+            "name": "If everything looks right, are you ready to move forward with a quote this week?",
+            "value": "Yes"
+          }
+        ],
+        "createdAt": "2026-04-11T20:18:01.854Z"
+      },
+      "createdAt": "2026-04-11T20:18:01.863Z",
+      "updatedAt": "2026-04-11T20:18:01.863Z"
+    }
+  },
+  {
+    "id": "1775938595236-blckohlld",
+    "timestamp": "2026-04-11T20:16:35.236Z",
+    "source": "ghl",
+    "leadName": "Test Lead",
+    "leadId": "1775938595237-bvh4cemvt",
+    "status": "success",
+    "rawPayload": {
+      "contact": {
+        "firstName": "Test",
+        "lastName": "Lead",
+        "phone": "(555) 123-4567",
+        "city": "Dallas",
+        "state": "TX"
+      },
+      "formData": [
+        {
+          "name": "What type of project are you looking to get done?",
+          "value": "Turf installation"
+        },
+        {
+          "name": "What's the main reason you're looking to get this done right now?",
+          "value": "Yard needs fixing"
+        },
+        {
+          "name": "When are you realistically looking to start this project?",
+          "value": "ASAP (1-2 weeks)"
+        },
+        {
+          "name": "Most projects range from $500-$5,000+. Where do you see yours?",
+          "value": "$2,000-$5,000"
+        },
+        {
+          "name": "If everything looks right, are you ready to move forward with a quote this week?",
+          "value": "Yes"
+        }
+      ],
+      "createdAt": "2026-04-11T20:16:35.225Z"
+    },
+    "parsedLead": {
+      "id": "1775938595237-bvh4cemvt",
+      "name": "Test Lead",
+      "phone": "(555) 123-4567",
+      "location": "Dallas, TX",
+      "status": "Hot",
+      "score": 6,
+      "submittedAt": "2026-04-11T20:16:35.225Z",
+      "answers": [
+        {
+          "question": "What type of project are you looking to get done?",
+          "answer": "Turf installation"
+        },
+        {
+          "question": "What's the main reason you're looking to get this done right now?",
+          "answer": "Yard needs fixing"
+        },
+        {
+          "question": "When are you realistically looking to start this project?",
+          "answer": "ASAP (1-2 weeks)"
+        },
+        {
+          "question": "Most projects range from $500-$5,000+. Where do you see yours?",
+          "answer": "$2,000-$5,000"
+        },
+        {
+          "question": "If everything looks right, are you ready to move forward with a quote this week?",
+          "answer": "Yes"
+        }
+      ],
+      "source": "ghl",
+      "rawPayload": {
+        "contact": {
+          "firstName": "Test",
+          "lastName": "Lead",
+          "phone": "(555) 123-4567",
+          "city": "Dallas",
+          "state": "TX"
+        },
+        "formData": [
+          {
+            "name": "What type of project are you looking to get done?",
+            "value": "Turf installation"
+          },
+          {
+            "name": "What's the main reason you're looking to get this done right now?",
+            "value": "Yard needs fixing"
+          },
+          {
+            "name": "When are you realistically looking to start this project?",
+            "value": "ASAP (1-2 weeks)"
+          },
+          {
+            "name": "Most projects range from $500-$5,000+. Where do you see yours?",
+            "value": "$2,000-$5,000"
+          },
+          {
+            "name": "If everything looks right, are you ready to move forward with a quote this week?",
+            "value": "Yes"
+          }
+        ],
+        "createdAt": "2026-04-11T20:16:35.225Z"
+      },
+      "createdAt": "2026-04-11T20:16:35.236Z",
+      "updatedAt": "2026-04-11T20:16:35.236Z"
+    }
+  },
+  {
+    "id": "1775938585844-0mhpt6l6i",
+    "timestamp": "2026-04-11T20:16:25.844Z",
+    "source": "ghl",
+    "leadName": "Test Lead",
+    "leadId": "1775938585846-g6f2evukd",
+    "status": "success",
+    "rawPayload": {
+      "contact": {
+        "firstName": "Test",
+        "lastName": "Lead",
+        "phone": "(555) 123-4567",
+        "city": "Dallas",
+        "state": "TX"
+      },
+      "formData": [
+        {
+          "name": "What type of project are you looking to get done?",
+          "value": "Turf installation"
+        },
+        {
+          "name": "What's the main reason you're looking to get this done right now?",
+          "value": "Yard needs fixing"
+        },
+        {
+          "name": "When are you realistically looking to start this project?",
+          "value": "ASAP (1-2 weeks)"
+        },
+        {
+          "name": "Most projects range from $500-$5,000+. Where do you see yours?",
+          "value": "$2,000-$5,000"
+        },
+        {
+          "name": "If everything looks right, are you ready to move forward with a quote this week?",
+          "value": "Yes"
+        }
+      ],
+      "createdAt": "2026-04-11T20:16:25.833Z"
+    },
+    "parsedLead": {
+      "id": "1775938585846-g6f2evukd",
+      "name": "Test Lead",
+      "phone": "(555) 123-4567",
+      "location": "Dallas, TX",
+      "status": "Hot",
+      "score": 6,
+      "submittedAt": "2026-04-11T20:16:25.833Z",
+      "answers": [
+        {
+          "question": "What type of project are you looking to get done?",
+          "answer": "Turf installation"
+        },
+        {
+          "question": "What's the main reason you're looking to get this done right now?",
+          "answer": "Yard needs fixing"
+        },
+        {
+          "question": "When are you realistically looking to start this project?",
+          "answer": "ASAP (1-2 weeks)"
+        },
+        {
+          "question": "Most projects range from $500-$5,000+. Where do you see yours?",
+          "answer": "$2,000-$5,000"
+        },
+        {
+          "question": "If everything looks right, are you ready to move forward with a quote this week?",
+          "answer": "Yes"
+        }
+      ],
+      "source": "ghl",
+      "rawPayload": {
+        "contact": {
+          "firstName": "Test",
+          "lastName": "Lead",
+          "phone": "(555) 123-4567",
+          "city": "Dallas",
+          "state": "TX"
+        },
+        "formData": [
+          {
+            "name": "What type of project are you looking to get done?",
+            "value": "Turf installation"
+          },
+          {
+            "name": "What's the main reason you're looking to get this done right now?",
+            "value": "Yard needs fixing"
+          },
+          {
+            "name": "When are you realistically looking to start this project?",
+            "value": "ASAP (1-2 weeks)"
+          },
+          {
+            "name": "Most projects range from $500-$5,000+. Where do you see yours?",
+            "value": "$2,000-$5,000"
+          },
+          {
+            "name": "If everything looks right, are you ready to move forward with a quote this week?",
+            "value": "Yes"
+          }
+        ],
+        "createdAt": "2026-04-11T20:16:25.833Z"
+      },
+      "createdAt": "2026-04-11T20:16:25.844Z",
+      "updatedAt": "2026-04-11T20:16:25.844Z"
+    }
+  },
+  {
+    "id": "1775938554193-qkiwwmfci",
+    "timestamp": "2026-04-11T20:15:54.193Z",
+    "source": "ghl",
+    "leadName": "Test Lead",
+    "leadId": "1775938554197-ebkryxd7l",
+    "status": "success",
+    "rawPayload": {
+      "contact": {
+        "firstName": "Test",
+        "lastName": "Lead",
+        "phone": "(555) 123-4567",
+        "city": "Dallas",
+        "state": "TX"
+      },
+      "formData": [
+        {
+          "name": "What type of project are you looking to get done?",
+          "value": "Turf installation"
+        },
+        {
+          "name": "What's the main reason you're looking to get this done right now?",
+          "value": "Yard needs fixing"
+        },
+        {
+          "name": "When are you realistically looking to start this project?",
+          "value": "ASAP (1-2 weeks)"
+        },
+        {
+          "name": "Most projects range from $500-$5,000+. Where do you see yours?",
+          "value": "$2,000-$5,000"
+        },
+        {
+          "name": "If everything looks right, are you ready to move forward with a quote this week?",
+          "value": "Yes"
+        }
+      ],
+      "createdAt": "2026-04-11T20:15:54.180Z"
+    },
+    "parsedLead": {
+      "id": "1775938554197-ebkryxd7l",
+      "name": "Test Lead",
+      "phone": "(555) 123-4567",
+      "location": "Dallas, TX",
+      "status": "Hot",
+      "score": 6,
+      "submittedAt": "2026-04-11T20:15:54.180Z",
+      "answers": [
+        {
+          "question": "What type of project are you looking to get done?",
+          "answer": "Turf installation"
+        },
+        {
+          "question": "What's the main reason you're looking to get this done right now?",
+          "answer": "Yard needs fixing"
+        },
+        {
+          "question": "When are you realistically looking to start this project?",
+          "answer": "ASAP (1-2 weeks)"
+        },
+        {
+          "question": "Most projects range from $500-$5,000+. Where do you see yours?",
+          "answer": "$2,000-$5,000"
+        },
+        {
+          "question": "If everything looks right, are you ready to move forward with a quote this week?",
+          "answer": "Yes"
+        }
+      ],
+      "source": "ghl",
+      "rawPayload": {
+        "contact": {
+          "firstName": "Test",
+          "lastName": "Lead",
+          "phone": "(555) 123-4567",
+          "city": "Dallas",
+          "state": "TX"
+        },
+        "formData": [
+          {
+            "name": "What type of project are you looking to get done?",
+            "value": "Turf installation"
+          },
+          {
+            "name": "What's the main reason you're looking to get this done right now?",
+            "value": "Yard needs fixing"
+          },
+          {
+            "name": "When are you realistically looking to start this project?",
+            "value": "ASAP (1-2 weeks)"
+          },
+          {
+            "name": "Most projects range from $500-$5,000+. Where do you see yours?",
+            "value": "$2,000-$5,000"
+          },
+          {
+            "name": "If everything looks right, are you ready to move forward with a quote this week?",
+            "value": "Yes"
+          }
+        ],
+        "createdAt": "2026-04-11T20:15:54.180Z"
+      },
+      "createdAt": "2026-04-11T20:15:54.193Z",
+      "updatedAt": "2026-04-11T20:15:54.193Z"
+    }
+  }
+]

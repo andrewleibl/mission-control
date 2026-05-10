@@ -1,0 +1,129 @@
+<aside class="cart-drawer" id="cart-drawer" role="dialog" aria-modal="true" aria-label="Shopping cart" aria-hidden="true">
+
+  <!-- Header -->
+  <div class="cart-drawer-header">
+    <h2 class="cart-drawer-title">Your Cart <span id="cart-drawer-count">({{ cart.item_count }})</span></h2>
+    <button class="cart-close-btn" id="cart-close-btn" aria-label="Close cart">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Drawer Body -->
+  <div class="cart-drawer-body" id="cart-drawer-body">
+
+    {%- if cart.item_count == 0 -%}
+      <!-- Empty State -->
+      <div class="cart-empty">
+        <div class="cart-empty-icon" aria-hidden="true">🛒</div>
+        <p class="cart-empty-text">Your cart is empty.</p>
+        <a href="/collections/all" class="cart-empty-link" onclick="closeCartDrawer()">Start shopping →</a>
+      </div>
+
+    {%- else -%}
+
+      <!-- Free Shipping Progress -->
+      {%- assign free_shipping_threshold = settings.free_shipping_threshold | default: 300 -%}
+      {%- assign free_shipping_cents = free_shipping_threshold | times: 100 -%}
+      {%- assign cart_total = cart.total_price -%}
+      {%- assign remaining = free_shipping_cents | minus: cart_total -%}
+      {%- assign progress_pct = cart_total | times: 100 | divided_by: free_shipping_cents -%}
+      {%- if progress_pct > 100 -%}{%- assign progress_pct = 100 -%}{%- endif -%}
+
+      <div class="shipping-progress">
+        {%- if remaining > 0 -%}
+          <p class="shipping-progress-text">
+            You're <strong>{{ remaining | money }}</strong> away from free shipping!
+          </p>
+        {%- else -%}
+          <p class="shipping-progress-text">
+            <strong>🎉 You've unlocked free shipping!</strong>
+          </p>
+        {%- endif -%}
+        <div class="progress-bar-track" role="progressbar" aria-valuenow="{{ progress_pct }}" aria-valuemin="0" aria-valuemax="100">
+          <div class="progress-bar-fill" style="width: {{ progress_pct }}%;"></div>
+        </div>
+      </div>
+
+      <!-- Cart Items -->
+      <div class="cart-items" id="cart-items-list">
+        {%- for item in cart.items -%}
+          <div class="cart-item" data-key="{{ item.key }}">
+            <div class="cart-item-image">
+              {%- if item.image -%}
+                <img
+                  src="{{ item.image | image_url: width: 144 }}"
+                  alt="{{ item.image.alt | default: item.title | escape }}"
+                  width="72"
+                  height="72"
+                  loading="lazy"
+                >
+              {%- endif -%}
+            </div>
+            <div class="cart-item-info">
+              <p class="cart-item-title">{{ item.product.title }}</p>
+              {%- unless item.product.has_only_default_variant -%}
+                <p class="cart-item-variant">{{ item.variant.title }}</p>
+              {%- endunless -%}
+              <div class="cart-item-bottom">
+                <div class="cart-item-qty">
+                  <button
+                    class="cart-qty-btn"
+                    data-action="decrease"
+                    data-key="{{ item.key }}"
+                    aria-label="Decrease quantity"
+                  >−</button>
+                  <span class="cart-qty-value">{{ item.quantity }}</span>
+                  <button
+                    class="cart-qty-btn"
+                    data-action="increase"
+                    data-key="{{ item.key }}"
+                    aria-label="Increase quantity"
+                  >+</button>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.25rem;">
+                  <span class="cart-item-price">{{ item.final_line_price | money }}</span>
+                  <a href="/cart/change?line={{ forloop.index }}&quantity=0" class="cart-item-remove" aria-label="Remove {{ item.title }}">Remove</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        {%- endfor -%}
+      </div>
+
+    {%- endif -%}
+
+  </div>
+
+  <!-- Footer (only when cart has items) -->
+  {%- if cart.item_count > 0 -%}
+    <div class="cart-drawer-footer">
+      <div class="cart-subtotal">
+        <span>Subtotal</span>
+        <span class="cart-subtotal-amount" id="cart-subtotal-amount">{{ cart.total_price | money }}</span>
+      </div>
+      <a href="/checkout" class="btn-checkout" aria-label="Proceed to checkout">
+        Checkout — {{ cart.total_price | money }}
+      </a>
+      <div class="cart-express-btns">
+        <button class="btn-express" aria-label="Shop Pay">Shop Pay</button>
+        <button class="btn-express" aria-label="Apple Pay">Apple Pay</button>
+      </div>
+    </div>
+  {%- else -%}
+    <div class="cart-drawer-footer">
+      <a href="/collections/all" class="btn-checkout" onclick="closeCartDrawer()">
+        Browse Products
+      </a>
+    </div>
+  {%- endif -%}
+
+</aside>
+
+<!-- Static preview (shown when Liquid cart is empty for demo) -->
+{%- comment %}
+  STATIC PREVIEW — shows a sample cart state.
+  Remove or comment this block when connected to live Shopify store.
+{%- endcomment %}

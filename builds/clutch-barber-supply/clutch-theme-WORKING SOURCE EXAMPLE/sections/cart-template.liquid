@@ -1,0 +1,363 @@
+{% comment %}
+  Cart Template - Simple Version
+{% endcomment %}
+
+<div class="page-with-glow">
+<section class="cart-section">
+  <div class="cart-container">
+    
+    <div class="cart-header">
+      <h1 class="cart-title">Your Cart</h1>
+      <div class="cart-trust-pill">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1L2 4v4c0 3.87 2.56 7.48 6 8.37 3.44-.89 6-4.5 6-8.37V4L8 1z" stroke="currentColor" stroke-width="1.5"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.5"/></svg>
+        <span>Secure Checkout</span>
+      </div>
+    </div>
+
+    {% if cart.item_count > 0 %}
+      
+      <div class="cart-shipping-bar" data-free-shipping-threshold="30000">
+        {% assign threshold = 30000 %}
+        {% assign remaining = threshold | minus: cart.total_price %}
+        {% assign percent = cart.total_price | times: 100 | divided_by: threshold %}
+        
+        <div class="shipping-bar-content">
+          {% if cart.total_price >= threshold %}
+            <div class="shipping-message shipping-unlocked">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2a8 8 0 100 16 8 8 0 000-16z" stroke="currentColor" stroke-width="1.5"/><path d="M6 10l3 3 5-6" stroke="currentColor" stroke-width="1.5"/></svg>
+              <span>🎉 You've unlocked FREE shipping!</span>
+            </div>
+          {% else %}
+            <div class="shipping-message">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2l2.5 5h5l-4 3.5 1.5 5L10 12l-5 3.5 1.5-5L2.5 7h5L10 2z" stroke="currentColor" stroke-width="1.5"/></svg>
+              <span>Add <strong>{{ remaining | money }}</strong> more for FREE shipping</span>
+            </div>
+          {% endif %}
+        </div>
+        
+        <div class="shipping-progress">
+          <div class="shipping-progress-fill" style="width: {{ percent | at_most: 100 }}%"></div>
+        </div>
+        
+        <div class="shipping-thresholds">
+          <span>$0</span>
+          <span class="threshold-marker" style="left: {{ percent | at_most: 100 }}%">${{ cart.total_price | divided_by: 100 }}</span>
+          <span>FREE</span>
+        </div>
+      </div>
+
+      <div class="cart-layout">
+        <div class="cart-main">
+          <form action="{{ routes.cart_url }}" method="post" class="cart-form" novalidate>
+            <div class="cart-items">
+              {% for item in cart.items %}
+                <div class="cart-item" data-line="{{ forloop.index }}">
+                  <div class="cart-item-image">
+                    {% if item.image %}
+                      <img src="{{ item.image | image_url: width: 120 }}" alt="{{ item.title | escape }}" width="120" height="120" loading="lazy">
+                    {% else %}
+                      <div class="cart-item-image-placeholder"></div>
+                    {% endif %}
+                  </div>
+                  <div class="cart-item-details">
+                    <div class="cart-item-header">
+                      <h3 class="cart-item-title"><a href="{{ item.url }}">{{ item.product.title }}</a></h3>
+                      <a href="{{ item.url_to_remove }}" class="cart-item-remove" aria-label="Remove {{ item.product.title }}">×</a>
+                    </div>
+                    {% if item.variant.title != 'Default Title' %}
+                      <p class="cart-item-variant">{{ item.variant.title }}</p>
+                    {% endif %}
+                    <div class="cart-item-price-row">
+                      <span class="cart-item-price-final">{{ item.final_price | money }}</span>
+                    </div>
+                    <div class="cart-item-actions">
+                      <div class="cart-quantity">
+                        <button type="button" class="cart-quantity-btn minus">−</button>
+                        <input type="number" name="updates[]" value="{{ item.quantity }}" min="0" class="cart-quantity-input" data-line="{{ forloop.index }}">
+                        <button type="button" class="cart-quantity-btn plus">+</button>
+                      </div>
+                      <span class="cart-item-line-price">{{ item.final_line_price | money }}</span>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+
+            <div class="cart-trust-bar">
+              <div class="trust-item">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.5"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.5"/></svg>
+                Secure Checkout
+              </div>
+              <div class="trust-item">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 14L5 12l-2 2 6 6L21 7l-2-2-10 9z" stroke="currentColor" stroke-width="1.5"/><path d="M20 6L9 17l-6-6" stroke="currentColor" stroke-width="1.5"/></svg>
+                30-Day Returns
+              </div>
+              <div class="trust-item">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 13h6l-1 9 9-11h-6l1-9z" stroke="currentColor" stroke-width="1.5"/></svg>
+                Fast Shipping
+              </div>
+            </div>
+          </form>
+
+          {% comment %} Random Reviews — 3 from the reviews page {% endcomment %}
+          {% assign review_seed = cart.total_price | modulo: 6 %}
+          <div class="cart-reviews">
+            <h3 class="cart-reviews-title">What Barbers Are Saying</h3>
+            <div class="cart-reviews-grid">
+              {% if review_seed == 0 or review_seed == 1 %}
+                <div class="cart-review">
+                  <div class="cart-review-stars">★★★★★</div>
+                  <p class="cart-review-text">"Man I'm glad I stopped by the shop today it's hard finding a good barber supply store but let me tell you this shop has everything you can ever want and need with great prices this shop a 10/10"</p>
+                  <span class="cart-review-author">— Erik Deleon</span>
+                </div>
+                <div class="cart-review">
+                  <div class="cart-review-stars">★★★★★</div>
+                  <p class="cart-review-text">"Be careful when walking in to Clutch Barber supply. It's like walking in to Target, you can never walk out with just one thing. I love that they have just about EVERYTHING here!"</p>
+                  <span class="cart-review-author">— Scarlett Salas</span>
+                </div>
+                <div class="cart-review">
+                  <div class="cart-review-stars">★★★★★</div>
+                  <p class="cart-review-text">"Bought 2 barber chairs here for my business. And this is by far the best barber supply store I've been to. Definitely recommend!"</p>
+                  <span class="cart-review-author">— dtx.outlaws</span>
+                </div>
+              {% elsif review_seed == 2 or review_seed == 3 %}
+                <div class="cart-review">
+                  <div class="cart-review-stars">★★★★★</div>
+                  <p class="cart-review-text">"Great atmosphere great store with all of your barber needs and if you can't find it in store don't you worry they will come in clutch and get it for you"</p>
+                  <span class="cart-review-author">— Fernando Perez</span>
+                </div>
+                <div class="cart-review">
+                  <div class="cart-review-stars">★★★★★</div>
+                  <p class="cart-review-text">"The name is official for the exceptional service They provide me with all my Barber accessories"</p>
+                  <span class="cart-review-author">— derrick dumas</span>
+                </div>
+                <div class="cart-review">
+                  <div class="cart-review-stars">★★★★★</div>
+                  <p class="cart-review-text">"Wonderful customer service! Best barber supply hands down! Pricing is perfect and well stocked! Highly recommend!"</p>
+                  <span class="cart-review-author">— Sabrina Reina</span>
+                </div>
+              {% else %}
+                <div class="cart-review">
+                  <div class="cart-review-stars">★★★★★</div>
+                  <p class="cart-review-text">"Excellent service. They stay up to date with all the new products and tools. They also have mobile units that deliver directly to the local barbershops."</p>
+                  <span class="cart-review-author">— Galeedon Banks</span>
+                </div>
+                <div class="cart-review">
+                  <div class="cart-review-stars">★★★★★</div>
+                  <p class="cart-review-text">"Man I'm glad I stopped by the shop today it's hard finding a good barber supply store but let me tell you this shop has everything you can ever want and need with great prices this shop a 10/10"</p>
+                  <span class="cart-review-author">— Erik Deleon</span>
+                </div>
+                <div class="cart-review">
+                  <div class="cart-review-stars">★★★★★</div>
+                  <p class="cart-review-text">"Wonderful customer service! Best barber supply hands down! Pricing is perfect and well stocked! Highly recommend!"</p>
+                  <span class="cart-review-author">— Sabrina Reina</span>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          {% comment %} Simple Product Suggestions — 3 Random Products {% endcomment %}
+          {% assign all_products = collections.all.products %}
+          {% assign product_count = all_products.size %}
+          {% if product_count > 0 %}
+            {% comment %} Create pseudo-random offset using cart total and timestamp {% endcomment %}
+            {% assign random_offset = cart.total_price | modulo: product_count %}
+            {% assign offset_2 = random_offset | plus: 7 | modulo: product_count %}
+            {% assign offset_3 = random_offset | plus: 13 | modulo: product_count %}
+            
+            {% assign random_products = '' %}
+            
+            <div class="cart-suggestions">
+              <h3 class="suggestions-title">Quick Add</h3>
+              <div class="suggestions-products">
+                {% for product in all_products limit: 1 offset: random_offset %}
+                  {% if product.available %}
+                    <div class="suggestion-product">
+                      {% if product.featured_image %}
+                        <img src="{{ product.featured_image | image_url: width: 60 }}" alt="{{ product.title | escape }}" width="60" height="60" loading="lazy">
+                      {% endif %}
+                      <span class="suggestion-title">{{ product.title }}</span>
+                      <span class="suggestion-price">{{ product.price | money }}</span>
+                      <a href="/cart/add?id={{ product.selected_or_first_available_variant.id }}" class="suggestion-add">+</a>
+                    </div>
+                  {% endif %}
+                {% endfor %}
+                
+                {% for product in all_products limit: 1 offset: offset_2 %}
+                  {% if product.available %}
+                    <div class="suggestion-product">
+                      {% if product.featured_image %}
+                        <img src="{{ product.featured_image | image_url: width: 60 }}" alt="{{ product.title | escape }}" width="60" height="60" loading="lazy">
+                      {% endif %}
+                      <span class="suggestion-title">{{ product.title }}</span>
+                      <span class="suggestion-price">{{ product.price | money }}</span>
+                      <a href="/cart/add?id={{ product.selected_or_first_available_variant.id }}" class="suggestion-add">+</a>
+                    </div>
+                  {% endif %}
+                {% endfor %}
+                
+                {% for product in all_products limit: 1 offset: offset_3 %}
+                  {% if product.available %}
+                    <div class="suggestion-product">
+                      {% if product.featured_image %}
+                        <img src="{{ product.featured_image | image_url: width: 60 }}" alt="{{ product.title | escape }}" width="60" height="60" loading="lazy">
+                      {% endif %}
+                      <span class="suggestion-title">{{ product.title }}</span>
+                      <span class="suggestion-price">{{ product.price | money }}</span>
+                      <a href="/cart/add?id={{ product.selected_or_first_available_variant.id }}" class="suggestion-add">+</a>
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              </div>
+              <a href="/collections/all" class="cart-continue">← Continue Shopping</a>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="cart-sidebar">
+          <div class="cart-summary">
+            <h2 class="summary-title">Order Summary</h2>
+            <div class="summary-row"><span>Subtotal</span><span>{{ cart.items_subtotal_price | money }}</span></div>
+            <div class="summary-row"><span>Shipping</span><span>{% if cart.total_price >= threshold %}FREE{% else %}Calculated at checkout{% endif %}</span></div>
+            <div class="summary-row"><span>Taxes</span><span>Calculated at checkout</span></div>
+            
+            {% comment %} Time-based social proof {% endcomment %}
+            {% assign current_hour = "now" | date: "%H" | plus: 0 %}
+            {% if current_hour >= 0 and current_hour < 7 %}
+              {% assign min_purchases = 5 %}
+              {% assign max_purchases = 14 %}
+            {% elsif current_hour >= 7 and current_hour < 12 %}
+              {% assign min_purchases = 14 %}
+              {% assign max_purchases = 22 %}
+            {% elsif current_hour >= 12 and current_hour < 19 %}
+              {% assign min_purchases = 23 %}
+              {% assign max_purchases = 41 %}
+            {% else %}
+              {% assign min_purchases = 42 %}
+              {% assign max_purchases = 56 %}
+            {% endif %}
+            {% assign purchase_count = min_purchases | plus: max_purchases | divided_by: 2 %}
+            
+            <div class="cart-social-proof">
+              <span class="social-proof-dot"></span>
+              <span class="social-proof-text"><strong>{{ purchase_count }}</strong> people have purchased from Clutch today</span>
+            </div>
+            
+            <div class="summary-row summary-total"><span>Estimated Total</span><span>{{ cart.total_price | money }}</span></div>
+            
+            <button type="submit" name="checkout" class="checkout-btn">Proceed to Checkout</button>
+            
+            <div class="cart-payment-methods">
+              <p>We accept:</p>
+              <div class="cart-payment-icons">
+                <span class="cart-payment-icon">AMEX</span>
+                <span class="cart-payment-icon">MC</span>
+                <span class="cart-payment-icon">VISA</span>
+                <span class="cart-payment-icon">PayPal</span>
+                <span class="cart-payment-icon">Apple Pay</span>
+                <span class="cart-payment-icon">Shop Pay</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    {% else %}
+      <div class="cart-empty">
+        <h2>Your cart is empty</h2>
+        <p>Time to stock up on the tools that make you money.</p>
+        <a href="/collections/all" class="empty-btn">Shop Now</a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+</div>
+
+<script>
+// Quantity buttons
+document.querySelectorAll('.cart-quantity-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var input = this.parentElement.querySelector('.cart-quantity-input');
+    var current = parseInt(input.value) || 0;
+    if (this.classList.contains('minus') && current > 0) {
+      input.value = current - 1;
+    } else if (this.classList.contains('plus')) {
+      input.value = current + 1;
+    }
+    input.closest('form').submit();
+  });
+});
+</script>
+
+<style>
+.cart-section { padding: 2rem 0; }
+.cart-container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
+.cart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.cart-title { font-size: 1.75rem; font-weight: 700; }
+.cart-trust-pill { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: rgba(201, 137, 75, 0.1); border: 1px solid rgba(201, 137, 75, 0.3); border-radius: 50px; font-size: 0.875rem; }
+.cart-shipping-bar { background: var(--clutch-navy); border: 1px solid var(--clutch-border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; }
+.shipping-message { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9375rem; margin-bottom: 0.75rem; }
+.shipping-progress { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
+.shipping-progress-fill { height: 100%; background: linear-gradient(90deg, var(--clutch-copper), var(--clutch-copper-soft)); transition: width 0.5s ease; }
+.shipping-thresholds { display: flex; justify-content: space-between; margin-top: 0.5rem; font-size: 0.75rem; color: var(--clutch-text-muted); }
+.cart-layout { display: grid; grid-template-columns: 1fr 380px; gap: 2rem; }
+@media (max-width: 900px) { .cart-layout { grid-template-columns: 1fr; } }
+.cart-item { display: flex; gap: 1rem; padding: 1.5rem 0; border-bottom: 1px solid var(--clutch-border); }
+.cart-item-image { width: 100px; height: 100px; flex-shrink: 0; background: var(--clutch-ink); border-radius: 8px; overflow: hidden; }
+.cart-item-image img { width: 100%; height: 100%; object-fit: contain; padding: 0.5rem; }
+.cart-item-details { flex: 1; }
+.cart-item-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem; }
+.cart-item-title { font-size: 1rem; font-weight: 600; margin: 0; }
+.cart-item-remove { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--clutch-text-muted); text-decoration: none; font-size: 1.25rem; }
+.cart-item-remove:hover { color: #ef4444; }
+.cart-item-variant { font-size: 0.875rem; color: var(--clutch-text-muted); margin: 0 0 0.5rem; }
+.cart-item-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; }
+.cart-quantity { display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--clutch-border); border-radius: 8px; padding: 0.25rem; }
+.cart-quantity-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; color: var(--clutch-text); font-size: 1.125rem; cursor: pointer; }
+.cart-quantity-input { width: 40px; text-align: center; background: transparent; border: none; color: var(--clutch-text); font-size: 0.9375rem; }
+.cart-item-line-price { font-weight: 700; color: var(--clutch-text); }
+.cart-trust-bar { display: flex; gap: 1rem; padding: 0.25rem 0; margin: 0.125rem 0; border-top: 1px solid var(--clutch-border); }
+.trust-item { font-size: 0.875rem; color: var(--clutch-text-muted); }
+.cart-continue { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--clutch-text-muted); text-decoration: none; font-size: 0.9375rem; margin-top: 0.25rem; }
+.cart-continue:hover { color: var(--clutch-copper); }
+.cart-reviews { margin: 0.25rem 0; padding: 0.5rem 0.75rem; background: linear-gradient(145deg, rgba(201, 137, 75, 0.08) 0%, rgba(201, 137, 75, 0.02) 100%); border: 1px solid rgba(201, 137, 75, 0.2); border-radius: 12px; }
+.cart-reviews-title { font-size: 1.125rem; font-weight: 700; margin: 0 0 0.375rem; color: var(--clutch-paper); }
+.cart-reviews-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.375rem; }
+@media (max-width: 768px) { .cart-reviews-grid { grid-template-columns: 1fr; } }
+.cart-review { padding: 0.625rem; background: var(--clutch-navy); border: 1px solid var(--clutch-border); border-radius: 10px; }
+.cart-review-stars { color: var(--clutch-copper); font-size: 0.875rem; margin-bottom: 0.25rem; letter-spacing: 0.1em; }
+.cart-review-text { font-size: 0.8125rem; color: var(--clutch-text-muted); line-height: 1.6; margin: 0 0 0.5rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.cart-review-author { font-size: 0.75rem; color: var(--clutch-text-dim); font-weight: 600; }
+.cart-suggestions { background: var(--clutch-navy); border: 1px solid var(--clutch-border); border-radius: 12px; padding: 0.5rem 0.75rem; margin-top: 0.25rem; }
+.suggestions-title { font-size: 1.125rem; font-weight: 700; margin: 0 0 1rem; }
+.suggestions-products { display: flex; flex-direction: column; gap: 0.75rem; }
+.suggestion-product { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: rgba(255,255,255,0.03); border-radius: 8px; }
+.suggestion-product img { width: 48px; height: 48px; object-fit: contain; }
+.suggestion-title { flex: 1; font-size: 0.875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.suggestion-price { font-weight: 600; color: var(--clutch-copper); }
+.suggestion-add { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: var(--clutch-copper); color: var(--clutch-ink); border-radius: 6px; text-decoration: none; font-size: 1.25rem; }
+.cart-sidebar { position: sticky; top: 100px; }
+.cart-summary { background: var(--clutch-navy); border: 1px solid var(--clutch-border); border-radius: 12px; padding: 1.5rem; }
+.summary-title { font-size: 1.125rem; font-weight: 700; margin: 0 0 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--clutch-border); }
+.summary-row { display: flex; justify-content: space-between; margin-bottom: 0.75rem; font-size: 0.9375rem; }
+.summary-total { font-size: 1.125rem; font-weight: 700; padding-top: 0.75rem; border-top: 1px solid var(--clutch-border); margin-top: 0.75rem; }
+.checkout-btn { width: 100%; padding: 1rem; margin-top: 1rem; background: var(--clutch-copper); color: var(--clutch-ink); border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; }
+.checkout-btn:hover { background: var(--clutch-copper-soft); }
+.cart-social-proof { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem 0; margin: 0.5rem 0; font-size: 0.8125rem; color: var(--clutch-text-muted); border-top: 1px solid var(--clutch-border); }
+.social-proof-dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; animation: pulse-dot 2s ease-in-out infinite; }
+@keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } }
+.social-proof-text strong { color: var(--clutch-copper); font-weight: 700; }
+.cart-payment-methods { margin-top: 0.5rem; padding-top: 0.75rem; border-top: 1px solid var(--clutch-border); text-align: center; font-size: 0.75rem; color: var(--clutch-text-muted); }
+.cart-payment-icons { display: flex; justify-content: center; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap; }
+.cart-payment-icon { padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; font-size: 0.625rem; font-weight: 600; color: var(--clutch-text-muted); }
+.cart-empty { text-align: center; padding: 4rem 2rem; }
+.cart-empty h2 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+.cart-empty p { color: var(--clutch-text-muted); margin-bottom: 1.5rem; }
+.empty-btn { display: inline-block; padding: 0.875rem 1.5rem; background: var(--clutch-copper); color: var(--clutch-ink); border-radius: 10px; text-decoration: none; font-weight: 600; }
+</style>
+
+{% schema %}
+{
+  "name": "Cart Template"
+}
+{% endschema %}

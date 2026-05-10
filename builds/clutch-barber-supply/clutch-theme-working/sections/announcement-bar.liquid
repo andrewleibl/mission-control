@@ -1,0 +1,65 @@
+{% if section.blocks.size > 0 %}
+  <div class="clutch-top-note" {{ section.shopify_attributes }}>
+    <p class="clutch-top-note__text">
+      {% for block in section.blocks %}
+        <span class="announcement-item" {{ block.shopify_attributes }}>{{ block.settings.text }}</span>
+        {% unless forloop.last %}<span class="clutch-top-note__dot">•</span>{% endunless %}
+      {% endfor %}
+    </p>
+  </div>
+{% endif %}
+
+<style>
+/* Mobile: Show only first announcement, no dots */
+@media (max-width: 768px) {
+  .clutch-top-note__text .announcement-item:not(:first-of-type) {
+    display: none;
+  }
+  .clutch-top-note__text .clutch-top-note__dot {
+    display: none;
+  }
+}
+</style>
+
+{% schema %}
+{
+  "name": "Announcement Bar",
+  "max_blocks": 3,
+  "blocks": [
+    {
+      "type": "announcement",
+      "name": "Announcement",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "default": "Free Shipping On Orders Over $50",
+          "label": "Text"
+        }
+      ]
+    }
+  ],
+  "default": {
+    "blocks": [
+      {
+        "type": "announcement",
+        "settings": {
+          "text": "Free Shipping On Orders Over $50"
+        }
+      },
+      {
+        "type": "announcement",
+        "settings": {
+          "text": "Free 30 day return for all faulty products"
+        }
+      },
+      {
+        "type": "announcement",
+        "settings": {
+          "text": "Same day In Store Pickups"
+        }
+      }
+    ]
+  }
+}
+{% endschema %}

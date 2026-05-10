@@ -58,7 +58,7 @@ export default function GrowthPage() {
       />
 
       {/* KPI Strip */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+      <div className="kpi-strip" style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
         <Kpi label="Active Goals" value={String(active.length)} accent={active.length > 0 ? colors.accent : colors.textMuted} />
         <Kpi label="At Risk" value={String(atRisk.length)} accent={atRisk.length > 0 ? colors.red : colors.textMuted} />
         <Kpi label="Milestones Done" value={String(totalMilestonesDone)} accent={totalMilestonesDone > 0 ? colors.accent : colors.textMuted} />
@@ -275,7 +275,7 @@ function GoalDetailPanel({ goal, onClose, onUpdate, onDelete, onEdit }: { goal: 
   return (
     <>
       <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 90 }} />
-      <div style={{
+      <div className="side-panel" style={{
         position: 'fixed', top: 0, right: 0, bottom: 0, width: 460,
         background: colors.cardBg, borderLeft: `1px solid ${colors.border}`,
         zIndex: 91, padding: 0, overflowY: 'auto',
@@ -465,7 +465,7 @@ function GoalModal({ mode, existing, onClose, onSave }: { mode: 'add' | 'edit'; 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}>
-      <div style={{ ...cardStyle, width: 500, padding: 28, maxHeight: '92vh', overflowY: 'auto' }}>
+      <div className="modal-sheet" style={{ ...cardStyle, width: 500, padding: 28, maxHeight: '92vh', overflowY: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <span style={{ fontSize: 16, fontWeight: 600 }}>{mode === 'edit' ? 'Edit Goal' : 'Add Goal'}</span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: 22, padding: 0, lineHeight: 1 }}>×</button>

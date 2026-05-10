@@ -522,7 +522,7 @@ function SidePanel({
       <div onClick={onClose} style={{
         position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 90,
       }} />
-      <div style={{
+      <div className="side-panel" style={{
         position: 'fixed', top: 0, right: 0, bottom: 0,
         width: 380, background: colors.cardBg,
         borderLeft: `1px solid ${colors.border}`,

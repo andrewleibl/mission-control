@@ -175,7 +175,7 @@ export default function ClientsPage() {
       )}
 
       {/* KPI Strip */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+      <div className="kpi-strip" style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
         <Kpi label="Active" value={String(totalActive)} accent={colors.accent} />
         <Kpi label="At Risk" value={String(atRiskCount)} accent={atRiskCount > 0 ? colors.red : colors.textMuted} />
         <Kpi label="Renewing < 30d" value={String(renewingCount)} accent={renewingCount > 0 ? colors.yellow : colors.textMuted} />
@@ -526,7 +526,7 @@ function AddClientModal({
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div style={{ ...cardStyle, width: 420, padding: 28 }}>
+      <div className="modal-sheet" style={{ ...cardStyle, width: 420, padding: 28 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <span style={{ fontSize: 16, fontWeight: 600 }}>Add Client</span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: 22, padding: 0, lineHeight: 1 }}>×</button>

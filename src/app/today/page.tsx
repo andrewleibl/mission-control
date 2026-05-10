@@ -157,7 +157,7 @@ export default function TodayPage() {
       />
 
       {/* KPI Strip */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+      <div className="kpi-strip" style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
         <Kpi label="Due Today" value={String(todayCount)} accent={todayCount > 0 ? colors.accent : colors.textMuted} />
         <Kpi label="Overdue" value={String(overdueCount)} accent={overdueCount > 0 ? colors.red : colors.textMuted} />
         <Kpi label="Upcoming 7d" value={String(upcomingCount)} accent={upcomingCount > 0 ? colors.accent : colors.textMuted} />
@@ -543,7 +543,7 @@ function TaskModal({
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div style={{ ...cardStyle, width: 460, padding: 28, maxHeight: '92vh', overflowY: 'auto' }}>
+      <div className="modal-sheet" style={{ ...cardStyle, width: 460, padding: 28, maxHeight: '92vh', overflowY: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <span style={{ fontSize: 16, fontWeight: 600 }}>
             {mode === 'add' ? 'Add Task' : 'Edit Task'}

@@ -186,7 +186,7 @@ export default function RetentionPage() {
       />
 
       {/* KPI Strip */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+      <div className="kpi-strip" style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
         <Kpi label="This Week" value={String(weekCount)} accent={weekCount > 0 ? colors.accent : colors.textMuted} />
         <Kpi label="Overdue" value={String(overdueCount)} accent={overdueCount > 0 ? colors.red : colors.textMuted} />
         <Kpi label="Upcoming 7d" value={String(upcomingCount)} accent={upcomingCount > 0 ? colors.accent : colors.textMuted} />
@@ -766,7 +766,7 @@ function SidePanel({
   return (
     <>
       <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 90 }} />
-      <div style={{
+      <div className="side-panel" style={{
         position: 'fixed', top: 0, right: 0, bottom: 0, width: 400,
         background: colors.cardBg, borderLeft: `1px solid ${colors.border}`,
         zIndex: 91, padding: 28, overflowY: 'auto',
@@ -945,7 +945,7 @@ function EventModal({
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div style={{ ...cardStyle, width: 480, padding: 28, maxHeight: '92vh', overflowY: 'auto' }}>
+      <div className="modal-sheet" style={{ ...cardStyle, width: 480, padding: 28, maxHeight: '92vh', overflowY: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <span style={{ fontSize: 16, fontWeight: 600 }}>
             {mode === 'add' ? 'Add Event' : 'Edit Event'}

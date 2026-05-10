@@ -213,7 +213,7 @@ function ModalShell({ title, onClose, children }: { title: string; onClose: () =
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div style={{ ...cardStyle, width: 460, maxHeight: '90vh', overflowY: 'auto', padding: 28 }}>
+      <div className="modal-sheet" style={{ ...cardStyle, width: 460, maxHeight: '90vh', overflowY: 'auto', padding: 28 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <span style={{ fontSize: 16, fontWeight: 600 }}>{title}</span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: 22, padding: 0, lineHeight: 1 }}>×</button>
@@ -588,7 +588,7 @@ export default function FinancesPage() {
       />
 
       {/* Quick header stats — current month */}
-      <div style={{ display: 'flex', gap: 14, marginBottom: 20 }}>
+      <div className="kpi-strip" style={{ display: 'flex', gap: 14, marginBottom: 20 }}>
         <MiniStat label={`${parseDate(todayIso + '').toLocaleDateString('en-US', { month: 'long' })} Revenue`} value={fmt(monthRev)} accent={colors.accent} />
         <MiniStat label="Month Expenses" value={fmt(monthExp)} accent={colors.red} />
         <MiniStat label="Net" value={fmt(monthNet)} accent={monthNet >= 0 ? colors.accent : colors.red} />

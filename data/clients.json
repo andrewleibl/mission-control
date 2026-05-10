@@ -1,0 +1,17 @@
+[
+  {
+    "id": "client-001",
+    "name": "Ricardo Madera",
+    "subdomain": "ricardo",
+    "isActive": true,
+    "createdAt": "2026-04-11T21:05:55.029Z"
+  },
+  {
+    "id": "client-1775941714420-0nvn9lt",
+    "name": "John Doe",
+    "subdomain": "john",
+    "isActive": true,
+    "pin": "2315",
+    "createdAt": "2026-04-11T21:08:34.420Z"
+  }
+]

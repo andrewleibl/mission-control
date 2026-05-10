@@ -1,0 +1,140 @@
+<section class="hero" aria-label="Hero banner">
+  <div
+    class="hero-bg"
+    style="background-image: url('{{ section.settings.background_image | default: 'https://clutchbarbersupply.com/cdn/shop/files/Clutch_Banner.jpg?v=1724900452' | image_url: width: 1920 }}');"
+    aria-hidden="true"
+  ></div>
+  <div class="hero-overlay" aria-hidden="true"></div>
+
+  <div class="hero-content">
+    <div class="hero-social-proof" aria-label="Five star rating trusted by barbers">
+      <span class="hero-stars" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false"><path d="m12 2.6 2.9 5.88 6.49.95-4.69 4.57 1.11 6.46L12 17.42 6.19 20.46l1.11-6.46L2.61 9.43l6.49-.95Z"></path></svg>
+        <svg viewBox="0 0 24 24" focusable="false"><path d="m12 2.6 2.9 5.88 6.49.95-4.69 4.57 1.11 6.46L12 17.42 6.19 20.46l1.11-6.46L2.61 9.43l6.49-.95Z"></path></svg>
+        <svg viewBox="0 0 24 24" focusable="false"><path d="m12 2.6 2.9 5.88 6.49.95-4.69 4.57 1.11 6.46L12 17.42 6.19 20.46l1.11-6.46L2.61 9.43l6.49-.95Z"></path></svg>
+        <svg viewBox="0 0 24 24" focusable="false"><path d="m12 2.6 2.9 5.88 6.49.95-4.69 4.57 1.11 6.46L12 17.42 6.19 20.46l1.11-6.46L2.61 9.43l6.49-.95Z"></path></svg>
+        <svg viewBox="0 0 24 24" focusable="false"><path d="m12 2.6 2.9 5.88 6.49.95-4.69 4.57 1.11 6.46L12 17.42 6.19 20.46l1.11-6.46L2.61 9.43l6.49-.95Z"></path></svg>
+      </span>
+      <span>{{ section.settings.social_proof_text | default: '5-star rated and trusted by barbers across DFW' }}</span>
+    </div>
+    <span class="hero-eyebrow">Grand Prairie, TX — Est. 2009</span>
+
+    <h1 class="hero-heading">
+      {%- if section.settings.heading != blank -%}
+        {{ section.settings.heading | newline_to_br }}
+      {%- else -%}
+        Pro Barber Gear.<br><span>Shop-Grade Prices.</span>
+      {%- endif -%}
+    </h1>
+
+    <p class="hero-subheading">
+      {%- if section.settings.subheading != blank -%}
+        {{ section.settings.subheading }}
+      {%- else -%}
+        Andis. Wahl. JRL. Babyliss Pro. Gamma. All in one place — with a real store behind it.
+      {%- endif -%}
+    </p>
+
+    <div class="hero-cta-group">
+      <a
+        href="{{ section.settings.primary_cta_link | default: '/collections/all' }}"
+        class="btn btn-primary btn-lg hero-cta-primary"
+        aria-label="{{ section.settings.primary_cta_text | default: 'Shop Now Pick Up Today' }}"
+      >
+        {{ section.settings.primary_cta_text | default: 'Shop Now Pick Up Today' }}
+      </a>
+      <a
+        href="{{ section.settings.secondary_cta_link | default: '/collections/clippers-trimmers-1' }}"
+        class="btn btn-outline btn-lg"
+        aria-label="{{ section.settings.secondary_cta_text | default: 'Shop by Category' }}"
+      >
+        {{ section.settings.secondary_cta_text | default: 'Shop by Category →' }}
+      </a>
+    </div>
+
+    <p class="hero-trust">
+      📍 Grand Prairie, TX&nbsp;&nbsp;·&nbsp;&nbsp;📞 (214) 677-1059&nbsp;&nbsp;·&nbsp;&nbsp;✅ Authorized Retailer&nbsp;&nbsp;·&nbsp;&nbsp;15+ Years in Business
+    </p>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Hero Banner",
+  "tag": "section",
+  "class": "hero-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Banner Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background image",
+      "info": "Recommended: 1920×1080px or wider. If left blank, uses the Clutch Banner from the live site."
+    },
+    {
+      "type": "text",
+      "id": "social_proof_text",
+      "label": "Social proof text",
+      "default": "5-star rated and trusted by barbers across DFW"
+    },
+    {
+      "type": "header",
+      "content": "Headline"
+    },
+    {
+      "type": "textarea",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Pro Barber Gear.\nShop-Grade Prices.",
+      "info": "Use a new line to break the heading into two lines."
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Andis. Wahl. JRL. Babyliss Pro. Gamma. All in one place — with a real store behind it."
+    },
+    {
+      "type": "header",
+      "content": "Primary Button"
+    },
+    {
+      "type": "text",
+      "id": "primary_cta_text",
+      "label": "Button label",
+      "default": "Shop Now Pick Up Today"
+    },
+    {
+      "type": "url",
+      "id": "primary_cta_link",
+      "label": "Button link",
+      "default": "/collections/all"
+    },
+    {
+      "type": "header",
+      "content": "Secondary Button"
+    },
+    {
+      "type": "text",
+      "id": "secondary_cta_text",
+      "label": "Button label",
+      "default": "Shop by Category →"
+    },
+    {
+      "type": "url",
+      "id": "secondary_cta_link",
+      "label": "Button link",
+      "default": "/collections/clippers-trimmers-1"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero Banner",
+      "category": "Hero"
+    }
+  ]
+}
+{% endschema %}
