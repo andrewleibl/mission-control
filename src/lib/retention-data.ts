@@ -39,19 +39,24 @@ export interface RetentionEvent {
   createdAt: number
 }
 
+import { cached, setCache } from '@/lib/cache'
+
 export async function loadEvents(): Promise<RetentionEvent[]> {
-  const { createClient } = await import('@/lib/supabase')
-  const sb = createClient()
-  const { data } = await sb.from('retention_events').select('*').order('date', { ascending: false })
-  return (data ?? []).map(r => ({
-    id: r.id, clientId: r.client_id, type: r.type, date: r.date,
-    time: r.time ?? undefined, title: r.title, notes: r.notes ?? '',
-    completed: r.completed, linkedCommsId: r.linked_comms_id ?? undefined,
-    createdAt: r.created_at,
-  }))
+  return cached('retention_events', async () => {
+    const { createClient } = await import('@/lib/supabase')
+    const sb = createClient()
+    const { data } = await sb.from('retention_events').select('*').order('date', { ascending: false })
+    return (data ?? []).map(r => ({
+      id: r.id, clientId: r.client_id, type: r.type, date: r.date,
+      time: r.time ?? undefined, title: r.title, notes: r.notes ?? '',
+      completed: r.completed, linkedCommsId: r.linked_comms_id ?? undefined,
+      createdAt: r.created_at,
+    }))
+  })
 }
 
 export async function saveEvents(events: RetentionEvent[]): Promise<void> {
+  setCache('retention_events', events)
   const { createClient } = await import('@/lib/supabase')
   const sb = createClient()
   const rows = events.map(e => ({

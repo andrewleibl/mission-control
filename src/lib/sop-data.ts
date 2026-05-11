@@ -149,19 +149,24 @@ export const seedSOPs: SOP[] = [
 // Storage
 // =================================================================
 
+import { cached, setCache } from '@/lib/cache'
+
 export async function loadSOPs(): Promise<SOP[]> {
-  const { createClient } = await import('@/lib/supabase')
-  const sb = createClient()
-  const { data } = await sb.from('sops').select('*').order('created_at', { ascending: false })
-  const rows = (data ?? []).map(r => ({
-    id: r.id, title: r.title, description: r.description ?? undefined,
-    category: r.category, steps: r.steps ?? [],
-    lastUpdated: r.last_updated, createdAt: r.created_at,
-  }))
-  return rows.length > 0 ? rows : seedSOPs
+  return cached('sops', async () => {
+    const { createClient } = await import('@/lib/supabase')
+    const sb = createClient()
+    const { data } = await sb.from('sops').select('*').order('created_at', { ascending: false })
+    const rows = (data ?? []).map(r => ({
+      id: r.id, title: r.title, description: r.description ?? undefined,
+      category: r.category, steps: r.steps ?? [],
+      lastUpdated: r.last_updated, createdAt: r.created_at,
+    }))
+    return rows.length > 0 ? rows : seedSOPs
+  })
 }
 
 export async function saveSOPs(sops: SOP[]): Promise<void> {
+  setCache('sops', sops)
   const { createClient } = await import('@/lib/supabase')
   const sb = createClient()
   const rows = sops.map(s => ({
@@ -174,18 +179,21 @@ export async function saveSOPs(sops: SOP[]): Promise<void> {
 }
 
 export async function loadRunState(): Promise<Record<string, SOPRunState>> {
-  const { createClient } = await import('@/lib/supabase')
-  const sb = createClient()
-  const { data } = await sb.from('sop_run_states').select('*')
-  const result: Record<string, SOPRunState> = {}
-  for (const r of data ?? []) {
-    if (!result[r.sop_id]) result[r.sop_id] = {}
-    result[r.sop_id][r.step_id] = r.checked
-  }
-  return result
+  return cached('sop_run_states', async () => {
+    const { createClient } = await import('@/lib/supabase')
+    const sb = createClient()
+    const { data } = await sb.from('sop_run_states').select('*')
+    const result: Record<string, SOPRunState> = {}
+    for (const r of data ?? []) {
+      if (!result[r.sop_id]) result[r.sop_id] = {}
+      result[r.sop_id][r.step_id] = r.checked
+    }
+    return result
+  })
 }
 
 export async function saveRunState(state: Record<string, SOPRunState>): Promise<void> {
+  setCache('sop_run_states', state)
   const { createClient } = await import('@/lib/supabase')
   const sb = createClient()
   const rows: { sop_id: string; step_id: string; checked: boolean }[] = []

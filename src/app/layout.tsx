@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans, Roboto_Mono } from 'next/font/google';
 import Sidebar from '@/components/Sidebar'
+import Prewarm from '@/components/Prewarm'
 import './globals.css'
 
 const dmSans = DM_Sans({
@@ -30,6 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${dmSans.variable} ${robotoMono.variable}`}>
       <body style={{ margin: 0, padding: 0, background: '#07090D' }}>
+        <Prewarm />
         <div style={{ display: 'flex', minHeight: '100vh' }}>
           <Sidebar />
           <main style={{ flex: 1, minWidth: 0 }}>

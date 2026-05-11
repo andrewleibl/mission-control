@@ -63,19 +63,24 @@ export const EXPENSE_CATEGORIES = [
 
 // ---------- Storage — Supabase ----------
 
+import { cached, setCache } from '@/lib/cache'
+
 export async function loadTransactions(): Promise<Transaction[]> {
-  const { createClient } = await import('@/lib/supabase')
-  const sb = createClient()
-  const { data } = await sb.from('transactions').select('*').order('date', { ascending: false })
-  return (data ?? []).map(r => ({
-    id: r.id, type: r.type, date: r.date, amount: r.amount,
-    category: r.category, clientId: r.client_id ?? undefined,
-    note: r.note ?? undefined, recurringId: r.recurring_id ?? undefined,
-    status: r.status, createdAt: r.created_at,
-  }))
+  return cached('transactions', async () => {
+    const { createClient } = await import('@/lib/supabase')
+    const sb = createClient()
+    const { data } = await sb.from('transactions').select('*').order('date', { ascending: false })
+    return (data ?? []).map(r => ({
+      id: r.id, type: r.type, date: r.date, amount: r.amount,
+      category: r.category, clientId: r.client_id ?? undefined,
+      note: r.note ?? undefined, recurringId: r.recurring_id ?? undefined,
+      status: r.status, createdAt: r.created_at,
+    }))
+  })
 }
 
 export async function saveTransactions(txs: Transaction[]): Promise<void> {
+  setCache('transactions', txs)
   const { createClient } = await import('@/lib/supabase')
   const sb = createClient()
   const rows = txs.map(t => ({
@@ -89,19 +94,22 @@ export async function saveTransactions(txs: Transaction[]): Promise<void> {
 }
 
 export async function loadRules(): Promise<RecurringRule[]> {
-  const { createClient } = await import('@/lib/supabase')
-  const sb = createClient()
-  const { data } = await sb.from('recurring_rules').select('*').order('created_at', { ascending: false })
-  return (data ?? []).map(r => ({
-    id: r.id, type: r.type, amount: r.amount, category: r.category,
-    clientId: r.client_id ?? undefined, note: r.note ?? undefined,
-    frequency: r.frequency, startDate: r.start_date,
-    endDate: r.end_date ?? undefined, autoConfirm: r.auto_confirm,
-    createdAt: r.created_at,
-  }))
+  return cached('recurring_rules', async () => {
+    const { createClient } = await import('@/lib/supabase')
+    const sb = createClient()
+    const { data } = await sb.from('recurring_rules').select('*').order('created_at', { ascending: false })
+    return (data ?? []).map(r => ({
+      id: r.id, type: r.type, amount: r.amount, category: r.category,
+      clientId: r.client_id ?? undefined, note: r.note ?? undefined,
+      frequency: r.frequency, startDate: r.start_date,
+      endDate: r.end_date ?? undefined, autoConfirm: r.auto_confirm,
+      createdAt: r.created_at,
+    }))
+  })
 }
 
 export async function saveRules(rules: RecurringRule[]): Promise<void> {
+  setCache('recurring_rules', rules)
   const { createClient } = await import('@/lib/supabase')
   const sb = createClient()
   const rows = rules.map(r => ({

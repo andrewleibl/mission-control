@@ -81,21 +81,26 @@ export const STATUS_COLOR: Record<GoalStatus, string> = {
 // Storage
 // =================================================================
 
+import { cached, setCache } from '@/lib/cache'
+
 export async function loadGoals(): Promise<Goal[]> {
-  const { createClient } = await import('@/lib/supabase')
-  const sb = createClient()
-  const { data } = await sb.from('goals').select('*').order('created_at', { ascending: false })
-  return (data ?? []).map(r => ({
-    id: r.id, title: r.title, description: r.description ?? undefined,
-    category: r.category, horizon: r.horizon, unit: r.unit,
-    targetValue: r.target_value, currentValue: r.current_value,
-    deadline: r.deadline ?? undefined, status: r.status,
-    milestones: r.milestones ?? [], notes: r.notes ?? undefined,
-    createdAt: r.created_at, completedAt: r.completed_at ?? undefined,
-  }))
+  return cached('goals', async () => {
+    const { createClient } = await import('@/lib/supabase')
+    const sb = createClient()
+    const { data } = await sb.from('goals').select('*').order('created_at', { ascending: false })
+    return (data ?? []).map(r => ({
+      id: r.id, title: r.title, description: r.description ?? undefined,
+      category: r.category, horizon: r.horizon, unit: r.unit,
+      targetValue: r.target_value, currentValue: r.current_value,
+      deadline: r.deadline ?? undefined, status: r.status,
+      milestones: r.milestones ?? [], notes: r.notes ?? undefined,
+      createdAt: r.created_at, completedAt: r.completed_at ?? undefined,
+    }))
+  })
 }
 
 export async function saveGoals(goals: Goal[]): Promise<void> {
+  setCache('goals', goals)
   const { createClient } = await import('@/lib/supabase')
   const sb = createClient()
   const rows = goals.map(g => ({

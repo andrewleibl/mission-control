@@ -135,15 +135,20 @@ function row2client(r: Record<string, unknown>): Client {
   }
 }
 
+import { cached, setCache } from '@/lib/cache'
+
 export async function loadClients(): Promise<Client[]> {
-  const { createClient } = await import('@/lib/supabase')
-  const sb = createClient()
-  const { data } = await sb.from('clients').select('*').order('created_at', { ascending: false })
-  const rows = (data ?? []).map(row2client)
-  return rows.length > 0 ? rows : seedClients
+  return cached('clients', async () => {
+    const { createClient } = await import('@/lib/supabase')
+    const sb = createClient()
+    const { data } = await sb.from('clients').select('*').order('created_at', { ascending: false })
+    const rows = (data ?? []).map(row2client)
+    return rows.length > 0 ? rows : seedClients
+  })
 }
 
 export async function saveClients(clients: Client[]): Promise<void> {
+  setCache('clients', clients)
   const { createClient } = await import('@/lib/supabase')
   const sb = createClient()
   const rows = clients.map(c => ({
@@ -158,17 +163,20 @@ export async function saveClients(clients: Client[]): Promise<void> {
 }
 
 export async function loadComms(): Promise<CommsEntry[]> {
-  const { createClient } = await import('@/lib/supabase')
-  const sb = createClient()
-  const { data } = await sb.from('comms').select('*').order('created_at', { ascending: false })
-  return (data ?? []).map(r => ({
-    id: r.id, clientId: r.client_id, date: r.date, type: r.type,
-    summary: r.summary, context: r.context ?? undefined,
-    pinned: r.pinned, createdAt: r.created_at,
-  }))
+  return cached('comms', async () => {
+    const { createClient } = await import('@/lib/supabase')
+    const sb = createClient()
+    const { data } = await sb.from('comms').select('*').order('created_at', { ascending: false })
+    return (data ?? []).map(r => ({
+      id: r.id, clientId: r.client_id, date: r.date, type: r.type,
+      summary: r.summary, context: r.context ?? undefined,
+      pinned: r.pinned, createdAt: r.created_at,
+    }))
+  })
 }
 
 export async function saveComms(entries: CommsEntry[]): Promise<void> {
+  setCache('comms', entries)
   const { createClient } = await import('@/lib/supabase')
   const sb = createClient()
   const rows = entries.map(e => ({
@@ -181,18 +189,21 @@ export async function saveComms(entries: CommsEntry[]): Promise<void> {
 }
 
 export async function loadActions(): Promise<ActionItem[]> {
-  const { createClient } = await import('@/lib/supabase')
-  const sb = createClient()
-  const { data } = await sb.from('actions').select('*').order('created_at', { ascending: false })
-  return (data ?? []).map(r => ({
-    id: r.id, clientId: r.client_id, commsEntryId: r.comms_entry_id ?? undefined,
-    title: r.title, dueDate: r.due_date ?? undefined,
-    completed: r.completed, completedAt: r.completed_at ?? undefined,
-    createdAt: r.created_at,
-  }))
+  return cached('actions', async () => {
+    const { createClient } = await import('@/lib/supabase')
+    const sb = createClient()
+    const { data } = await sb.from('actions').select('*').order('created_at', { ascending: false })
+    return (data ?? []).map(r => ({
+      id: r.id, clientId: r.client_id, commsEntryId: r.comms_entry_id ?? undefined,
+      title: r.title, dueDate: r.due_date ?? undefined,
+      completed: r.completed, completedAt: r.completed_at ?? undefined,
+      createdAt: r.created_at,
+    }))
+  })
 }
 
 export async function saveActions(items: ActionItem[]): Promise<void> {
+  setCache('actions', items)
   const { createClient } = await import('@/lib/supabase')
   const sb = createClient()
   const rows = items.map(i => ({
