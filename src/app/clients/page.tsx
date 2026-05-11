@@ -10,7 +10,8 @@ import {
   openActionItems, computePaymentStatus, computeLTV, FinanceTxLite,
 } from '@/lib/clients-data'
 import { loadTransactions } from '@/lib/finances'
-import ClientDetail from './_detail'
+import dynamic from 'next/dynamic'
+const ClientDetail = dynamic(() => import('./_detail'), { ssr: false })
 
 type FilterKey = 'all' | 'active' | 'at-risk' | 'renewing' | 'stale'
 

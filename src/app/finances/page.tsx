@@ -10,8 +10,9 @@ import {
   approveProjection, skipProjection,
 } from '@/lib/finances'
 import { getClientsForTagging, ClientSummary } from '@/lib/clients-data'
-import CalendarView from './_calendar'
-import StatsView from './_stats'
+import dynamic from 'next/dynamic'
+const CalendarView = dynamic(() => import('./_calendar'), { ssr: false })
+const StatsView = dynamic(() => import('./_stats'), { ssr: false })
 
 type TabKey = 'calendar' | 'stats' | 'recurring' | 'all'
 

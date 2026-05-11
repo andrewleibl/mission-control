@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { Plus, Star, Pencil, Trash2, Check, Square, CheckSquare } from 'lucide-react'
-import CalendarView from './_calendar'
+import dynamic from 'next/dynamic'
+const CalendarView = dynamic(() => import('./_calendar'), { ssr: false })
 import { PageContainer, PageHeader, colors, cardStyle, cardStyleAccent, borders, mono } from '@/components/DesignSystem'
 import {
   Task, TaskStatus, Bucket, BUCKET_LABELS,
