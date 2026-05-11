@@ -1,10 +1,14 @@
-import { createClient as _create } from '@supabase/supabase-js'
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+import { createClient as _create, SupabaseClient } from '@supabase/supabase-js'
 
-let _instance: ReturnType<typeof _create> | null = null
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _instance: SupabaseClient<any> | null = null
 
-export function createClient() {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function createClient(): SupabaseClient<any> {
   if (!_instance) {
-    _instance = _create(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    _instance = _create<any>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
