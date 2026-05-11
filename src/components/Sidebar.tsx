@@ -20,15 +20,7 @@ const navItems: { href: string; label: string; Icon: LucideIcon }[] = [
 
 export default function Sidebar() {
   const pathname = usePathname()
-  const [isMobile, setIsMobile] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
 
   useEffect(() => { setMobileOpen(false) }, [pathname])
 
@@ -72,6 +64,17 @@ export default function Sidebar() {
     </div>
   )
 
+  const brandHeader = (
+    <div style={{ padding: '24px 20px 20px', borderBottom: `1px solid ${colors.border}` }}>
+      <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.18em', color: colors.accent, textTransform: 'uppercase' as const }}>
+        Mission Control
+      </div>
+      <div style={{ fontSize: 10, color: colors.textSubtle, marginTop: 4, letterSpacing: '0.12em', textTransform: 'uppercase' as const }}>
+        Straight Point Marketing
+      </div>
+    </div>
+  )
+
   const asideStyle: React.CSSProperties = {
     width: 240,
     background: colors.cardBg,
@@ -81,82 +84,15 @@ export default function Sidebar() {
     fontFamily: 'var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace',
   }
 
-  if (isMobile) {
-    return (
-      <>
-        {!mobileOpen && (
-          <button
-            onClick={() => setMobileOpen(true)}
-            style={{
-              position: 'fixed',
-              top: 14,
-              right: 14,
-              zIndex: 120,
-              width: 40,
-              height: 40,
-              background: 'rgba(13,17,23,0.85)',
-              backdropFilter: 'blur(8px)',
-              border: `1px solid ${colors.border}`,
-              borderRadius: 8,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              color: colors.text,
-            }}
-            aria-label="Open menu"
-          >
-            <Menu size={18} strokeWidth={2} />
-          </button>
-        )}
-
-        {/* Overlay */}
-        {mobileOpen && (
-          <div
-            onClick={() => setMobileOpen(false)}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              background: 'rgba(0,0,0,0.6)',
-              zIndex: 109,
-            }}
-          />
-        )}
-
-        {/* Slide-in sidebar */}
-        <aside
-          style={{
-            ...asideStyle,
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            bottom: 0,
-            zIndex: 110,
-            transform: mobileOpen ? 'translateX(0)' : 'translateX(-100%)',
-            transition: 'transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-            boxShadow: mobileOpen ? '4px 0 40px rgba(0,0,0,0.5)' : 'none',
-          }}
-        >
-          <div style={{ padding: '24px 20px 20px', borderBottom: `1px solid ${colors.border}` }}>
-            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.18em', color: colors.accent, textTransform: 'uppercase' as const }}>
-              Mission Control
-            </div>
-            <div style={{ fontSize: 10, color: colors.textSubtle, marginTop: 4, letterSpacing: '0.12em', textTransform: 'uppercase' as const }}>
-              Straight Point Marketing
-            </div>
-          </div>
-          {navLinks}
-          {footer}
-        </aside>
-      </>
-    )
-  }
-
-  // Desktop — spacer reserves 240px in the flex layout; fixed aside overlays it
+  // Single render path. CSS @media queries (sidebar-desktop / sidebar-mobile
+  // classes in globals.css) decide which variant is visible — no JS-state
+  // flash on first paint.
   return (
     <>
-      <div style={{ width: 240, flexShrink: 0 }} />
+      {/* Desktop: spacer + always-visible fixed sidebar */}
+      <div className="sidebar-desktop-spacer" style={{ width: 240, flexShrink: 0 }} />
       <aside
+        className="sidebar-desktop"
         style={{
           ...asideStyle,
           position: 'fixed',
@@ -166,14 +102,64 @@ export default function Sidebar() {
           zIndex: 100,
         }}
       >
-        <div style={{ padding: '24px 20px 20px', borderBottom: `1px solid ${colors.border}` }}>
-          <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.18em', color: colors.accent, textTransform: 'uppercase' as const }}>
-            Mission Control
-          </div>
-          <div style={{ fontSize: 10, color: colors.textSubtle, marginTop: 4, letterSpacing: '0.12em', textTransform: 'uppercase' as const }}>
-            Straight Point Marketing
-          </div>
-        </div>
+        {brandHeader}
+        {navLinks}
+        {footer}
+      </aside>
+
+      {/* Mobile: hamburger + slide-in sidebar + tap-anywhere overlay */}
+      <button
+        className={`sidebar-mobile-hamburger${mobileOpen ? ' sidebar-mobile-hamburger--hidden' : ''}`}
+        onClick={() => setMobileOpen(true)}
+        style={{
+          position: 'fixed',
+          top: 14,
+          right: 14,
+          zIndex: 120,
+          width: 40,
+          height: 40,
+          background: 'rgba(13,17,23,0.85)',
+          backdropFilter: 'blur(8px)',
+          border: `1px solid ${colors.border}`,
+          borderRadius: 8,
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          color: colors.text,
+        }}
+        aria-label="Open menu"
+      >
+        <Menu size={18} strokeWidth={2} />
+      </button>
+
+      {mobileOpen && (
+        <div
+          className="sidebar-mobile-overlay"
+          onClick={() => setMobileOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.6)',
+            zIndex: 109,
+          }}
+        />
+      )}
+
+      <aside
+        className="sidebar-mobile"
+        style={{
+          ...asideStyle,
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          bottom: 0,
+          zIndex: 110,
+          transform: mobileOpen ? 'translateX(0)' : 'translateX(-100%)',
+          transition: 'transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+          boxShadow: mobileOpen ? '4px 0 40px rgba(0,0,0,0.5)' : 'none',
+        }}
+      >
+        {brandHeader}
         {navLinks}
         {footer}
       </aside>

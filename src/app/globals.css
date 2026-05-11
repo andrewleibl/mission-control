@@ -49,6 +49,31 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
 
+/* Sidebar — CSS-driven mobile/desktop switch (no JS-state flash on first paint) */
+.sidebar-mobile,
+.sidebar-mobile-hamburger,
+.sidebar-mobile-overlay {
+  display: none !important;
+}
+@media (max-width: 768px) {
+  .sidebar-desktop,
+  .sidebar-desktop-spacer {
+    display: none !important;
+  }
+  .sidebar-mobile {
+    display: flex !important;
+  }
+  .sidebar-mobile-hamburger {
+    display: flex !important;
+  }
+  .sidebar-mobile-hamburger.sidebar-mobile-hamburger--hidden {
+    display: none !important;
+  }
+  .sidebar-mobile-overlay {
+    display: block !important;
+  }
+}
+
 .sidebar-item {
   display: flex;
   align-items: center;
