@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   ListChecks, HeartHandshake, Wallet, Users,
-  TrendingUp, ClipboardList, Menu, X,
+  TrendingUp, ClipboardList, Menu,
   type LucideIcon,
 } from 'lucide-react'
 import { colors } from '@/components/DesignSystem'
@@ -136,35 +136,13 @@ export default function Sidebar() {
             boxShadow: mobileOpen ? '4px 0 40px rgba(0,0,0,0.5)' : 'none',
           }}
         >
-          {/* Header: logo on left, X close on RIGHT */}
-          <div style={{ padding: '24px 20px 20px', borderBottom: `1px solid ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.18em', color: colors.accent, textTransform: 'uppercase' as const }}>
-                Mission Control
-              </div>
-              <div style={{ fontSize: 10, color: colors.textSubtle, marginTop: 4, letterSpacing: '0.12em', textTransform: 'uppercase' as const }}>
-                Straight Point Marketing
-              </div>
+          <div style={{ padding: '24px 20px 20px', borderBottom: `1px solid ${colors.border}` }}>
+            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.18em', color: colors.accent, textTransform: 'uppercase' as const }}>
+              Mission Control
             </div>
-            <button
-              onClick={() => setMobileOpen(false)}
-              style={{
-                background: 'transparent',
-                border: `1px solid ${colors.border}`,
-                borderRadius: 6,
-                width: 30,
-                height: 30,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                color: colors.textMuted,
-                flexShrink: 0,
-              }}
-              aria-label="Close menu"
-            >
-              <X size={15} strokeWidth={2} />
-            </button>
+            <div style={{ fontSize: 10, color: colors.textSubtle, marginTop: 4, letterSpacing: '0.12em', textTransform: 'uppercase' as const }}>
+              Straight Point Marketing
+            </div>
           </div>
           {navLinks}
           {footer}
