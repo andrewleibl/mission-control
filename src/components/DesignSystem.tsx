@@ -215,7 +215,7 @@ export const PageHeader = ({
   action?: React.ReactNode
 }) => (
   <div style={{ marginBottom: spacing.section }}>
-    <div style={{
+    <div className="page-header-row" style={{
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',

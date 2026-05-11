@@ -284,14 +284,14 @@ button {
     max-width: 100vw;
   }
 
-  /* Push content down so hamburger doesn't overlap the page header */
-  main > div {
-    padding-top: 68px !important;
-  }
-
   /* Reduce page padding on mobile so cards have room */
   .page-container {
     padding: 16px !important;
+  }
+
+  /* Reserve space on the right of the page header for the hamburger button */
+  .page-header-row {
+    padding-right: 52px !important;
   }
 
   /* ── KPI strip ────────────────────────── */

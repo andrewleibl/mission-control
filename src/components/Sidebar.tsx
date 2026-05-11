@@ -90,7 +90,7 @@ export default function Sidebar() {
             style={{
               position: 'fixed',
               top: 14,
-              left: 14,
+              right: 14,
               zIndex: 120,
               width: 40,
               height: 40,
