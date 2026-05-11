@@ -84,7 +84,7 @@ export async function saveTransactions(txs: Transaction[]): Promise<void> {
     note: t.note ?? null, recurring_id: t.recurringId ?? null,
     status: t.status, created_at: t.createdAt,
   }))
-  await sb.from('transactions').delete().neq('id', '')
+  await sb.from('transactions').delete().gte('created_at', 0)
   if (rows.length > 0) await sb.from('transactions').insert(rows)
 }
 
@@ -110,7 +110,7 @@ export async function saveRules(rules: RecurringRule[]): Promise<void> {
     frequency: r.frequency, start_date: r.startDate,
     end_date: r.endDate ?? null, auto_confirm: r.autoConfirm, created_at: r.createdAt,
   }))
-  await sb.from('recurring_rules').delete().neq('id', '')
+  await sb.from('recurring_rules').delete().gte('created_at', 0)
   if (rows.length > 0) await sb.from('recurring_rules').insert(rows)
 }
 

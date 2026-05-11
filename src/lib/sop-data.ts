@@ -169,7 +169,7 @@ export async function saveSOPs(sops: SOP[]): Promise<void> {
     category: s.category, steps: s.steps,
     last_updated: s.lastUpdated, created_at: s.createdAt,
   }))
-  await sb.from('sops').delete().neq('id', '')
+  await sb.from('sops').delete().gte('created_at', 0)
   if (rows.length > 0) await sb.from('sops').insert(rows)
 }
 

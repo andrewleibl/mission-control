@@ -106,7 +106,7 @@ export async function saveGoals(goals: Goal[]): Promise<void> {
     milestones: g.milestones, notes: g.notes ?? null,
     created_at: g.createdAt, completed_at: g.completedAt ?? null,
   }))
-  await sb.from('goals').delete().neq('id', '')
+  await sb.from('goals').delete().gte('created_at', 0)
   if (rows.length > 0) await sb.from('goals').insert(rows)
 }
 

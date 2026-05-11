@@ -59,7 +59,7 @@ export async function saveEvents(events: RetentionEvent[]): Promise<void> {
     time: e.time ?? null, title: e.title, notes: e.notes,
     completed: e.completed, linked_comms_id: e.linkedCommsId ?? null, created_at: e.createdAt,
   }))
-  await sb.from('retention_events').delete().neq('id', '')
+  await sb.from('retention_events').delete().gte('created_at', 0)
   if (rows.length > 0) await sb.from('retention_events').insert(rows)
 }
 

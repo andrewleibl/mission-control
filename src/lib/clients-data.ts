@@ -153,7 +153,7 @@ export async function saveClients(clients: Client[]): Promise<void> {
     last_contact: c.lastContact ?? null, contact_email: c.contactEmail ?? null,
     contact_phone: c.contactPhone ?? null, notes: c.notes, created_at: c.createdAt,
   }))
-  await sb.from('clients').delete().neq('id', '')
+  await sb.from('clients').delete().gte('created_at', 0)
   if (rows.length > 0) await sb.from('clients').insert(rows)
 }
 
@@ -176,7 +176,7 @@ export async function saveComms(entries: CommsEntry[]): Promise<void> {
     summary: e.summary, context: e.context ?? null,
     pinned: e.pinned, created_at: e.createdAt,
   }))
-  await sb.from('comms').delete().neq('id', '')
+  await sb.from('comms').delete().gte('created_at', 0)
   if (rows.length > 0) await sb.from('comms').insert(rows)
 }
 
@@ -200,7 +200,7 @@ export async function saveActions(items: ActionItem[]): Promise<void> {
     title: i.title, due_date: i.dueDate ?? null,
     completed: i.completed, completed_at: i.completedAt ?? null, created_at: i.createdAt,
   }))
-  await sb.from('actions').delete().neq('id', '')
+  await sb.from('actions').delete().gte('created_at', 0)
   if (rows.length > 0) await sb.from('actions').insert(rows)
 }
 
