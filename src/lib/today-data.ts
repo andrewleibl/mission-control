@@ -39,7 +39,8 @@ function row2task(r: Record<string, unknown>): Task {
 export async function loadTasks(): Promise<Task[]> {
   const { createClient } = await import('@/lib/supabase')
   const sb = createClient()
-  const { data } = await sb.from('tasks').select('*').order('created_at', { ascending: false })
+  const { data, error } = await sb.from('tasks').select('*').order('created_at', { ascending: false })
+  console.log('[MC] loadTasks url:', process.env.NEXT_PUBLIC_SUPABASE_URL?.slice(0, 30), 'rows:', data?.length, 'error:', error?.message)
   return (data ?? []).map(row2task)
 }
 
