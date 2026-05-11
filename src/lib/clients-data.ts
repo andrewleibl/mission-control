@@ -116,48 +116,100 @@ export interface ActionItem {
 // Storage
 // =================================================================
 
-const CLIENTS_KEY = 'mc_clients_v1'
-const COMMS_KEY = 'mc_comms_v1'
-const ACTIONS_KEY = 'mc_actions_v1'
+// =================================================================
+// Storage — Supabase
+// =================================================================
 
-export function loadClients(): Client[] {
-  if (typeof window === 'undefined') return seedClients
-  try {
-    const raw = localStorage.getItem(CLIENTS_KEY)
-    if (raw) return JSON.parse(raw)
-  } catch { /* ignore */ }
-  return seedClients
+function row2client(r: Record<string, unknown>): Client {
+  return {
+    id: r.id as string, name: r.name as string, business: r.business as string,
+    status: r.status as ClientStatus, serviceType: r.service_type as ServiceType,
+    monthlyRetainer: r.monthly_retainer as number,
+    startDate: (r.start_date as string) ?? undefined,
+    renewalDate: r.renewal_date as string,
+    lastContact: (r.last_contact as string) ?? '',
+    contactEmail: (r.contact_email as string) ?? undefined,
+    contactPhone: (r.contact_phone as string) ?? undefined,
+    notes: (r.notes as string) ?? '',
+    createdAt: r.created_at as number,
+  }
 }
 
-export function saveClients(clients: Client[]) {
-  if (typeof window === 'undefined') return
-  localStorage.setItem(CLIENTS_KEY, JSON.stringify(clients))
+export async function loadClients(): Promise<Client[]> {
+  const { createClient } = await import('@/lib/supabase')
+  const sb = createClient()
+  const { data } = await sb.from('clients').select('*').order('created_at', { ascending: false })
+  const rows = (data ?? []).map(row2client)
+  return rows.length > 0 ? rows : seedClients
 }
 
-export function loadComms(): CommsEntry[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const raw = localStorage.getItem(COMMS_KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch { return [] }
+export async function saveClients(clients: Client[]): Promise<void> {
+  const { createClient } = await import('@/lib/supabase')
+  const sb = createClient()
+  const { data: { user } } = await sb.auth.getUser()
+  if (!user) return
+  const rows = clients.map(c => ({
+    id: c.id, name: c.name, business: c.business, status: c.status,
+    service_type: c.serviceType, monthly_retainer: c.monthlyRetainer,
+    start_date: c.startDate ?? null, renewal_date: c.renewalDate,
+    last_contact: c.lastContact ?? null, contact_email: c.contactEmail ?? null,
+    contact_phone: c.contactPhone ?? null, notes: c.notes,
+    created_at: c.createdAt, user_id: user.id,
+  }))
+  await sb.from('clients').delete().eq('user_id', user.id)
+  if (rows.length > 0) await sb.from('clients').insert(rows)
 }
 
-export function saveComms(entries: CommsEntry[]) {
-  if (typeof window === 'undefined') return
-  localStorage.setItem(COMMS_KEY, JSON.stringify(entries))
+export async function loadComms(): Promise<CommsEntry[]> {
+  const { createClient } = await import('@/lib/supabase')
+  const sb = createClient()
+  const { data } = await sb.from('comms').select('*').order('created_at', { ascending: false })
+  return (data ?? []).map(r => ({
+    id: r.id, clientId: r.client_id, date: r.date, type: r.type,
+    summary: r.summary, context: r.context ?? undefined,
+    pinned: r.pinned, createdAt: r.created_at,
+  }))
 }
 
-export function loadActions(): ActionItem[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const raw = localStorage.getItem(ACTIONS_KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch { return [] }
+export async function saveComms(entries: CommsEntry[]): Promise<void> {
+  const { createClient } = await import('@/lib/supabase')
+  const sb = createClient()
+  const { data: { user } } = await sb.auth.getUser()
+  if (!user) return
+  const rows = entries.map(e => ({
+    id: e.id, client_id: e.clientId, date: e.date, type: e.type,
+    summary: e.summary, context: e.context ?? null,
+    pinned: e.pinned, created_at: e.createdAt, user_id: user.id,
+  }))
+  await sb.from('comms').delete().eq('user_id', user.id)
+  if (rows.length > 0) await sb.from('comms').insert(rows)
 }
 
-export function saveActions(items: ActionItem[]) {
-  if (typeof window === 'undefined') return
-  localStorage.setItem(ACTIONS_KEY, JSON.stringify(items))
+export async function loadActions(): Promise<ActionItem[]> {
+  const { createClient } = await import('@/lib/supabase')
+  const sb = createClient()
+  const { data } = await sb.from('actions').select('*').order('created_at', { ascending: false })
+  return (data ?? []).map(r => ({
+    id: r.id, clientId: r.client_id, commsEntryId: r.comms_entry_id ?? undefined,
+    title: r.title, dueDate: r.due_date ?? undefined,
+    completed: r.completed, completedAt: r.completed_at ?? undefined,
+    createdAt: r.created_at,
+  }))
+}
+
+export async function saveActions(items: ActionItem[]): Promise<void> {
+  const { createClient } = await import('@/lib/supabase')
+  const sb = createClient()
+  const { data: { user } } = await sb.auth.getUser()
+  if (!user) return
+  const rows = items.map(i => ({
+    id: i.id, client_id: i.clientId, comms_entry_id: i.commsEntryId ?? null,
+    title: i.title, due_date: i.dueDate ?? null,
+    completed: i.completed, completed_at: i.completedAt ?? null,
+    created_at: i.createdAt, user_id: user.id,
+  }))
+  await sb.from('actions').delete().eq('user_id', user.id)
+  if (rows.length > 0) await sb.from('actions').insert(rows)
 }
 
 // =================================================================
@@ -166,13 +218,9 @@ export function saveActions(items: ActionItem[]) {
 
 export type ClientSummary = { id: string; name: string; business: string; status: ClientStatus }
 
-export function getClientsForTagging(): ClientSummary[] {
-  return loadClients().map(c => ({ id: c.id, name: c.name, business: c.business, status: c.status }))
-}
-
-export function getClientById(id: string): ClientSummary | undefined {
-  const c = loadClients().find(c => c.id === id)
-  return c ? { id: c.id, name: c.name, business: c.business, status: c.status } : undefined
+export async function getClientsForTagging(): Promise<ClientSummary[]> {
+  const clients = await loadClients()
+  return clients.map(c => ({ id: c.id, name: c.name, business: c.business, status: c.status }))
 }
 
 // =================================================================

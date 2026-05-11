@@ -9,7 +9,7 @@ import {
   projectRecurring, confirmed, sumIncome, sumExpenses,
   approveProjection, skipProjection,
 } from '@/lib/finances'
-import { getClientsForTagging, getClientById, ClientSummary } from '@/lib/clients-data'
+import { getClientsForTagging, ClientSummary } from '@/lib/clients-data'
 import CalendarView from './_calendar'
 import StatsView from './_stats'
 
@@ -306,9 +306,10 @@ function PlaceholderCard({ phase, title, description }: { phase: string; title: 
 }
 
 function RecurringTab({
-  rules, onAdd, onDelete,
+  rules, clients, onAdd, onDelete,
 }: {
   rules: RecurringRule[]
+  clients: ClientSummary[]
   onAdd: () => void
   onDelete: (id: string) => void
 }) {
@@ -347,7 +348,7 @@ function RecurringTab({
             </thead>
             <tbody>
               {rules.map(r => {
-                const client = r.clientId ? getClientById(r.clientId) : undefined
+                const client = r.clientId ? clients.find(c => c.id === r.clientId) : undefined
                 return (
                   <tr key={r.id} style={{ borderBottom: `1px solid ${colors.border}` }}>
                     <td style={{ padding: '11px 16px' }}>
@@ -387,9 +388,10 @@ function RecurringTab({
 }
 
 function AllTransactionsTab({
-  txs, onDelete, onEdit,
+  txs, clients, onDelete, onEdit,
 }: {
   txs: Transaction[]
+  clients: ClientSummary[]
   onDelete: (id: string) => void
   onEdit: (tx: Transaction) => void
 }) {
@@ -419,7 +421,7 @@ function AllTransactionsTab({
         </thead>
         <tbody>
           {sorted.map(tx => {
-            const client = tx.clientId ? getClientById(tx.clientId) : undefined
+            const client = tx.clientId ? clients.find(c => c.id === tx.clientId) : undefined
             return (
               <tr key={tx.id} style={{ borderBottom: `1px solid ${colors.border}` }}>
                 <td style={{ padding: '11px 16px', fontSize: 13, color: colors.textMuted, whiteSpace: 'nowrap' as const }}>
@@ -473,11 +475,12 @@ export default function FinancesPage() {
   const [showRuleModal, setShowRuleModal] = useState(false)
   const [toast, setToast] = useState<{ msg: string; tone: 'success' | 'info' | 'error' } | null>(null)
 
-  const clients = useMemo(() => getClientsForTagging(), [])
+  const [clients, setClients] = useState<ClientSummary[]>([])
 
   useEffect(() => {
-    setTxs(loadTransactions())
-    setRules(loadRules())
+    loadTransactions().then(setTxs)
+    loadRules().then(setRules)
+    getClientsForTagging().then(setClients)
   }, [])
 
   // Auto-dismiss toast after 2.5s
@@ -630,10 +633,10 @@ export default function FinancesPage() {
         <StatsView txs={txs} rules={rules} clients={clients} />
       )}
       {tab === 'recurring' && (
-        <RecurringTab rules={rules} onAdd={() => setShowRuleModal(true)} onDelete={deleteRule} />
+        <RecurringTab rules={rules} clients={clients} onAdd={() => setShowRuleModal(true)} onDelete={deleteRule} />
       )}
       {tab === 'all' && (
-        <AllTransactionsTab txs={txs} onDelete={deleteTx} onEdit={tx => setTxModal({ kind: 'edit', tx })} />
+        <AllTransactionsTab txs={txs} clients={clients} onDelete={deleteTx} onEdit={tx => setTxModal({ kind: 'edit', tx })} />
       )}
 
       {txModal && (

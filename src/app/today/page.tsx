@@ -54,8 +54,8 @@ export default function TodayPage() {
   const [toast, setToast] = useState<{ msg: string; tone: 'success' | 'info' | 'error' } | null>(null)
 
   useEffect(() => {
-    setTasks(loadTasks())
-    setClients(loadClients())
+    loadTasks().then(setTasks)
+    loadClients().then(setClients)
   }, [])
 
   // Auto-dismiss toast

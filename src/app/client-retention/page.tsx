@@ -76,9 +76,9 @@ export default function RetentionPage() {
   >(null)
 
   useEffect(() => {
-    setEvents(loadEvents())
-    setClients(loadClients())
-    setComms(loadComms())
+    loadEvents().then(setEvents)
+    loadClients().then(setClients)
+    loadComms().then(setComms)
   }, [])
 
   function persistEvents(next: RetentionEvent[]) { setEvents(next); saveEvents(next) }

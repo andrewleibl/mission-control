@@ -57,9 +57,7 @@ campaign-optimization*.md
 create-campaign-report.sh
 analyze_orders*.py
 test-meta-api.*
-src/middleware.ts
 src/types/
-src/app/login/
 src/app/register/
 src/app/settings/
 src/app/pipeline/admin/stats/

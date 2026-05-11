@@ -18,8 +18,8 @@ export default function SOPsPage() {
   const [editingSOP, setEditingSOP] = useState<SOP | null>(null)
 
   useEffect(() => {
-    setSOPs(loadSOPs())
-    setRunStates(loadRunState())
+    loadSOPs().then(setSOPs)
+    loadRunState().then(setRunStates)
   }, [])
 
   function persistSOPs(next: SOP[]) { setSOPs(next); saveSOPs(next) }

@@ -6,7 +6,7 @@ import {
   Transaction, RecurringRule, ProjectedTransaction,
   projectRecurring, confirmed,
 } from '@/lib/finances'
-import { ClientSummary, getClientById } from '@/lib/clients-data'
+import { ClientSummary } from '@/lib/clients-data'
 
 type ViewMode = 'day' | 'week' | 'month'
 
@@ -493,6 +493,7 @@ function DayList({
     <DayContents
       dateIso={dateIso}
       entries={sorted}
+      clients={clients}
       onAddForDay={onAddForDay}
       onApprove={onApprove}
       onSkip={onSkip}
@@ -532,6 +533,7 @@ function SidePanel({
         <DayContents
           dateIso={dateIso}
           entries={entries}
+          clients={clients}
           onAddForDay={onAddForDay}
           onApprove={onApprove}
           onSkip={onSkip}
@@ -547,10 +549,11 @@ function SidePanel({
 
 // ------------------ Day contents (shared by day view + side panel) ------------------
 function DayContents({
-  dateIso, entries, onAddForDay, onApprove, onSkip, onEditAndConfirm, onDeleteTx, onClose, compact,
+  dateIso, entries, clients, onAddForDay, onApprove, onSkip, onEditAndConfirm, onDeleteTx, onClose, compact,
 }: {
   dateIso: string
   entries: CalendarEntry[]
+  clients: ClientSummary[]
   onAddForDay: (iso: string) => void
   onApprove: (p: ProjectedTransaction) => void
   onSkip: (p: ProjectedTransaction) => void
@@ -618,6 +621,7 @@ function DayContents({
               <PendingRow
                 key={i}
                 entry={e}
+                clients={clients}
                 onApprove={() => onApprove(e.projection!)}
                 onSkip={() => onSkip(e.projection!)}
                 onEdit={() => onEditAndConfirm(e.projection!)}
@@ -635,7 +639,7 @@ function DayContents({
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {confirmedEntries.map((e, i) => (
-              <TxRow key={i} entry={e} onDelete={() => onDeleteTx(e.txId!)} />
+              <TxRow key={i} entry={e} clients={clients} onDelete={() => onDeleteTx(e.txId!)} />
             ))}
           </div>
         </div>
@@ -709,10 +713,10 @@ function Chip({
 }
 
 // ------------------ Pending approval row (in side panel / day view) ------------------
-function PendingRow({ entry, onApprove, onSkip, onEdit }: { entry: CalendarEntry; onApprove: () => void; onSkip: () => void; onEdit: () => void }) {
+function PendingRow({ entry, clients, onApprove, onSkip, onEdit }: { entry: CalendarEntry; clients: ClientSummary[]; onApprove: () => void; onSkip: () => void; onEdit: () => void }) {
   const isIncome = entry.type === 'income'
   const color = isIncome ? colors.accent : colors.red
-  const client = entry.clientId ? getClientById(entry.clientId) : undefined
+  const client = entry.clientId ? clients.find(c => c.id === entry.clientId) : undefined
 
   return (
     <div style={{
@@ -759,10 +763,10 @@ function PendingRow({ entry, onApprove, onSkip, onEdit }: { entry: CalendarEntry
 }
 
 // ------------------ Confirmed transaction row ------------------
-function TxRow({ entry, onDelete }: { entry: CalendarEntry; onDelete: () => void }) {
+function TxRow({ entry, clients, onDelete }: { entry: CalendarEntry; clients: ClientSummary[]; onDelete: () => void }) {
   const isIncome = entry.type === 'income'
   const color = isIncome ? colors.accent : colors.red
-  const client = entry.clientId ? getClientById(entry.clientId) : undefined
+  const client = entry.clientId ? clients.find(c => c.id === entry.clientId) : undefined
 
   return (
     <div style={{

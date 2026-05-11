@@ -16,7 +16,7 @@ export default function GrowthPage() {
   const [goalModal, setGoalModal] = useState<{ mode: 'add' } | { mode: 'edit'; goal: Goal } | null>(null)
   const [showCompleted, setShowCompleted] = useState(false)
 
-  useEffect(() => { setGoals(loadGoals()) }, [])
+  useEffect(() => { loadGoals().then(setGoals) }, [])
 
   function persistGoals(next: Goal[]) { setGoals(next); saveGoals(next) }
   function addGoal(g: Goal) { persistGoals([g, ...goals]) }

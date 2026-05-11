@@ -81,19 +81,35 @@ export const STATUS_COLOR: Record<GoalStatus, string> = {
 // Storage
 // =================================================================
 
-const STORAGE_KEY = 'mc_growth_goals_v1'
-
-export function loadGoals(): Goal[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch { return [] }
+export async function loadGoals(): Promise<Goal[]> {
+  const { createClient } = await import('@/lib/supabase')
+  const sb = createClient()
+  const { data } = await sb.from('goals').select('*').order('created_at', { ascending: false })
+  return (data ?? []).map(r => ({
+    id: r.id, title: r.title, description: r.description ?? undefined,
+    category: r.category, horizon: r.horizon, unit: r.unit,
+    targetValue: r.target_value, currentValue: r.current_value,
+    deadline: r.deadline ?? undefined, status: r.status,
+    milestones: r.milestones ?? [], notes: r.notes ?? undefined,
+    createdAt: r.created_at, completedAt: r.completed_at ?? undefined,
+  }))
 }
 
-export function saveGoals(goals: Goal[]) {
-  if (typeof window === 'undefined') return
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(goals))
+export async function saveGoals(goals: Goal[]): Promise<void> {
+  const { createClient } = await import('@/lib/supabase')
+  const sb = createClient()
+  const { data: { user } } = await sb.auth.getUser()
+  if (!user) return
+  const rows = goals.map(g => ({
+    id: g.id, title: g.title, description: g.description ?? null,
+    category: g.category, horizon: g.horizon, unit: g.unit,
+    target_value: g.targetValue, current_value: g.currentValue,
+    deadline: g.deadline ?? null, status: g.status,
+    milestones: g.milestones, notes: g.notes ?? null,
+    created_at: g.createdAt, completed_at: g.completedAt ?? null, user_id: user.id,
+  }))
+  await sb.from('goals').delete().eq('user_id', user.id)
+  if (rows.length > 0) await sb.from('goals').insert(rows)
 }
 
 // =================================================================

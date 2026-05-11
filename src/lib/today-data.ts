@@ -17,23 +17,47 @@ export interface Task {
   completedAt?: number
 }
 
-const STORAGE_KEY = 'mc_today_tasks_v1'
-
 // =================================================================
-// Storage
+// Storage — Supabase
 // =================================================================
 
-export function loadTasks(): Task[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch { return [] }
+function row2task(r: Record<string, unknown>): Task {
+  return {
+    id: r.id as string,
+    title: r.title as string,
+    dueDate: (r.due_date as string) ?? undefined,
+    dueTime: (r.due_time as string) ?? undefined,
+    starred: r.starred as boolean,
+    status: r.status as TaskStatus,
+    clientId: (r.client_id as string) ?? undefined,
+    notes: (r.notes as string) ?? undefined,
+    createdAt: r.created_at as number,
+    completedAt: (r.completed_at as number) ?? undefined,
+  }
 }
 
-export function saveTasks(tasks: Task[]) {
-  if (typeof window === 'undefined') return
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks))
+export async function loadTasks(): Promise<Task[]> {
+  const { createClient } = await import('@/lib/supabase')
+  const sb = createClient()
+  const { data } = await sb.from('tasks').select('*').order('created_at', { ascending: false })
+  return (data ?? []).map(row2task)
+}
+
+export async function saveTasks(tasks: Task[]): Promise<void> {
+  const { createClient } = await import('@/lib/supabase')
+  const sb = createClient()
+  const { data: { user } } = await sb.auth.getUser()
+  if (!user) return
+
+  const rows = tasks.map(t => ({
+    id: t.id, title: t.title, due_date: t.dueDate ?? null,
+    due_time: t.dueTime ?? null, starred: t.starred, status: t.status,
+    client_id: t.clientId ?? null, notes: t.notes ?? null,
+    created_at: t.createdAt, completed_at: t.completedAt ?? null, user_id: user.id,
+  }))
+
+  await sb.from('tasks').delete().eq('user_id', user.id)
+  if (rows.length > 0) await sb.from('tasks').insert(rows)
 }
 
 // =================================================================

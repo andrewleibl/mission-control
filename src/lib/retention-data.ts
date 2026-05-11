@@ -39,19 +39,31 @@ export interface RetentionEvent {
   createdAt: number
 }
 
-const STORAGE_KEY = 'mc_retention_events_v3'
-
-export function loadEvents(): RetentionEvent[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch { return [] }
+export async function loadEvents(): Promise<RetentionEvent[]> {
+  const { createClient } = await import('@/lib/supabase')
+  const sb = createClient()
+  const { data } = await sb.from('retention_events').select('*').order('date', { ascending: false })
+  return (data ?? []).map(r => ({
+    id: r.id, clientId: r.client_id, type: r.type, date: r.date,
+    time: r.time ?? undefined, title: r.title, notes: r.notes ?? '',
+    completed: r.completed, linkedCommsId: r.linked_comms_id ?? undefined,
+    createdAt: r.created_at,
+  }))
 }
 
-export function saveEvents(events: RetentionEvent[]) {
-  if (typeof window === 'undefined') return
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(events))
+export async function saveEvents(events: RetentionEvent[]): Promise<void> {
+  const { createClient } = await import('@/lib/supabase')
+  const sb = createClient()
+  const { data: { user } } = await sb.auth.getUser()
+  if (!user) return
+  const rows = events.map(e => ({
+    id: e.id, client_id: e.clientId, type: e.type, date: e.date,
+    time: e.time ?? null, title: e.title, notes: e.notes,
+    completed: e.completed, linked_comms_id: e.linkedCommsId ?? null,
+    created_at: e.createdAt, user_id: user.id,
+  }))
+  await sb.from('retention_events').delete().eq('user_id', user.id)
+  if (rows.length > 0) await sb.from('retention_events').insert(rows)
 }
 
 // =================================================================

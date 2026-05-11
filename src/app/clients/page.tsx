@@ -61,13 +61,13 @@ export default function ClientsPage() {
   const [showAddModal, setShowAddModal] = useState(false)
 
   useEffect(() => {
-    setClients(loadClients())
-    setComms(loadComms())
-    setActions(loadActions())
+    loadClients().then(setClients)
+    loadComms().then(setComms)
+    loadActions().then(setActions)
     // Pull finance income txs to derive payment status. Only need a tiny shape.
-    setTxs(loadTransactions().map(t => ({
+    loadTransactions().then(txs => setTxs(txs.map(t => ({
       type: t.type, date: t.date, amount: t.amount, clientId: t.clientId, status: t.status,
-    })))
+    }))))
   }, [])
 
   // Compute health for every client (memoized — recomputes when data changes)

@@ -149,35 +149,55 @@ export const seedSOPs: SOP[] = [
 // Storage
 // =================================================================
 
-const SOPS_KEY = 'mc_sops_v1'
-const RUN_STATE_KEY = 'mc_sop_run_state_v1' // Record<sopId, SOPRunState>
+export async function loadSOPs(): Promise<SOP[]> {
+  const { createClient } = await import('@/lib/supabase')
+  const sb = createClient()
+  const { data } = await sb.from('sops').select('*').order('created_at', { ascending: false })
+  const rows = (data ?? []).map(r => ({
+    id: r.id, title: r.title, description: r.description ?? undefined,
+    category: r.category, steps: r.steps ?? [],
+    lastUpdated: r.last_updated, createdAt: r.created_at,
+  }))
+  return rows.length > 0 ? rows : seedSOPs
+}
 
-export function loadSOPs(): SOP[] {
-  if (typeof window === 'undefined') return seedSOPs
-  try {
-    const raw = localStorage.getItem(SOPS_KEY)
-    if (raw) {
-      const parsed = JSON.parse(raw)
-      return parsed.length > 0 ? parsed : seedSOPs
+export async function saveSOPs(sops: SOP[]): Promise<void> {
+  const { createClient } = await import('@/lib/supabase')
+  const sb = createClient()
+  const { data: { user } } = await sb.auth.getUser()
+  if (!user) return
+  const rows = sops.map(s => ({
+    id: s.id, title: s.title, description: s.description ?? null,
+    category: s.category, steps: s.steps,
+    last_updated: s.lastUpdated, created_at: s.createdAt, user_id: user.id,
+  }))
+  await sb.from('sops').delete().eq('user_id', user.id)
+  if (rows.length > 0) await sb.from('sops').insert(rows)
+}
+
+export async function loadRunState(): Promise<Record<string, SOPRunState>> {
+  const { createClient } = await import('@/lib/supabase')
+  const sb = createClient()
+  const { data } = await sb.from('sop_run_states').select('*')
+  const result: Record<string, SOPRunState> = {}
+  for (const r of data ?? []) {
+    if (!result[r.sop_id]) result[r.sop_id] = {}
+    result[r.sop_id][r.step_id] = r.checked
+  }
+  return result
+}
+
+export async function saveRunState(state: Record<string, SOPRunState>): Promise<void> {
+  const { createClient } = await import('@/lib/supabase')
+  const sb = createClient()
+  const { data: { user } } = await sb.auth.getUser()
+  if (!user) return
+  const rows: { sop_id: string; step_id: string; checked: boolean; user_id: string }[] = []
+  for (const [sopId, steps] of Object.entries(state)) {
+    for (const [stepId, checked] of Object.entries(steps)) {
+      rows.push({ sop_id: sopId, step_id: stepId, checked, user_id: user.id })
     }
-  } catch { /* ignore */ }
-  return seedSOPs
-}
-
-export function saveSOPs(sops: SOP[]) {
-  if (typeof window === 'undefined') return
-  localStorage.setItem(SOPS_KEY, JSON.stringify(sops))
-}
-
-export function loadRunState(): Record<string, SOPRunState> {
-  if (typeof window === 'undefined') return {}
-  try {
-    const raw = localStorage.getItem(RUN_STATE_KEY)
-    return raw ? JSON.parse(raw) : {}
-  } catch { return {} }
-}
-
-export function saveRunState(state: Record<string, SOPRunState>) {
-  if (typeof window === 'undefined') return
-  localStorage.setItem(RUN_STATE_KEY, JSON.stringify(state))
+  }
+  await sb.from('sop_run_states').delete().eq('user_id', user.id)
+  if (rows.length > 0) await sb.from('sop_run_states').insert(rows)
 }
