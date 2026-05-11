@@ -1,11 +1,16 @@
 'use client'
 
 import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
-// Kicks off every Supabase load in the background as soon as the app mounts.
-// Results land in the cache layer (src/lib/cache.ts), so by the time the user
-// navigates to a section, useEffect hits the cache instead of the network.
+const ROUTES = ['/today', '/clients', '/client-retention', '/finances', '/growth', '/sops']
+
+// Kicks off every Supabase load AND prefetches every route's JS bundle as
+// soon as the app mounts. Data lands in src/lib/cache.ts; route chunks land
+// in Next.js's prefetch cache. Result: navigation is near-instant.
 export default function Prewarm() {
+  const router = useRouter()
+
   useEffect(() => {
     const idle =
       typeof window !== 'undefined' && 'requestIdleCallback' in window
@@ -13,6 +18,10 @@ export default function Prewarm() {
         : (cb: () => void) => setTimeout(cb, 50)
 
     idle(() => {
+      // 1. Prefetch every route's bundle so tap → instant navigation.
+      for (const r of ROUTES) router.prefetch(r)
+
+      // 2. Prefetch every dataset so pages render with cached data.
       void import('@/lib/today-data').then(m => m.loadTasks()).catch(() => {})
       void import('@/lib/clients-data').then(m => {
         m.loadClients().catch(() => {})
@@ -30,7 +39,7 @@ export default function Prewarm() {
       })
       void import('@/lib/retention-data').then(m => m.loadEvents()).catch(() => {})
     })
-  }, [])
+  }, [router])
 
   return null
 }
