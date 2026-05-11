@@ -84,30 +84,31 @@ export default function Sidebar() {
   if (isMobile) {
     return (
       <>
-        {/* Hamburger — always shows ≡ */}
-        <button
-          onClick={() => setMobileOpen(true)}
-          style={{
-            position: 'fixed',
-            top: 14,
-            left: 14,
-            zIndex: 120,
-            width: 40,
-            height: 40,
-            background: 'rgba(13,17,23,0.85)',
-            backdropFilter: 'blur(8px)',
-            border: `1px solid ${colors.border}`,
-            borderRadius: 8,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            color: colors.text,
-          }}
-          aria-label="Open menu"
-        >
-          <Menu size={18} strokeWidth={2} />
-        </button>
+        {!mobileOpen && (
+          <button
+            onClick={() => setMobileOpen(true)}
+            style={{
+              position: 'fixed',
+              top: 14,
+              left: 14,
+              zIndex: 120,
+              width: 40,
+              height: 40,
+              background: 'rgba(13,17,23,0.85)',
+              backdropFilter: 'blur(8px)',
+              border: `1px solid ${colors.border}`,
+              borderRadius: 8,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              color: colors.text,
+            }}
+            aria-label="Open menu"
+          >
+            <Menu size={18} strokeWidth={2} />
+          </button>
+        )}
 
         {/* Overlay */}
         {mobileOpen && (
