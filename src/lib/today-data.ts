@@ -46,17 +46,13 @@ export async function loadTasks(): Promise<Task[]> {
 export async function saveTasks(tasks: Task[]): Promise<void> {
   const { createClient } = await import('@/lib/supabase')
   const sb = createClient()
-  const { data: { user } } = await sb.auth.getUser()
-  if (!user) return
-
   const rows = tasks.map(t => ({
     id: t.id, title: t.title, due_date: t.dueDate ?? null,
     due_time: t.dueTime ?? null, starred: t.starred, status: t.status,
     client_id: t.clientId ?? null, notes: t.notes ?? null,
-    created_at: t.createdAt, completed_at: t.completedAt ?? null, user_id: user.id,
+    created_at: t.createdAt, completed_at: t.completedAt ?? null,
   }))
-
-  await sb.from('tasks').delete().eq('user_id', user.id)
+  await sb.from('tasks').delete().neq('id', '')
   if (rows.length > 0) await sb.from('tasks').insert(rows)
 }
 

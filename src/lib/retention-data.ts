@@ -54,15 +54,12 @@ export async function loadEvents(): Promise<RetentionEvent[]> {
 export async function saveEvents(events: RetentionEvent[]): Promise<void> {
   const { createClient } = await import('@/lib/supabase')
   const sb = createClient()
-  const { data: { user } } = await sb.auth.getUser()
-  if (!user) return
   const rows = events.map(e => ({
     id: e.id, client_id: e.clientId, type: e.type, date: e.date,
     time: e.time ?? null, title: e.title, notes: e.notes,
-    completed: e.completed, linked_comms_id: e.linkedCommsId ?? null,
-    created_at: e.createdAt, user_id: user.id,
+    completed: e.completed, linked_comms_id: e.linkedCommsId ?? null, created_at: e.createdAt,
   }))
-  await sb.from('retention_events').delete().eq('user_id', user.id)
+  await sb.from('retention_events').delete().neq('id', '')
   if (rows.length > 0) await sb.from('retention_events').insert(rows)
 }
 

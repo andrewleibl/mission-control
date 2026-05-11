@@ -78,15 +78,13 @@ export async function loadTransactions(): Promise<Transaction[]> {
 export async function saveTransactions(txs: Transaction[]): Promise<void> {
   const { createClient } = await import('@/lib/supabase')
   const sb = createClient()
-  const { data: { user } } = await sb.auth.getUser()
-  if (!user) return
   const rows = txs.map(t => ({
     id: t.id, type: t.type, date: t.date, amount: t.amount,
     category: t.category, client_id: t.clientId ?? null,
     note: t.note ?? null, recurring_id: t.recurringId ?? null,
-    status: t.status, created_at: t.createdAt, user_id: user.id,
+    status: t.status, created_at: t.createdAt,
   }))
-  await sb.from('transactions').delete().eq('user_id', user.id)
+  await sb.from('transactions').delete().neq('id', '')
   if (rows.length > 0) await sb.from('transactions').insert(rows)
 }
 
@@ -106,16 +104,13 @@ export async function loadRules(): Promise<RecurringRule[]> {
 export async function saveRules(rules: RecurringRule[]): Promise<void> {
   const { createClient } = await import('@/lib/supabase')
   const sb = createClient()
-  const { data: { user } } = await sb.auth.getUser()
-  if (!user) return
   const rows = rules.map(r => ({
     id: r.id, type: r.type, amount: r.amount, category: r.category,
     client_id: r.clientId ?? null, note: r.note ?? null,
     frequency: r.frequency, start_date: r.startDate,
-    end_date: r.endDate ?? null, auto_confirm: r.autoConfirm,
-    created_at: r.createdAt, user_id: user.id,
+    end_date: r.endDate ?? null, auto_confirm: r.autoConfirm, created_at: r.createdAt,
   }))
-  await sb.from('recurring_rules').delete().eq('user_id', user.id)
+  await sb.from('recurring_rules').delete().neq('id', '')
   if (rows.length > 0) await sb.from('recurring_rules').insert(rows)
 }
 

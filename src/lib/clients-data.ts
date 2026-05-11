@@ -146,17 +146,14 @@ export async function loadClients(): Promise<Client[]> {
 export async function saveClients(clients: Client[]): Promise<void> {
   const { createClient } = await import('@/lib/supabase')
   const sb = createClient()
-  const { data: { user } } = await sb.auth.getUser()
-  if (!user) return
   const rows = clients.map(c => ({
     id: c.id, name: c.name, business: c.business, status: c.status,
     service_type: c.serviceType, monthly_retainer: c.monthlyRetainer,
     start_date: c.startDate ?? null, renewal_date: c.renewalDate,
     last_contact: c.lastContact ?? null, contact_email: c.contactEmail ?? null,
-    contact_phone: c.contactPhone ?? null, notes: c.notes,
-    created_at: c.createdAt, user_id: user.id,
+    contact_phone: c.contactPhone ?? null, notes: c.notes, created_at: c.createdAt,
   }))
-  await sb.from('clients').delete().eq('user_id', user.id)
+  await sb.from('clients').delete().neq('id', '')
   if (rows.length > 0) await sb.from('clients').insert(rows)
 }
 
@@ -174,14 +171,12 @@ export async function loadComms(): Promise<CommsEntry[]> {
 export async function saveComms(entries: CommsEntry[]): Promise<void> {
   const { createClient } = await import('@/lib/supabase')
   const sb = createClient()
-  const { data: { user } } = await sb.auth.getUser()
-  if (!user) return
   const rows = entries.map(e => ({
     id: e.id, client_id: e.clientId, date: e.date, type: e.type,
     summary: e.summary, context: e.context ?? null,
-    pinned: e.pinned, created_at: e.createdAt, user_id: user.id,
+    pinned: e.pinned, created_at: e.createdAt,
   }))
-  await sb.from('comms').delete().eq('user_id', user.id)
+  await sb.from('comms').delete().neq('id', '')
   if (rows.length > 0) await sb.from('comms').insert(rows)
 }
 
@@ -200,15 +195,12 @@ export async function loadActions(): Promise<ActionItem[]> {
 export async function saveActions(items: ActionItem[]): Promise<void> {
   const { createClient } = await import('@/lib/supabase')
   const sb = createClient()
-  const { data: { user } } = await sb.auth.getUser()
-  if (!user) return
   const rows = items.map(i => ({
     id: i.id, client_id: i.clientId, comms_entry_id: i.commsEntryId ?? null,
     title: i.title, due_date: i.dueDate ?? null,
-    completed: i.completed, completed_at: i.completedAt ?? null,
-    created_at: i.createdAt, user_id: user.id,
+    completed: i.completed, completed_at: i.completedAt ?? null, created_at: i.createdAt,
   }))
-  await sb.from('actions').delete().eq('user_id', user.id)
+  await sb.from('actions').delete().neq('id', '')
   if (rows.length > 0) await sb.from('actions').insert(rows)
 }
 

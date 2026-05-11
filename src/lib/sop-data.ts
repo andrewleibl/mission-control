@@ -164,14 +164,12 @@ export async function loadSOPs(): Promise<SOP[]> {
 export async function saveSOPs(sops: SOP[]): Promise<void> {
   const { createClient } = await import('@/lib/supabase')
   const sb = createClient()
-  const { data: { user } } = await sb.auth.getUser()
-  if (!user) return
   const rows = sops.map(s => ({
     id: s.id, title: s.title, description: s.description ?? null,
     category: s.category, steps: s.steps,
-    last_updated: s.lastUpdated, created_at: s.createdAt, user_id: user.id,
+    last_updated: s.lastUpdated, created_at: s.createdAt,
   }))
-  await sb.from('sops').delete().eq('user_id', user.id)
+  await sb.from('sops').delete().neq('id', '')
   if (rows.length > 0) await sb.from('sops').insert(rows)
 }
 
@@ -190,14 +188,12 @@ export async function loadRunState(): Promise<Record<string, SOPRunState>> {
 export async function saveRunState(state: Record<string, SOPRunState>): Promise<void> {
   const { createClient } = await import('@/lib/supabase')
   const sb = createClient()
-  const { data: { user } } = await sb.auth.getUser()
-  if (!user) return
-  const rows: { sop_id: string; step_id: string; checked: boolean; user_id: string }[] = []
+  const rows: { sop_id: string; step_id: string; checked: boolean }[] = []
   for (const [sopId, steps] of Object.entries(state)) {
     for (const [stepId, checked] of Object.entries(steps)) {
-      rows.push({ sop_id: sopId, step_id: stepId, checked, user_id: user.id })
+      rows.push({ sop_id: sopId, step_id: stepId, checked })
     }
   }
-  await sb.from('sop_run_states').delete().eq('user_id', user.id)
+  await sb.from('sop_run_states').delete().neq('sop_id', '')
   if (rows.length > 0) await sb.from('sop_run_states').insert(rows)
 }

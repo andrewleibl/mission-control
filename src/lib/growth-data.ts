@@ -98,17 +98,15 @@ export async function loadGoals(): Promise<Goal[]> {
 export async function saveGoals(goals: Goal[]): Promise<void> {
   const { createClient } = await import('@/lib/supabase')
   const sb = createClient()
-  const { data: { user } } = await sb.auth.getUser()
-  if (!user) return
   const rows = goals.map(g => ({
     id: g.id, title: g.title, description: g.description ?? null,
     category: g.category, horizon: g.horizon, unit: g.unit,
     target_value: g.targetValue, current_value: g.currentValue,
     deadline: g.deadline ?? null, status: g.status,
     milestones: g.milestones, notes: g.notes ?? null,
-    created_at: g.createdAt, completed_at: g.completedAt ?? null, user_id: user.id,
+    created_at: g.createdAt, completed_at: g.completedAt ?? null,
   }))
-  await sb.from('goals').delete().eq('user_id', user.id)
+  await sb.from('goals').delete().neq('id', '')
   if (rows.length > 0) await sb.from('goals').insert(rows)
 }
 
