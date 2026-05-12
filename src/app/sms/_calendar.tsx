@@ -309,6 +309,7 @@ function MonthView({
           return (
             <button
               key={cell.iso}
+              className="sms-month-cell"
               onClick={() => onSelectDay(cell.iso)}
               style={{
                 background: hasActivity ? intensity(stats.sent) : 'transparent',
@@ -331,13 +332,13 @@ function MonthView({
                   {cell.date.getDate()}
                 </span>
                 {hasActivity && (
-                  <span style={{ ...mono, fontSize: 9, color: colors.textMuted, letterSpacing: '0.04em' }}>
+                  <span className="sms-month-cell-tplcount" style={{ ...mono, fontSize: 9, color: colors.textMuted, letterSpacing: '0.04em' }}>
                     {stats.templates.length} tpl
                   </span>
                 )}
               </div>
               {hasActivity && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 2 }}>
+                <div className="sms-month-cell-detail" style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 2 }}>
                   {stats.templates.slice(0, 2).map(t => (
                     <div key={t.templateId} style={{
                       ...mono, fontSize: 10, color: colors.textMuted,
@@ -358,7 +359,7 @@ function MonthView({
                 </div>
               )}
               {hasActivity && (
-                <div style={{
+                <div className="sms-month-cell-detail" style={{
                   marginTop: 'auto',
                   display: 'flex', gap: 6, ...mono, fontSize: 9,
                   color: colors.textSubtle, alignItems: 'center',
@@ -434,7 +435,7 @@ function WeekView({
   return (
     <>
       {/* Week totals strip */}
-      <div style={{
+      <div className="sms-week-totals" style={{
         ...cardStyle, padding: 14, marginBottom: 12,
         display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0,
       }}>
@@ -444,12 +445,13 @@ function WeekView({
         <WeekKpi label="Booked" value={String(weekTotals.booked)} accent={colors.purple} divider />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
+      <div className="sms-week-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
         {dayStats.map(({ cell, stats }) => {
           const hasActivity = stats.sent > 0 || stats.positives > 0 || stats.booked > 0
           return (
             <button
               key={cell.iso}
+              className="sms-week-cell"
               onClick={() => onSelectDay(cell.iso)}
               style={{
                 ...cardStyle,
@@ -586,7 +588,7 @@ function DayView({
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       {/* KPI strip */}
-      <div style={{
+      <div className="sms-day-kpi-strip" style={{
         ...cardStyle, padding: 18,
         display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0,
       }}>
@@ -638,7 +640,7 @@ function DayView({
                     }}>{t.status}</span>
                   )}
                 </div>
-                <div style={{ display: 'flex', gap: 18, ...mono, fontSize: 12 }}>
+                <div className="sms-day-tpl-stats" style={{ display: 'flex', gap: 18, ...mono, fontSize: 12, flexWrap: 'wrap' }}>
                   <span style={{ color: colors.text }}>
                     <span style={{ color: colors.textMuted }}>sent </span>
                     <span style={{ fontWeight: 700 }}>{t.sent}</span>
