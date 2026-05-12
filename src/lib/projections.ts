@@ -104,10 +104,12 @@ export function buildBreakdowns(
       })
     }
 
-    // Projected (from recurring rules) — only count those that DON'T already have
-    // a real transaction (projectRecurring handles that)
+    // Projected (from recurring rules) — only count entries whose scheduled
+    // date has already passed. Future-dated recurrences don't get added to
+    // the projection until they "fire" on their date.
     const proj = projectRecurring(rules, txs, startIso, endIso)
     for (const p of proj) {
+      if (p.date > todayIso) continue
       if (p.type === 'income') projectedIncome += p.amount
       else projectedExpense += p.amount
       contributors.push({
