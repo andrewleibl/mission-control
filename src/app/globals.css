@@ -391,16 +391,11 @@ button {
   /* Week view: stack 7 cells vertically instead of horizontal row */
   .sms-week-grid {
     grid-template-columns: 1fr !important;
-    gap: 8px !important;
+    gap: 6px !important;
   }
   .sms-week-cell {
     min-height: auto !important;
   }
-  .sms-week-totals {
-    grid-template-columns: 1fr 1fr !important;
-    gap: 0 !important;
-  }
-  .sms-week-totals > * { padding: 8px 12px !important; }
 
   /* Day view: KPI strip → 2×2, per-template stats wrap */
   .sms-day-kpi-strip {
@@ -408,8 +403,7 @@ button {
   }
   .sms-day-kpi-strip > * { padding: 8px 12px !important; }
   /* hide left-divider on items that are first-in-row in 2-col layout */
-  .sms-day-kpi-strip > *:nth-child(2n+1),
-  .sms-week-totals > *:nth-child(2n+1) {
+  .sms-day-kpi-strip > *:nth-child(2n+1) {
     border-left: none !important;
   }
   .sms-day-tpl-stats {

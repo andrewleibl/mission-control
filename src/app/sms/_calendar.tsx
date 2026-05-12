@@ -424,132 +424,75 @@ function WeekView({
     [cells, templates, sends, wins],
   )
 
-  const weekTotals = useMemo(() => {
-    let sent = 0, positives = 0, booked = 0
-    for (const { stats } of dayStats) {
-      sent += stats.sent; positives += stats.positives; booked += stats.booked
-    }
-    return { sent, positives, booked, rate: sent > 0 ? (positives / sent) * 100 : 0 }
+  const maxSent = useMemo(() => {
+    let mx = 0
+    for (const { stats } of dayStats) if (stats.sent > mx) mx = stats.sent
+    return mx
   }, [dayStats])
 
-  return (
-    <>
-      {/* Week totals strip */}
-      <div className="sms-week-totals" style={{
-        ...cardStyle, padding: 14, marginBottom: 12,
-        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0,
-      }}>
-        <WeekKpi label="Week sent" value={weekTotals.sent.toLocaleString()} />
-        <WeekKpi label="+1 replies" value={String(weekTotals.positives)} accent={colors.accent} divider />
-        <WeekKpi label="Reply rate" value={`${weekTotals.rate.toFixed(1)}%`} accent={colors.accent} divider />
-        <WeekKpi label="Booked" value={String(weekTotals.booked)} accent={colors.purple} divider />
-      </div>
+  function intensity(sent: number): string {
+    if (maxSent === 0 || sent === 0) return 'transparent'
+    const ratio = Math.min(1, sent / maxSent)
+    return `rgba(56, 161, 87, ${(0.08 + ratio * 0.22).toFixed(3)})`
+  }
 
-      <div className="sms-week-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
-        {dayStats.map(({ cell, stats }) => {
-          const hasActivity = stats.sent > 0 || stats.positives > 0 || stats.booked > 0
-          return (
-            <button
-              key={cell.iso}
-              className="sms-week-cell"
-              onClick={() => onSelectDay(cell.iso)}
-              style={{
-                ...cardStyle,
-                borderColor: cell.isToday ? colors.accent : colors.border,
-                padding: 10, minHeight: 200,
-                cursor: 'pointer', textAlign: 'left',
-                display: 'flex', flexDirection: 'column', gap: 6,
-                color: colors.text,
-              }}
-            >
+  return (
+    <div className="sms-week-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6 }}>
+      {dayStats.map(({ cell, stats }) => {
+        const hasActivity = stats.sent > 0 || stats.positives > 0 || stats.booked > 0
+        return (
+          <button
+            key={cell.iso}
+            className="sms-week-cell"
+            onClick={() => onSelectDay(cell.iso)}
+            style={{
+              background: hasActivity ? intensity(stats.sent) : 'transparent',
+              border: cell.isToday
+                ? `1px solid ${colors.accent}`
+                : `1px solid ${colors.border}`,
+              borderRadius: borders.radius.small,
+              padding: 10, minHeight: 130,
+              cursor: 'pointer', textAlign: 'left',
+              display: 'flex', flexDirection: 'column', gap: 8,
+              color: colors.text,
+            }}
+          >
+            <div>
+              <div style={{ ...mono, fontSize: 10, color: colors.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+                {cell.date.toLocaleDateString('en-US', { weekday: 'short' })}
+              </div>
               <div style={{
-                display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
-                paddingBottom: 6, borderBottom: `1px solid ${colors.border}`,
+                ...mono, fontSize: 22, fontWeight: 700,
+                color: cell.isToday ? colors.accent : colors.text,
+                lineHeight: 1,
               }}>
-                <div>
-                  <div style={{ ...mono, fontSize: 9, color: colors.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
-                    {cell.date.toLocaleDateString('en-US', { weekday: 'short' })}
-                  </div>
-                  <div style={{
-                    ...mono, fontSize: 18, fontWeight: 700,
-                    color: cell.isToday ? colors.accent : colors.text,
-                  }}>
-                    {cell.date.getDate()}
-                  </div>
-                </div>
-                {hasActivity && (
-                  <span style={{ ...mono, fontSize: 9, color: colors.textMuted }}>
-                    {stats.templates.length} tpl
+                {cell.date.getDate()}
+              </div>
+            </div>
+            {hasActivity && (
+              <div style={{
+                marginTop: 'auto',
+                display: 'flex', gap: 10, ...mono, fontSize: 11,
+                color: colors.textSubtle, alignItems: 'center', flexWrap: 'wrap',
+              }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                  <Send size={11} /> {stats.sent}
+                </span>
+                {stats.positives > 0 && (
+                  <span style={{ color: colors.accent, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                    <ThumbsUp size={11} /> {stats.positives}
+                  </span>
+                )}
+                {stats.booked > 0 && (
+                  <span style={{ color: colors.purple, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                    <CalendarCheck2 size={11} /> {stats.booked}
                   </span>
                 )}
               </div>
-              {hasActivity ? (
-                <>
-                  <div style={{ display: 'flex', gap: 8, ...mono, fontSize: 11, alignItems: 'center' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                      <Send size={10} /> {stats.sent}
-                    </span>
-                    {stats.positives > 0 && (
-                      <span style={{ color: colors.accent, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                        <ThumbsUp size={10} /> {stats.positives}
-                      </span>
-                    )}
-                    {stats.booked > 0 && (
-                      <span style={{ color: colors.purple, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                        <CalendarCheck2 size={10} /> {stats.booked}
-                      </span>
-                    )}
-                  </div>
-                  {stats.sent > 0 && (
-                    <div style={{ ...mono, fontSize: 10, color: colors.textSubtle }}>
-                      {((stats.positives / stats.sent) * 100).toFixed(1)}% reply rate
-                    </div>
-                  )}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
-                    {stats.templates.slice(0, 4).map(t => (
-                      <div key={t.templateId} style={{ ...mono, fontSize: 10, lineHeight: 1.3 }}>
-                        <div style={{ color: colors.text, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {t.label}
-                        </div>
-                        <div style={{ color: colors.textMuted }}>
-                          {t.sent} sent
-                          {t.positives > 0 && <span style={{ color: colors.accent }}> · +{t.positives}</span>}
-                          {t.booked > 0 && <span style={{ color: colors.purple }}> · 📅{t.booked}</span>}
-                        </div>
-                      </div>
-                    ))}
-                    {stats.templates.length > 4 && (
-                      <div style={{ ...mono, fontSize: 9, color: colors.textSubtle }}>
-                        +{stats.templates.length - 4} more
-                      </div>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <div style={{ ...mono, fontSize: 11, color: colors.textSubtle, marginTop: 8 }}>
-                  No activity
-                </div>
-              )}
-            </button>
-          )
-        })}
-      </div>
-    </>
-  )
-}
-
-function WeekKpi({ label, value, accent, divider }: { label: string; value: string; accent?: string; divider?: boolean }) {
-  return (
-    <div style={{
-      padding: '4px 14px',
-      borderLeft: divider ? `1px solid ${colors.border}` : 'none',
-    }}>
-      <div style={{ ...mono, fontSize: 10, color: colors.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
-        {label}
-      </div>
-      <div style={{ ...mono, fontSize: 20, fontWeight: 700, color: accent ?? colors.text, marginTop: 4 }}>
-        {value}
-      </div>
+            )}
+          </button>
+        )
+      })}
     </div>
   )
 }
