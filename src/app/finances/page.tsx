@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from 'react'
 import { PageContainer, PageHeader, colors, cardStyle, cardStyleAccent, borders } from '@/components/DesignSystem'
 import {
   Transaction, RecurringRule, Frequency, TxType, ProjectedTransaction,
-  INCOME_CATEGORIES, EXPENSE_CATEGORIES,
   loadTransactions, saveTransactions, loadRules, saveRules,
   projectRecurring, confirmed, sumIncome, sumExpenses,
   approveProjection, skipProjection,
@@ -56,18 +55,13 @@ function AddTransactionModal({
 }) {
   const [type, setType] = useState<TxType>(defaults?.type ?? 'income')
   const [date, setDate] = useState(defaults?.date ?? todayIso)
-  const [category, setCategory] = useState(
-    defaults?.category ?? (defaults?.type === 'expense' ? EXPENSE_CATEGORIES[0] : INCOME_CATEGORIES[0])
-  )
+  const [category, setCategory] = useState(defaults?.category ?? '')
   const [amount, setAmount] = useState(defaults?.amount ? String(defaults.amount) : '')
   const [note, setNote] = useState(defaults?.note ?? '')
   const [clientId, setClientId] = useState(defaults?.clientId ?? '')
 
-  const cats = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES
-
   function handleTypeChange(t: TxType) {
     setType(t)
-    setCategory(t === 'income' ? INCOME_CATEGORIES[0] : EXPENSE_CATEGORIES[0])
   }
 
   function handleSave() {
@@ -93,10 +87,13 @@ function AddTransactionModal({
         <Field label="Date">
           <BaseInput type="date" value={date} onChange={e => setDate(e.target.value)} />
         </Field>
-        <Field label="Category">
-          <BaseSelect value={category} onChange={e => setCategory(e.target.value)}>
-            {cats.map(c => <option key={c} value={c}>{c}</option>)}
-          </BaseSelect>
+        <Field label={type === 'income' ? 'Income' : 'Expense'}>
+          <BaseInput
+            type="text"
+            value={category}
+            onChange={e => setCategory(e.target.value)}
+            placeholder={type === 'income' ? 'e.g. Client Retainer, Project Fee…' : 'e.g. Ad Spend, Software, Contractors…'}
+          />
         </Field>
         <Field label="Amount ($)">
           <BaseInput type="number" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)} />
@@ -128,7 +125,7 @@ function AddRecurringModal({
   clients: ClientSummary[]
 }) {
   const [type, setType] = useState<TxType>('expense')
-  const [category, setCategory] = useState(EXPENSE_CATEGORIES[0])
+  const [category, setCategory] = useState('')
   const [amount, setAmount] = useState('')
   const [frequency, setFrequency] = useState<Frequency>('monthly')
   const [startDate, setStartDate] = useState(todayIso)
@@ -136,11 +133,8 @@ function AddRecurringModal({
   const [note, setNote] = useState('')
   const [clientId, setClientId] = useState('')
 
-  const cats = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES
-
   function handleTypeChange(t: TxType) {
     setType(t)
-    setCategory(t === 'income' ? INCOME_CATEGORIES[0] : EXPENSE_CATEGORIES[0])
   }
 
   function handleSave() {
@@ -166,10 +160,13 @@ function AddRecurringModal({
       <TypeToggle value={type} onChange={handleTypeChange} />
 
       <FieldGrid>
-        <Field label="Category">
-          <BaseSelect value={category} onChange={e => setCategory(e.target.value)}>
-            {cats.map(c => <option key={c} value={c}>{c}</option>)}
-          </BaseSelect>
+        <Field label={type === 'income' ? 'Income' : 'Expense'}>
+          <BaseInput
+            type="text"
+            value={category}
+            onChange={e => setCategory(e.target.value)}
+            placeholder={type === 'income' ? 'e.g. Client Retainer, Project Fee…' : 'e.g. Ad Spend, Software, Contractors…'}
+          />
         </Field>
         <Field label="Amount ($)">
           <BaseInput type="number" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)} />
