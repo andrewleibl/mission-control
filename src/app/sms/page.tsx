@@ -491,11 +491,21 @@ function TemplateModal({
 }) {
   const [label, setLabel] = useState(initialLabel)
   const [body, setBody] = useState(initialBody)
+  const [error, setError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
 
-  function handleSave() {
+  async function handleSave() {
     const l = label.trim(), b = body.trim()
-    if (!l || !b) return
-    onSave(l, b)
+    if (!l) { setError('Label is required.'); return }
+    if (!b) { setError('Message body is required.'); return }
+    setError(null); setSaving(true)
+    try {
+      await onSave(l, b)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      setError(msg || 'Save failed. Check your network or Supabase RLS.')
+      setSaving(false)
+    }
   }
 
   return (
@@ -518,9 +528,20 @@ function TemplateModal({
           style={{ ...modalInputStyle, resize: 'vertical', fontFamily: 'inherit' }}
         />
       </Field>
+      {error && (
+        <div style={{
+          background: colors.red + '15', border: `1px solid ${colors.red}55`,
+          borderRadius: borders.radius.small, padding: '8px 12px',
+          color: colors.red, fontSize: 12, marginBottom: 12, wordBreak: 'break-word',
+        }}>
+          {error}
+        </div>
+      )}
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
-        <button onClick={onClose} style={btnSecondary}>Cancel</button>
-        <button onClick={handleSave} style={btnPrimary}>Save</button>
+        <button onClick={onClose} style={btnSecondary} disabled={saving}>Cancel</button>
+        <button onClick={handleSave} style={btnPrimary} disabled={saving}>
+          {saving ? 'Saving…' : 'Save'}
+        </button>
       </div>
     </ModalShell>
   )

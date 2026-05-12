@@ -26,3 +26,8 @@ create table if not exists sms_wins (
 
 create index if not exists sms_wins_template_logged_idx on sms_wins (template_id, logged_at desc);
 create index if not exists sms_sends_day_idx on sms_sends (day desc);
+
+-- Match existing-table pattern: RLS off (single-user app, no auth layer).
+alter table sms_templates disable row level security;
+alter table sms_sends disable row level security;
+alter table sms_wins disable row level security;
