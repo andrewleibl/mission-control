@@ -502,8 +502,7 @@ function TemplateModal({
     try {
       await onSave(l, b)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      setError(msg || 'Save failed. Check your network or Supabase RLS.')
+      setError(describeError(err) || 'Save failed. Check your network or Supabase RLS.')
       setSaving(false)
     }
   }
@@ -664,4 +663,19 @@ const btnSecondary: React.CSSProperties = {
   background: 'transparent', border: `1px solid ${colors.border}`,
   borderRadius: borders.radius.medium, color: colors.textMuted,
   fontSize: 13, fontWeight: 500, padding: '9px 16px', cursor: 'pointer',
+}
+
+function describeError(err: unknown): string {
+  if (err instanceof Error) return err.message
+  if (err && typeof err === 'object') {
+    const e = err as Record<string, unknown>
+    const parts: string[] = []
+    if (typeof e.message === 'string' && e.message) parts.push(e.message)
+    if (typeof e.details === 'string' && e.details) parts.push(e.details)
+    if (typeof e.hint === 'string' && e.hint) parts.push(`(${e.hint})`)
+    if (typeof e.code === 'string' && e.code && parts.length === 0) parts.push(`code ${e.code}`)
+    if (parts.length) return parts.join(' — ')
+    try { return JSON.stringify(e) } catch { return String(err) }
+  }
+  return String(err)
 }
