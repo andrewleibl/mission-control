@@ -58,7 +58,18 @@ function AddTransactionModal({
   const [category, setCategory] = useState(defaults?.category ?? '')
   const [amount, setAmount] = useState(defaults?.amount ? String(defaults.amount) : '')
   const [note, setNote] = useState(defaults?.note ?? '')
-  const [clientId, setClientId] = useState(defaults?.clientId ?? '')
+  const [clientText, setClientText] = useState(() => {
+    if (!defaults?.clientId) return ''
+    const c = clients.find(x => x.id === defaults.clientId)
+    return c?.business ?? ''
+  })
+
+  function resolveClientId(): string | undefined {
+    const t = clientText.trim().toLowerCase()
+    if (!t) return undefined
+    const match = clients.find(c => c.business.toLowerCase() === t)
+    return match?.id
+  }
 
   function handleTypeChange(t: TxType) {
     setType(t)
@@ -71,7 +82,7 @@ function AddTransactionModal({
       id: `tx_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
       type, date, category,
       amount: val,
-      clientId: clientId || undefined,
+      clientId: resolveClientId(),
       note: note.trim() || undefined,
       status: 'confirmed',
       createdAt: Date.now(),
@@ -99,10 +110,16 @@ function AddTransactionModal({
           <BaseInput type="number" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)} />
         </Field>
         <Field label="Client (optional)">
-          <BaseSelect value={clientId} onChange={e => setClientId(e.target.value)}>
-            <option value="">— None / Overhead —</option>
-            {clients.map(c => <option key={c.id} value={c.id}>{c.business}</option>)}
-          </BaseSelect>
+          <BaseInput
+            type="text"
+            list="finances-clients-tx"
+            placeholder="Start typing a client name…"
+            value={clientText}
+            onChange={e => setClientText(e.target.value)}
+          />
+          <datalist id="finances-clients-tx">
+            {clients.map(c => <option key={c.id} value={c.business} />)}
+          </datalist>
         </Field>
         <Field label="Note (optional)">
           <BaseInput type="text" placeholder="e.g. invoice #, descriptor..." value={note} onChange={e => setNote(e.target.value)} />
@@ -131,7 +148,14 @@ function AddRecurringModal({
   const [startDate, setStartDate] = useState(todayIso)
   const [endDate, setEndDate] = useState('')
   const [note, setNote] = useState('')
-  const [clientId, setClientId] = useState('')
+  const [clientText, setClientText] = useState('')
+
+  function resolveClientId(): string | undefined {
+    const t = clientText.trim().toLowerCase()
+    if (!t) return undefined
+    const match = clients.find(c => c.business.toLowerCase() === t)
+    return match?.id
+  }
 
   function handleTypeChange(t: TxType) {
     setType(t)
@@ -147,7 +171,7 @@ function AddRecurringModal({
       frequency,
       startDate,
       endDate: endDate || undefined,
-      clientId: clientId || undefined,
+      clientId: resolveClientId(),
       note: note.trim() || undefined,
       autoConfirm: false,
       createdAt: Date.now(),
@@ -187,10 +211,16 @@ function AddRecurringModal({
           <BaseInput type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
         </Field>
         <Field label="Client (optional)">
-          <BaseSelect value={clientId} onChange={e => setClientId(e.target.value)}>
-            <option value="">— None / Overhead —</option>
-            {clients.map(c => <option key={c.id} value={c.id}>{c.business}</option>)}
-          </BaseSelect>
+          <BaseInput
+            type="text"
+            list="finances-clients-rule"
+            placeholder="Start typing a client name…"
+            value={clientText}
+            onChange={e => setClientText(e.target.value)}
+          />
+          <datalist id="finances-clients-rule">
+            {clients.map(c => <option key={c.id} value={c.business} />)}
+          </datalist>
         </Field>
         <Field label="Note (optional)">
           <BaseInput type="text" placeholder="e.g. Notion subscription" value={note} onChange={e => setNote(e.target.value)} />
