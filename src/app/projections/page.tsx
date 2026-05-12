@@ -188,11 +188,11 @@ function ThisMonth({
     }} className="proj-this-month">
       <Kpi label={current ? `This month · ${current.label}` : 'This month'} value={fmt(booked)} sub="Booked (confirmed net)" />
       <Kpi label="Projected" value={fmt(projected)} sub="Confirmed + recurring this month" accent={projected >= 0 ? colors.accent : colors.red} divider />
-      <KpiRaw label="Monthly Goal" valueNode={goalDisplay} sub={goal > 0 ? 'Net profit target' : 'Click pencil to set'} divider />
+      <KpiRaw label="Monthly Net Profit Goal" valueNode={goalDisplay} sub={goal > 0 ? 'Income − expenses target' : 'Click pencil to set'} divider />
       <Kpi
-        label={onTrack ? 'Beat by' : 'Gap to goal'}
+        label={onTrack ? 'Beat by' : 'Net gap to goal'}
         value={goal > 0 ? fmt(Math.abs(gap)) : '—'}
-        sub={onTrack ? '🎯 you’re past the line' : 'How much more to hit goal'}
+        sub={onTrack ? '🎯 past the line' : 'More net profit needed'}
         accent={onTrack ? colors.accent : colors.orange}
         divider
       />
@@ -262,6 +262,7 @@ function ForecastChart({ months }: { months: MonthBreakdown[] }) {
             <XAxis dataKey="label" tick={{ fill: colors.textMuted, fontSize: 11 }} axisLine={{ stroke: colors.border }} tickLine={false} />
             <YAxis tick={{ fill: colors.textMuted, fontSize: 10 }} axisLine={{ stroke: colors.border }} tickLine={false} tickFormatter={(v: number) => fmtCompact(v)} />
             <Tooltip
+              cursor={{ fill: 'rgba(56, 161, 87, 0.06)' }}
               contentStyle={{
                 background: colors.cardBgElevated,
                 border: `1px solid ${colors.border}`,
@@ -270,8 +271,8 @@ function ForecastChart({ months }: { months: MonthBreakdown[] }) {
               labelStyle={{ color: colors.text, fontWeight: 600 }}
               formatter={(value, name) => {
                 const v = typeof value === 'number' ? value : Number(value ?? 0)
-                if (name === 'goal') return [fmt(v), 'Goal']
-                if (name === 'net') return [fmt(v), 'Projected Net']
+                if (name === 'goal') return [fmt(v), 'Net Profit Goal']
+                if (name === 'net') return [fmt(v), 'Projected Net Profit']
                 if (name === 'confirmed') return [fmt(v), 'Confirmed Net']
                 return [String(v), String(name)]
               }}
@@ -346,7 +347,7 @@ function MonthCard({
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {editing ? (
             <>
-              <span style={{ ...mono, fontSize: 14, color: colors.textMuted }}>Goal $</span>
+              <span style={{ ...mono, fontSize: 13, color: colors.textMuted }}>Net Goal $</span>
               <input
                 autoFocus
                 inputMode="decimal"
@@ -366,9 +367,9 @@ function MonthCard({
           ) : (
             <>
               <span style={{ ...mono, fontSize: 12, color: colors.textMuted, letterSpacing: '0.04em' }}>
-                Goal: <span style={{ color: colors.text, fontWeight: 700 }}>{month.goal > 0 ? fmt(month.goal) : '—'}</span>
+                Net Goal: <span style={{ color: colors.text, fontWeight: 700 }}>{month.goal > 0 ? fmt(month.goal) : '—'}</span>
               </span>
-              <button onClick={onStartEdit} style={iconBtnStyle(colors.textMuted)} title={hasOverride ? 'Edit override' : 'Override for this month'}>
+              <button onClick={onStartEdit} style={iconBtnStyle(colors.textMuted)} title={hasOverride ? 'Edit net profit override' : 'Override net profit goal for this month'}>
                 <Pencil size={12} />
               </button>
               {hasOverride && (
