@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { Plus, Pause, Play, Skull, Pencil, RotateCcw, Trash2, ChevronDown, ChevronUp, X, ThumbsUp, CalendarCheck2 } from 'lucide-react'
+import dynamic from 'next/dynamic'
+import { Plus, Pause, Play, Skull, Pencil, RotateCcw, Trash2, ChevronDown, ChevronUp, X, ThumbsUp, CalendarCheck2, List, Calendar as CalendarIcon } from 'lucide-react'
 import { PageContainer, PageHeader, colors, cardStyle, cardStyleAccent, borders, mono } from '@/components/DesignSystem'
 import {
   SmsTemplate, SmsSend, SmsWin, TemplateStats,
@@ -10,6 +11,10 @@ import {
   setSendCount, logWin, deleteWin,
   getStats, coolingSignal, todayIso,
 } from '@/lib/sms'
+
+const SmsCalendar = dynamic(() => import('./_calendar'), { ssr: false })
+
+type ViewMode = 'templates' | 'calendar'
 
 export default function SmsPage() {
   const [templates, setTemplates] = useState<SmsTemplate[]>([])
@@ -20,6 +25,7 @@ export default function SmsPage() {
   const [editing, setEditing] = useState<SmsTemplate | null>(null)
   const [graveyardOpen, setGraveyardOpen] = useState(false)
   const [winLog, setWinLog] = useState<SmsTemplate | null>(null)
+  const [viewMode, setViewMode] = useState<ViewMode>('templates')
 
   useEffect(() => {
     let cancelled = false
@@ -96,8 +102,12 @@ export default function SmsPage() {
         }
       />
 
+      <ViewToggle value={viewMode} onChange={setViewMode} />
+
       {loading ? (
         <div style={{ color: colors.textMuted, padding: 40, textAlign: 'center' }}>Loading…</div>
+      ) : viewMode === 'calendar' ? (
+        <SmsCalendar templates={templates} sends={sends} wins={wins} />
       ) : (
         <>
           {live.length === 0 ? (
@@ -345,22 +355,64 @@ function StatBlock({ label, stats, divider }: { label: string; stats: TemplateSt
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
         <StatNum value={stats.sent} sub="sent" />
         <StatNum value={stats.positives} sub="+1" color={colors.accent} rate={stats.sent > 0 ? stats.positiveRate : null} />
-        <StatNum value={stats.booked} sub="📅" color={colors.purple} rate={stats.positives > 0 ? stats.bookedRate : null} />
+        <StatNum value={stats.booked} subIcon={<CalendarCheck2 size={11} />} color={colors.purple} rate={stats.positives > 0 ? stats.bookedRate : null} />
       </div>
     </div>
   )
 }
 
-function StatNum({ value, sub, color, rate }: { value: number; sub: string; color?: string; rate?: number | null }) {
+function StatNum({ value, sub, subIcon, color, rate }: { value: number; sub?: string; subIcon?: React.ReactNode; color?: string; rate?: number | null }) {
   return (
-    <div style={{ lineHeight: 1.1 }}>
+    <div style={{ lineHeight: 1.1, display: 'inline-flex', alignItems: 'baseline', gap: 4 }}>
       <span style={{ ...mono, fontSize: 18, fontWeight: 700, color: color ?? colors.text }}>{value}</span>
-      <span style={{ ...mono, fontSize: 10, color: colors.textMuted, marginLeft: 4 }}>{sub}</span>
+      {sub && <span style={{ ...mono, fontSize: 10, color: colors.textMuted }}>{sub}</span>}
+      {subIcon && (
+        <span style={{ display: 'inline-flex', alignItems: 'center', color: colors.textMuted, transform: 'translateY(1px)' }}>
+          {subIcon}
+        </span>
+      )}
       {rate !== null && rate !== undefined && (
-        <span style={{ ...mono, fontSize: 10, color: colors.textSubtle, marginLeft: 4 }}>
+        <span style={{ ...mono, fontSize: 10, color: colors.textSubtle }}>
           ({(rate * 100).toFixed(0)}%)
         </span>
       )}
+    </div>
+  )
+}
+
+function ViewToggle({ value, onChange }: { value: ViewMode; onChange: (v: ViewMode) => void }) {
+  const items: { key: ViewMode; label: string; Icon: typeof List }[] = [
+    { key: 'templates', label: 'Templates', Icon: List },
+    { key: 'calendar', label: 'Calendar', Icon: CalendarIcon },
+  ]
+  return (
+    <div style={{
+      display: 'inline-flex',
+      background: colors.cardBg, border: `1px solid ${colors.border}`,
+      borderRadius: borders.radius.medium, padding: 3, gap: 2,
+      marginBottom: 18,
+    }}>
+      {items.map(({ key, label, Icon }) => {
+        const active = value === key
+        return (
+          <button
+            key={key}
+            onClick={() => onChange(key)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              background: active ? colors.accent + '22' : 'transparent',
+              border: 'none',
+              borderRadius: borders.radius.small,
+              color: active ? colors.accent : colors.textMuted,
+              fontSize: 13, fontWeight: 600, padding: '7px 12px', cursor: 'pointer',
+              transition: 'all 0.12s',
+            }}
+          >
+            <Icon size={14} strokeWidth={2} />
+            <span>{label}</span>
+          </button>
+        )
+      })}
     </div>
   )
 }
