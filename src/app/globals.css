@@ -410,6 +410,18 @@ button {
     flex-wrap: wrap !important;
     gap: 8px 14px !important;
   }
+
+  /* Projections: this-month strip 4-col → 2×2, per-month strip 3-col → stacked */
+  .proj-this-month {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .proj-this-month > * { padding: 8px 12px !important; }
+  .proj-this-month > *:nth-child(2n+1) { border-left: none !important; }
+  .proj-month-strip {
+    grid-template-columns: 1fr !important;
+  }
+  .proj-month-strip > * { border-left: none !important; border-top: 1px solid var(--border) !important; }
+  .proj-month-strip > *:first-child { border-top: none !important; }
 }
 
 /* Retention calendar body: allow horizontal scroll on mobile */
