@@ -11,13 +11,14 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 
-type RangeKey = 'this-month' | 'last-3' | 'ytd' | 'last-12'
+type RangeKey = 'this-month' | 'last-3' | 'ytd' | 'last-12' | 'custom'
 
 const RANGES: { key: RangeKey; label: string }[] = [
   { key: 'this-month', label: 'This Month' },
   { key: 'last-3', label: 'Last 3' },
   { key: 'ytd', label: 'YTD' },
   { key: 'last-12', label: 'Last 12' },
+  { key: 'custom', label: 'Custom' },
 ]
 
 const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -31,7 +32,17 @@ function fmtSmall(n: number) {
 }
 function toIso(d: Date) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
 
-function getRangeBounds(range: RangeKey): { start: string; end: string; monthsBack: number } {
+function monthsSpan(startIso: string, endIso: string): number {
+  if (!startIso || !endIso || startIso > endIso) return 1
+  const s = new Date(startIso + 'T12:00:00')
+  const e = new Date(endIso + 'T12:00:00')
+  return Math.max(1, (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth()) + 1)
+}
+
+function getRangeBounds(
+  range: RangeKey,
+  custom?: { start: string; end: string },
+): { start: string; end: string; monthsBack: number } {
   const today = TODAY
   const todayIso = toIso(today)
   switch (range) {
@@ -51,6 +62,13 @@ function getRangeBounds(range: RangeKey): { start: string; end: string; monthsBa
       const start = new Date(today.getFullYear(), today.getMonth() - 11, 1)
       return { start: toIso(start), end: todayIso, monthsBack: 12 }
     }
+    case 'custom': {
+      const start = custom?.start || toIso(new Date(today.getFullYear(), today.getMonth() - 2, 1))
+      const end = custom?.end || todayIso
+      const lo = start <= end ? start : end
+      const hi = start <= end ? end : start
+      return { start: lo, end: hi, monthsBack: monthsSpan(lo, hi) }
+    }
   }
 }
 
@@ -62,7 +80,15 @@ interface Props {
 
 export default function StatsView({ txs, rules, clients }: Props) {
   const [range, setRange] = useState<RangeKey>('last-3')
-  const bounds = useMemo(() => getRangeBounds(range), [range])
+  const [customStart, setCustomStart] = useState(() => {
+    const d = new Date(TODAY.getFullYear(), TODAY.getMonth() - 2, 1)
+    return toIso(d)
+  })
+  const [customEnd, setCustomEnd] = useState(() => toIso(TODAY))
+  const bounds = useMemo(
+    () => getRangeBounds(range, { start: customStart, end: customEnd }),
+    [range, customStart, customEnd],
+  )
 
   // Filter to confirmed transactions within range
   const inRange = useMemo(() =>
@@ -153,7 +179,14 @@ export default function StatsView({ txs, rules, clients }: Props) {
     <div>
       {/* Range toggle */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <RangeToggle value={range} onChange={setRange} />
+        <RangeToggle
+          value={range}
+          onChange={setRange}
+          customStart={customStart}
+          customEnd={customEnd}
+          onChangeCustomStart={setCustomStart}
+          onChangeCustomEnd={setCustomEnd}
+        />
         <span style={{ fontSize: 11, color: colors.textMuted, letterSpacing: '0.06em' }}>
           {bounds.start} → {bounds.end}
         </span>
@@ -322,30 +355,74 @@ export default function StatsView({ txs, rules, clients }: Props) {
 
 // ------------------ Subcomponents ------------------
 
-function RangeToggle({ value, onChange }: { value: RangeKey; onChange: (v: RangeKey) => void }) {
+function RangeToggle({
+  value, onChange,
+  customStart, customEnd, onChangeCustomStart, onChangeCustomEnd,
+}: {
+  value: RangeKey
+  onChange: (v: RangeKey) => void
+  customStart: string
+  customEnd: string
+  onChangeCustomStart: (s: string) => void
+  onChangeCustomEnd: (s: string) => void
+}) {
   return (
-    <div style={{
-      display: 'flex',
-      background: colors.cardBg,
-      border: `1px solid ${colors.border}`,
-      borderRadius: borders.radius.medium,
-      padding: 2,
-    }}>
-      {RANGES.map(r => {
-        const active = value === r.key
-        return (
-          <button key={r.key} onClick={() => onChange(r.key)} style={{
-            padding: '6px 14px',
-            borderRadius: 6, border: 'none', cursor: 'pointer',
-            background: active ? colors.accent : 'transparent',
-            color: active ? '#fff' : colors.textMuted,
-            fontSize: 12, fontWeight: 600,
-            fontFamily: 'inherit',
-          }}>{r.label}</button>
-        )
-      })}
+    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
+      <div style={{
+        display: 'flex',
+        background: colors.cardBg,
+        border: `1px solid ${colors.border}`,
+        borderRadius: borders.radius.medium,
+        padding: 2,
+      }}>
+        {RANGES.map(r => {
+          const active = value === r.key
+          return (
+            <button key={r.key} onClick={() => onChange(r.key)} style={{
+              padding: '6px 14px',
+              borderRadius: 6, border: 'none', cursor: 'pointer',
+              background: active ? colors.accent : 'transparent',
+              color: active ? '#fff' : colors.textMuted,
+              fontSize: 12, fontWeight: 600,
+              fontFamily: 'inherit',
+            }}>{r.label}</button>
+          )
+        })}
+      </div>
+      {value === 'custom' && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <input
+            type="date"
+            value={customStart}
+            max={customEnd || undefined}
+            onChange={e => onChangeCustomStart(e.target.value)}
+            style={dateInputStyle}
+          />
+          <span style={{ color: colors.textMuted, fontSize: 12 }}>→</span>
+          <input
+            type="date"
+            value={customEnd}
+            min={customStart || undefined}
+            onChange={e => onChangeCustomEnd(e.target.value)}
+            style={dateInputStyle}
+          />
+        </div>
+      )}
     </div>
   )
+}
+
+const dateInputStyle: React.CSSProperties = {
+  background: colors.cardBg,
+  border: `1px solid ${colors.border}`,
+  borderRadius: 6,
+  color: colors.text,
+  fontSize: 12,
+  fontWeight: 500,
+  padding: '6px 8px',
+  outline: 'none',
+  fontFamily: 'inherit',
+  colorScheme: 'dark',
 }
 
 function KpiCard({ label, value, sub, accent }: { label: string; value: string; sub?: string; accent?: string }) {
