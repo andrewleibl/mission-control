@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import dynamic from 'next/dynamic'
-import { Plus, Pause, Play, Skull, Pencil, RotateCcw, Trash2, ChevronDown, ChevronUp, X, ThumbsUp, CalendarCheck2, List, Calendar as CalendarIcon } from 'lucide-react'
+import { Plus, Pause, Play, Skull, Pencil, RotateCcw, Trash2, ChevronDown, ChevronUp, X, ThumbsUp, CalendarCheck2, List, Calendar as CalendarIcon, BarChart3 } from 'lucide-react'
 import { PageContainer, PageHeader, colors, cardStyle, cardStyleAccent, borders, mono } from '@/components/DesignSystem'
 import {
   SmsTemplate, SmsSend, SmsWin, TemplateStats,
@@ -13,8 +13,9 @@ import {
 } from '@/lib/sms'
 
 const SmsCalendar = dynamic(() => import('./_calendar'), { ssr: false })
+const SmsStats = dynamic(() => import('./_stats'), { ssr: false })
 
-type ViewMode = 'templates' | 'calendar'
+type ViewMode = 'templates' | 'calendar' | 'stats'
 
 export default function SmsPage() {
   const [templates, setTemplates] = useState<SmsTemplate[]>([])
@@ -108,6 +109,8 @@ export default function SmsPage() {
         <div style={{ color: colors.textMuted, padding: 40, textAlign: 'center' }}>Loading…</div>
       ) : viewMode === 'calendar' ? (
         <SmsCalendar templates={templates} sends={sends} wins={wins} />
+      ) : viewMode === 'stats' ? (
+        <SmsStats templates={templates} sends={sends} wins={wins} />
       ) : (
         <>
           {live.length === 0 ? (
@@ -384,6 +387,7 @@ function ViewToggle({ value, onChange }: { value: ViewMode; onChange: (v: ViewMo
   const items: { key: ViewMode; label: string; Icon: typeof List }[] = [
     { key: 'templates', label: 'Templates', Icon: List },
     { key: 'calendar', label: 'Calendar', Icon: CalendarIcon },
+    { key: 'stats', label: 'Stats', Icon: BarChart3 },
   ]
   return (
     <div style={{

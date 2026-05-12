@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { ChevronLeft, ChevronRight, X, ThumbsUp, CalendarCheck2, Send } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ThumbsUp, CalendarCheck2, Send } from 'lucide-react'
 import { colors, cardStyle, borders, mono } from '@/components/DesignSystem'
 import { SmsTemplate, SmsSend, SmsWin } from '@/lib/sms'
+
+type Granularity = 'day' | 'week' | 'month'
 
 interface DayCell {
   iso: string
@@ -35,6 +37,13 @@ function ymd(d: Date): string {
   return `${y}-${m}-${day}`
 }
 
+function startOfWeek(d: Date): Date {
+  const r = new Date(d)
+  r.setHours(0, 0, 0, 0)
+  r.setDate(r.getDate() - r.getDay())
+  return r
+}
+
 function buildMonth(year: number, month: number): DayCell[] {
   const firstOfMonth = new Date(year, month, 1)
   const startDayOfWeek = firstOfMonth.getDay()
@@ -45,9 +54,23 @@ function buildMonth(year: number, month: number): DayCell[] {
     const d = new Date(gridStart)
     d.setDate(gridStart.getDate() + i)
     cells.push({
-      iso: ymd(d),
-      date: d,
+      iso: ymd(d), date: d,
       inMonth: d.getMonth() === month,
+      isToday: ymd(d) === todayIso,
+    })
+  }
+  return cells
+}
+
+function buildWeek(anchor: Date): DayCell[] {
+  const start = startOfWeek(anchor)
+  const todayIso = ymd(new Date())
+  const cells: DayCell[] = []
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start)
+    d.setDate(start.getDate() + i)
+    cells.push({
+      iso: ymd(d), date: d, inMonth: true,
       isToday: ymd(d) === todayIso,
     })
   }
@@ -87,9 +110,7 @@ function getDayStats(
     sent += stats.sent
     positives += stats.positives
     booked += stats.booked
-    if (stats.sent > 0 || stats.positives > 0 || stats.booked > 0) {
-      active.push(stats)
-    }
+    if (stats.sent > 0 || stats.positives > 0 || stats.booked > 0) active.push(stats)
   }
   active.sort((a, b) => b.sent - a.sent || b.positives - a.positives)
   return { sent, positives, booked, templates: active }
@@ -102,83 +123,177 @@ export default function SmsCalendar({
   sends: SmsSend[]
   wins: SmsWin[]
 }) {
-  const today = new Date()
-  const [view, setView] = useState({ year: today.getFullYear(), month: today.getMonth() })
-  const [openDay, setOpenDay] = useState<string | null>(null)
+  const [granularity, setGranularity] = useState<Granularity>('month')
+  const [cursor, setCursor] = useState<Date>(() => {
+    const t = new Date()
+    t.setHours(0, 0, 0, 0)
+    return t
+  })
 
-  const cells = useMemo(() => buildMonth(view.year, view.month), [view.year, view.month])
-  const monthLabel = useMemo(
-    () => new Date(view.year, view.month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-    [view.year, view.month],
-  )
-
-  const dayStatsByIso = useMemo(() => {
-    const map = new Map<string, DayTotals>()
-    for (const c of cells) {
-      map.set(c.iso, getDayStats(c.iso, templates, sends, wins))
-    }
-    return map
-  }, [cells, templates, sends, wins])
-
-  const maxSent = useMemo(() => {
-    let m = 0
-    for (const v of dayStatsByIso.values()) if (v.sent > m) m = v.sent
-    return m
-  }, [dayStatsByIso])
-
-  function navMonth(delta: number) {
-    setView(v => {
-      const d = new Date(v.year, v.month + delta, 1)
-      return { year: d.getFullYear(), month: d.getMonth() }
-    })
+  function navBy(delta: number) {
+    const next = new Date(cursor)
+    if (granularity === 'day') next.setDate(next.getDate() + delta)
+    else if (granularity === 'week') next.setDate(next.getDate() + delta * 7)
+    else next.setMonth(next.getMonth() + delta)
+    setCursor(next)
   }
+
+  function goToday() {
+    const t = new Date()
+    t.setHours(0, 0, 0, 0)
+    setCursor(t)
+  }
+
+  function selectDay(iso: string) {
+    setCursor(new Date(iso + 'T12:00:00'))
+    setGranularity('day')
+  }
+
+  let title = ''
+  if (granularity === 'day') {
+    title = cursor.toLocaleDateString('en-US', {
+      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+    })
+  } else if (granularity === 'week') {
+    const start = startOfWeek(cursor)
+    const end = new Date(start)
+    end.setDate(start.getDate() + 6)
+    const sameMonth = start.getMonth() === end.getMonth()
+    if (sameMonth) {
+      title = `${start.toLocaleDateString('en-US', { month: 'long' })} ${start.getDate()}–${end.getDate()}, ${end.getFullYear()}`
+    } else {
+      title = `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+    }
+  } else {
+    title = cursor.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  }
+
+  return (
+    <div>
+      {/* Top bar: granularity toggle + nav */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        gap: 12, marginBottom: 14, flexWrap: 'wrap',
+      }}>
+        <GranularityToggle value={granularity} onChange={setGranularity} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <NavBtn onClick={() => navBy(-1)}><ChevronLeft size={16} /></NavBtn>
+          <h2 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: colors.text, minWidth: 220, textAlign: 'center' }}>
+            {title}
+          </h2>
+          <NavBtn onClick={() => navBy(1)}><ChevronRight size={16} /></NavBtn>
+          <button
+            onClick={goToday}
+            style={{
+              ...mono,
+              background: 'transparent', border: `1px solid ${colors.border}`,
+              borderRadius: borders.radius.small, color: colors.textMuted,
+              fontSize: 12, padding: '5px 12px', cursor: 'pointer', marginLeft: 4,
+            }}
+          >
+            Today
+          </button>
+        </div>
+      </div>
+
+      {granularity === 'day' && (
+        <DayView iso={ymd(cursor)} templates={templates} sends={sends} wins={wins} />
+      )}
+      {granularity === 'week' && (
+        <WeekView anchor={cursor} templates={templates} sends={sends} wins={wins} onSelectDay={selectDay} />
+      )}
+      {granularity === 'month' && (
+        <MonthView cursor={cursor} templates={templates} sends={sends} wins={wins} onSelectDay={selectDay} />
+      )}
+    </div>
+  )
+}
+
+// =================================================================
+// Granularity toggle
+// =================================================================
+function GranularityToggle({
+  value, onChange,
+}: { value: Granularity; onChange: (g: Granularity) => void }) {
+  const opts: Granularity[] = ['day', 'week', 'month']
+  return (
+    <div style={{
+      display: 'inline-flex', background: colors.cardBg,
+      border: `1px solid ${colors.border}`, borderRadius: borders.radius.medium,
+      padding: 3, gap: 2,
+    }}>
+      {opts.map(o => {
+        const active = value === o
+        return (
+          <button
+            key={o}
+            onClick={() => onChange(o)}
+            style={{
+              ...mono,
+              background: active ? colors.accent + '22' : 'transparent',
+              border: 'none', borderRadius: borders.radius.small,
+              color: active ? colors.accent : colors.textMuted,
+              fontSize: 12, fontWeight: 600, padding: '7px 14px',
+              cursor: 'pointer', textTransform: 'uppercase' as const,
+              letterSpacing: '0.06em',
+            }}
+          >
+            {o}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function NavBtn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'transparent', border: `1px solid ${colors.border}`,
+        borderRadius: borders.radius.small, color: colors.textMuted, cursor: 'pointer',
+      }}
+    >
+      {children}
+    </button>
+  )
+}
+
+// =================================================================
+// Month View
+// =================================================================
+function MonthView({
+  cursor, templates, sends, wins, onSelectDay,
+}: {
+  cursor: Date
+  templates: SmsTemplate[]
+  sends: SmsSend[]
+  wins: SmsWin[]
+  onSelectDay: (iso: string) => void
+}) {
+  const cells = useMemo(() => buildMonth(cursor.getFullYear(), cursor.getMonth()), [cursor])
+  const dayStatsByIso = useMemo(() => {
+    const m = new Map<string, DayTotals>()
+    for (const c of cells) m.set(c.iso, getDayStats(c.iso, templates, sends, wins))
+    return m
+  }, [cells, templates, sends, wins])
+  const maxSent = useMemo(() => {
+    let mx = 0
+    for (const v of dayStatsByIso.values()) if (v.sent > mx) mx = v.sent
+    return mx
+  }, [dayStatsByIso])
 
   function intensity(sent: number): string {
     if (maxSent === 0 || sent === 0) return 'transparent'
     const ratio = Math.min(1, sent / maxSent)
-    const alpha = 0.08 + ratio * 0.22
-    return `rgba(56, 161, 87, ${alpha.toFixed(3)})`
+    return `rgba(56, 161, 87, ${(0.08 + ratio * 0.22).toFixed(3)})`
   }
 
-  const openDayStats = openDay ? dayStatsByIso.get(openDay) : null
-  const openDayLabel = openDay
-    ? new Date(openDay + 'T12:00:00').toLocaleDateString('en-US', {
-        weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
-      })
-    : ''
-
   return (
-    <div>
-      {/* Month nav */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        marginBottom: 14,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <NavBtn onClick={() => navMonth(-1)}><ChevronLeft size={16} /></NavBtn>
-          <NavBtn onClick={() => navMonth(1)}><ChevronRight size={16} /></NavBtn>
-          <h2 style={{
-            margin: 0, fontSize: 16, fontWeight: 600, color: colors.text,
-            marginLeft: 4,
-          }}>{monthLabel}</h2>
-        </div>
-        <button
-          onClick={() => setView({ year: today.getFullYear(), month: today.getMonth() })}
-          style={{
-            background: 'transparent', border: `1px solid ${colors.border}`,
-            borderRadius: borders.radius.small, color: colors.textMuted,
-            fontSize: 12, padding: '5px 12px', cursor: 'pointer', ...mono,
-          }}
-        >
-          Today
-        </button>
-      </div>
-
-      {/* Weekday header */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4,
-        marginBottom: 4,
-      }}>
+    <>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginBottom: 4 }}>
         {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
           <div key={d} style={{
             ...mono, fontSize: 10, letterSpacing: '0.08em',
@@ -187,18 +302,14 @@ export default function SmsCalendar({
           }}>{d}</div>
         ))}
       </div>
-
-      {/* Day grid */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4,
-      }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
         {cells.map(cell => {
           const stats = dayStatsByIso.get(cell.iso)!
           const hasActivity = stats.sent > 0 || stats.positives > 0 || stats.booked > 0
           return (
             <button
               key={cell.iso}
-              onClick={() => setOpenDay(cell.iso)}
+              onClick={() => onSelectDay(cell.iso)}
               style={{
                 background: hasActivity ? intensity(stats.sent) : 'transparent',
                 border: cell.isToday
@@ -209,30 +320,22 @@ export default function SmsCalendar({
                 opacity: cell.inMonth ? 1 : 0.35,
                 cursor: 'pointer', textAlign: 'left',
                 color: colors.text, display: 'flex', flexDirection: 'column',
-                gap: 4, transition: 'all 0.12s',
-                position: 'relative', overflow: 'hidden',
+                gap: 4, transition: 'all 0.12s', position: 'relative', overflow: 'hidden',
               }}
             >
-              <div style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{
-                  ...mono,
-                  fontSize: 12, fontWeight: cell.isToday ? 700 : 500,
+                  ...mono, fontSize: 12, fontWeight: cell.isToday ? 700 : 500,
                   color: cell.isToday ? colors.accent : colors.text,
                 }}>
                   {cell.date.getDate()}
                 </span>
                 {hasActivity && (
-                  <span style={{
-                    ...mono, fontSize: 9, color: colors.textMuted,
-                    letterSpacing: '0.04em',
-                  }}>
+                  <span style={{ ...mono, fontSize: 9, color: colors.textMuted, letterSpacing: '0.04em' }}>
                     {stats.templates.length} tpl
                   </span>
                 )}
               </div>
-
               {hasActivity && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 2 }}>
                   {stats.templates.slice(0, 2).map(t => (
@@ -254,8 +357,6 @@ export default function SmsCalendar({
                   )}
                 </div>
               )}
-
-              {/* Bottom totals strip */}
               {hasActivity && (
                 <div style={{
                   marginTop: 'auto',
@@ -263,19 +364,16 @@ export default function SmsCalendar({
                   color: colors.textSubtle, alignItems: 'center',
                 }}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
-                    <Send size={9} />
-                    {stats.sent}
+                    <Send size={9} /> {stats.sent}
                   </span>
                   {stats.positives > 0 && (
                     <span style={{ color: colors.accent, display: 'inline-flex', alignItems: 'center', gap: 2 }}>
-                      <ThumbsUp size={9} />
-                      {stats.positives}
+                      <ThumbsUp size={9} /> {stats.positives}
                     </span>
                   )}
                   {stats.booked > 0 && (
                     <span style={{ color: colors.purple, display: 'inline-flex', alignItems: 'center', gap: 2 }}>
-                      <CalendarCheck2 size={9} />
-                      {stats.booked}
+                      <CalendarCheck2 size={9} /> {stats.booked}
                     </span>
                   )}
                 </div>
@@ -284,13 +382,11 @@ export default function SmsCalendar({
           )
         })}
       </div>
-
-      {/* Legend */}
       <div style={{
         display: 'flex', gap: 16, marginTop: 14, ...mono,
         fontSize: 10, color: colors.textMuted, alignItems: 'center', flexWrap: 'wrap',
       }}>
-        <span>Click any day for full breakdown.</span>
+        <span>Click any day for the full breakdown.</span>
         {maxSent > 0 && (
           <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <span>Less</span>
@@ -298,120 +394,251 @@ export default function SmsCalendar({
               <span key={r} style={{
                 width: 14, height: 12,
                 background: `rgba(56, 161, 87, ${(0.08 + r * 0.22).toFixed(3)})`,
-                border: `1px solid ${colors.border}`,
-                borderRadius: 2,
+                border: `1px solid ${colors.border}`, borderRadius: 2,
               }} />
             ))}
             <span>More</span>
           </span>
         )}
       </div>
+    </>
+  )
+}
 
-      {/* Day detail modal */}
-      {openDay && openDayStats && (
-        <DayDetailModal
-          label={openDayLabel}
-          stats={openDayStats}
-          onClose={() => setOpenDay(null)}
-        />
-      )}
+// =================================================================
+// Week View
+// =================================================================
+function WeekView({
+  anchor, templates, sends, wins, onSelectDay,
+}: {
+  anchor: Date
+  templates: SmsTemplate[]
+  sends: SmsSend[]
+  wins: SmsWin[]
+  onSelectDay: (iso: string) => void
+}) {
+  const cells = useMemo(() => buildWeek(anchor), [anchor])
+  const dayStats = useMemo(() =>
+    cells.map(c => ({ cell: c, stats: getDayStats(c.iso, templates, sends, wins) })),
+    [cells, templates, sends, wins],
+  )
+
+  const weekTotals = useMemo(() => {
+    let sent = 0, positives = 0, booked = 0
+    for (const { stats } of dayStats) {
+      sent += stats.sent; positives += stats.positives; booked += stats.booked
+    }
+    return { sent, positives, booked, rate: sent > 0 ? (positives / sent) * 100 : 0 }
+  }, [dayStats])
+
+  return (
+    <>
+      {/* Week totals strip */}
+      <div style={{
+        ...cardStyle, padding: 14, marginBottom: 12,
+        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0,
+      }}>
+        <WeekKpi label="Week sent" value={weekTotals.sent.toLocaleString()} />
+        <WeekKpi label="+1 replies" value={String(weekTotals.positives)} accent={colors.accent} divider />
+        <WeekKpi label="Reply rate" value={`${weekTotals.rate.toFixed(1)}%`} accent={colors.accent} divider />
+        <WeekKpi label="Booked" value={String(weekTotals.booked)} accent={colors.purple} divider />
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
+        {dayStats.map(({ cell, stats }) => {
+          const hasActivity = stats.sent > 0 || stats.positives > 0 || stats.booked > 0
+          return (
+            <button
+              key={cell.iso}
+              onClick={() => onSelectDay(cell.iso)}
+              style={{
+                ...cardStyle,
+                borderColor: cell.isToday ? colors.accent : colors.border,
+                padding: 10, minHeight: 200,
+                cursor: 'pointer', textAlign: 'left',
+                display: 'flex', flexDirection: 'column', gap: 6,
+                color: colors.text,
+              }}
+            >
+              <div style={{
+                display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
+                paddingBottom: 6, borderBottom: `1px solid ${colors.border}`,
+              }}>
+                <div>
+                  <div style={{ ...mono, fontSize: 9, color: colors.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+                    {cell.date.toLocaleDateString('en-US', { weekday: 'short' })}
+                  </div>
+                  <div style={{
+                    ...mono, fontSize: 18, fontWeight: 700,
+                    color: cell.isToday ? colors.accent : colors.text,
+                  }}>
+                    {cell.date.getDate()}
+                  </div>
+                </div>
+                {hasActivity && (
+                  <span style={{ ...mono, fontSize: 9, color: colors.textMuted }}>
+                    {stats.templates.length} tpl
+                  </span>
+                )}
+              </div>
+              {hasActivity ? (
+                <>
+                  <div style={{ display: 'flex', gap: 8, ...mono, fontSize: 11, alignItems: 'center' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                      <Send size={10} /> {stats.sent}
+                    </span>
+                    {stats.positives > 0 && (
+                      <span style={{ color: colors.accent, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                        <ThumbsUp size={10} /> {stats.positives}
+                      </span>
+                    )}
+                    {stats.booked > 0 && (
+                      <span style={{ color: colors.purple, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                        <CalendarCheck2 size={10} /> {stats.booked}
+                      </span>
+                    )}
+                  </div>
+                  {stats.sent > 0 && (
+                    <div style={{ ...mono, fontSize: 10, color: colors.textSubtle }}>
+                      {((stats.positives / stats.sent) * 100).toFixed(1)}% reply rate
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
+                    {stats.templates.slice(0, 4).map(t => (
+                      <div key={t.templateId} style={{ ...mono, fontSize: 10, lineHeight: 1.3 }}>
+                        <div style={{ color: colors.text, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {t.label}
+                        </div>
+                        <div style={{ color: colors.textMuted }}>
+                          {t.sent} sent
+                          {t.positives > 0 && <span style={{ color: colors.accent }}> · +{t.positives}</span>}
+                          {t.booked > 0 && <span style={{ color: colors.purple }}> · 📅{t.booked}</span>}
+                        </div>
+                      </div>
+                    ))}
+                    {stats.templates.length > 4 && (
+                      <div style={{ ...mono, fontSize: 9, color: colors.textSubtle }}>
+                        +{stats.templates.length - 4} more
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div style={{ ...mono, fontSize: 11, color: colors.textSubtle, marginTop: 8 }}>
+                  No activity
+                </div>
+              )}
+            </button>
+          )
+        })}
+      </div>
+    </>
+  )
+}
+
+function WeekKpi({ label, value, accent, divider }: { label: string; value: string; accent?: string; divider?: boolean }) {
+  return (
+    <div style={{
+      padding: '4px 14px',
+      borderLeft: divider ? `1px solid ${colors.border}` : 'none',
+    }}>
+      <div style={{ ...mono, fontSize: 10, color: colors.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+        {label}
+      </div>
+      <div style={{ ...mono, fontSize: 20, fontWeight: 700, color: accent ?? colors.text, marginTop: 4 }}>
+        {value}
+      </div>
     </div>
   )
 }
 
-function NavBtn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'transparent', border: `1px solid ${colors.border}`,
-        borderRadius: borders.radius.small, color: colors.textMuted, cursor: 'pointer',
-      }}
-    >
-      {children}
-    </button>
-  )
-}
-
-function DayDetailModal({
-  label, stats, onClose,
+// =================================================================
+// Day View
+// =================================================================
+function DayView({
+  iso, templates, sends, wins,
 }: {
-  label: string
-  stats: DayTotals
-  onClose: () => void
+  iso: string
+  templates: SmsTemplate[]
+  sends: SmsSend[]
+  wins: SmsWin[]
 }) {
+  const stats = useMemo(
+    () => getDayStats(iso, templates, sends, wins),
+    [iso, templates, sends, wins],
+  )
+
+  const dayStart = new Date(iso + 'T00:00:00').getTime()
+  const dayEnd = new Date(iso + 'T23:59:59.999').getTime()
+  const tplLabel = useMemo(() => {
+    const m = new Map<string, string>()
+    for (const t of templates) m.set(t.id, t.label)
+    return m
+  }, [templates])
+
+  const timeline = useMemo(() =>
+    wins
+      .filter(w => w.loggedAt >= dayStart && w.loggedAt <= dayEnd)
+      .sort((a, b) => b.loggedAt - a.loggedAt),
+    [wins, dayStart, dayEnd],
+  )
+
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        zIndex: 200, padding: 20,
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          ...cardStyle, width: '100%', maxWidth: 640, padding: 24,
-          maxHeight: '90vh', overflowY: 'auto',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-          <div>
-            <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600, color: colors.text }}>{label}</h2>
-            <p style={{ margin: '4px 0 0', fontSize: 12, color: colors.textMuted }}>
-              {stats.templates.length} template{stats.templates.length === 1 ? '' : 's'} active
-            </p>
-          </div>
-          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: colors.textMuted, cursor: 'pointer', display: 'flex' }}>
-            <X size={18} />
-          </button>
-        </div>
+    <div style={{ display: 'grid', gap: 16 }}>
+      {/* KPI strip */}
+      <div style={{
+        ...cardStyle, padding: 18,
+        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0,
+      }}>
+        <DayKpi icon={<Send size={14} />} label="Sent" value={stats.sent.toLocaleString()} />
+        <DayKpi
+          icon={<ThumbsUp size={14} />} label="+1 Replies" value={String(stats.positives)}
+          accent={colors.accent} divider
+          sub={stats.sent > 0 ? `${((stats.positives / stats.sent) * 100).toFixed(1)}% rate` : undefined}
+        />
+        <DayKpi
+          icon={<CalendarCheck2 size={14} />} label="Booked" value={String(stats.booked)}
+          accent={colors.purple} divider
+          sub={stats.positives > 0 ? `${((stats.booked / stats.positives) * 100).toFixed(1)}% of replies` : undefined}
+        />
+        <DayKpi
+          label="Templates active" value={String(stats.templates.length)} divider
+        />
+      </div>
 
-        {/* Day totals strip */}
-        <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: 0, marginBottom: 18,
-          border: `1px solid ${colors.border}`, borderRadius: borders.radius.medium,
-          background: colors.cardBg,
-        }}>
-          <DayKPI icon={<Send size={14} />} label="Sent" value={stats.sent} />
-          <DayKPI icon={<ThumbsUp size={14} />} label="+1 Replies" value={stats.positives} accent={colors.accent} divider />
-          <DayKPI icon={<CalendarCheck2 size={14} />} label="Booked" value={stats.booked} accent={colors.purple} divider />
-        </div>
-
+      {/* Per-template breakdown */}
+      <div style={{ ...cardStyle, padding: 18 }}>
+        <h3 style={{ margin: '0 0 12px', fontSize: 14, fontWeight: 600, color: colors.text }}>
+          Templates active on this day
+        </h3>
         {stats.templates.length === 0 ? (
-          <p style={{ color: colors.textMuted, fontSize: 13, margin: 0 }}>
+          <p style={{ ...mono, color: colors.textMuted, fontSize: 12, margin: 0 }}>
             Nothing was sent or logged on this day.
           </p>
         ) : (
           <div style={{ display: 'grid', gap: 8 }}>
             {stats.templates.map(t => (
               <div key={t.templateId} style={{
-                ...cardStyle, padding: 14,
+                padding: '12px 14px',
+                background: colors.cardBg,
+                border: `1px solid ${colors.border}`,
+                borderRadius: borders.radius.small,
                 opacity: t.status === 'killed' ? 0.5 : 1,
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: colors.text }}>{t.label}</h3>
-                    {t.status !== 'active' && (
-                      <span style={{
-                        ...mono, fontSize: 9, fontWeight: 600, letterSpacing: '0.08em',
-                        textTransform: 'uppercase' as const,
-                        color: t.status === 'paused' ? colors.yellow : colors.textMuted,
-                        padding: '1px 5px',
-                        border: `1px solid ${(t.status === 'paused' ? colors.yellow : colors.textMuted)}55`,
-                        borderRadius: 4,
-                      }}>
-                        {t.status}
-                      </span>
-                    )}
-                  </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <span style={{ fontWeight: 600, color: colors.text, fontSize: 13 }}>{t.label}</span>
+                  {t.status !== 'active' && (
+                    <span style={{
+                      ...mono, fontSize: 9, fontWeight: 600, letterSpacing: '0.08em',
+                      textTransform: 'uppercase' as const,
+                      color: t.status === 'paused' ? colors.yellow : colors.textMuted,
+                      padding: '1px 5px',
+                      border: `1px solid ${(t.status === 'paused' ? colors.yellow : colors.textMuted)}55`,
+                      borderRadius: 4,
+                    }}>{t.status}</span>
+                  )}
                 </div>
-                <div style={{
-                  display: 'flex', gap: 18, ...mono, fontSize: 12,
-                }}>
+                <div style={{ display: 'flex', gap: 18, ...mono, fontSize: 12 }}>
                   <span style={{ color: colors.text }}>
                     <span style={{ color: colors.textMuted }}>sent </span>
                     <span style={{ fontWeight: 700 }}>{t.sent}</span>
@@ -440,36 +667,79 @@ function DayDetailModal({
           </div>
         )}
       </div>
+
+      {/* Win timeline */}
+      <div style={{ ...cardStyle, padding: 18 }}>
+        <h3 style={{ margin: '0 0 12px', fontSize: 14, fontWeight: 600, color: colors.text }}>
+          Win timeline
+        </h3>
+        {timeline.length === 0 ? (
+          <p style={{ ...mono, color: colors.textMuted, fontSize: 12, margin: 0 }}>
+            No wins logged on this day.
+          </p>
+        ) : (
+          <div style={{ display: 'grid', gap: 6 }}>
+            {timeline.map(w => (
+              <div key={w.id} style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '8px 12px',
+                background: colors.cardBg,
+                border: `1px solid ${colors.border}`,
+                borderRadius: borders.radius.small,
+              }}>
+                <span style={{
+                  ...mono, fontSize: 10, fontWeight: 600, letterSpacing: '0.06em',
+                  textTransform: 'uppercase' as const,
+                  color: w.type === 'positive_reply' ? colors.accent : colors.purple,
+                  padding: '2px 6px', borderRadius: 4,
+                  background: (w.type === 'positive_reply' ? colors.accent : colors.purple) + '22',
+                  minWidth: 70, textAlign: 'center',
+                }}>
+                  {w.type === 'positive_reply' ? '+1 Reply' : 'Booked'}
+                </span>
+                <span style={{ flex: 1, color: colors.text, fontSize: 13 }}>
+                  {tplLabel.get(w.templateId) ?? '(deleted)'}
+                </span>
+                <span style={{ ...mono, fontSize: 11, color: colors.textMuted }}>
+                  {new Date(w.loggedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
 
-function DayKPI({
-  icon, label, value, accent, divider,
+function DayKpi({
+  icon, label, value, sub, accent, divider,
 }: {
-  icon: React.ReactNode
+  icon?: React.ReactNode
   label: string
-  value: number
+  value: string
+  sub?: string
   accent?: string
   divider?: boolean
 }) {
   return (
     <div style={{
-      padding: '12px 16px',
-      borderRight: divider ? `1px solid ${colors.border}` : 'none',
+      padding: '4px 18px',
+      borderLeft: divider ? `1px solid ${colors.border}` : 'none',
       display: 'flex', flexDirection: 'column', gap: 4,
     }}>
       <div style={{
-        ...mono, fontSize: 10, letterSpacing: '0.08em',
-        color: colors.textMuted, textTransform: 'uppercase' as const,
+        ...mono, fontSize: 10, color: colors.textMuted,
+        letterSpacing: '0.08em', textTransform: 'uppercase' as const,
         display: 'flex', alignItems: 'center', gap: 5,
       }}>
         {icon}
         <span>{label}</span>
       </div>
-      <div style={{ ...mono, fontSize: 22, fontWeight: 700, color: accent ?? colors.text }}>
+      <div style={{ ...mono, fontSize: 26, fontWeight: 700, color: accent ?? colors.text, lineHeight: 1 }}>
         {value}
       </div>
+      {sub && <div style={{ ...mono, fontSize: 11, color: colors.textSubtle }}>{sub}</div>}
     </div>
   )
 }
