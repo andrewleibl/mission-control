@@ -40,13 +40,13 @@ export default function SmsPage() {
   const live = useMemo(() => templates.filter(t => t.status !== 'killed'), [templates])
   const dead = useMemo(() => templates.filter(t => t.status === 'killed'), [templates])
 
-  async function handleCreate(label: string, body: string) {
-    const t = await createTemplate(label, body)
+  async function handleCreate(label: string, body: string, body2: string) {
+    const t = await createTemplate(label, body, body2)
     setTemplates(prev => [t, ...prev])
     setShowNew(false)
   }
 
-  async function handleUpdate(id: string, patch: Partial<Pick<SmsTemplate, 'label' | 'body' | 'status'>>) {
+  async function handleUpdate(id: string, patch: Partial<Pick<SmsTemplate, 'label' | 'body' | 'body2' | 'status'>>) {
     await updateTemplate(id, patch)
     setTemplates(prev => prev.map(t => t.id === id ? { ...t, ...patch } : t))
   }
@@ -153,20 +153,21 @@ export default function SmsPage() {
       {showNew && (
         <TemplateModal
           onClose={() => setShowNew(false)}
-          onSave={(label, body) => handleCreate(label, body)}
+          onSave={(label, body, body2) => handleCreate(label, body, body2)}
           title="New Template"
         />
       )}
       {editing && (
         <TemplateModal
           onClose={() => setEditing(null)}
-          onSave={async (label, body) => {
-            await handleUpdate(editing.id, { label, body })
+          onSave={async (label, body, body2) => {
+            await handleUpdate(editing.id, { label, body, body2 })
             setEditing(null)
           }}
           title="Edit Template"
           initialLabel={editing.label}
           initialBody={editing.body}
+          initialBody2={editing.body2}
         />
       )}
       {winLog && (
@@ -238,9 +239,7 @@ function TemplateCard({
               background: statusColor + '15',
             }}>{statusLabel}</span>
           </div>
-          <p style={{ margin: 0, fontSize: 13, color: colors.textMuted, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
-            {template.body}
-          </p>
+          <SequenceBodies body={template.body} body2={template.body2} />
         </div>
         <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
           <IconBtn onClick={onEdit} title="Edit"><Pencil size={14} /></IconBtn>
@@ -345,6 +344,39 @@ function TemplateCard({
           Log
         </button>
       </div>
+    </div>
+  )
+}
+
+function SequenceBodies({ body, body2 }: { body: string; body2: string }) {
+  const hasFollowup = body2.trim().length > 0
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <BodyBlock stepLabel="Initial" text={body} />
+      {hasFollowup ? (
+        <BodyBlock stepLabel="Follow-up · 30 min later" text={body2} />
+      ) : (
+        <p style={{ ...mono, margin: 0, fontSize: 11, color: colors.textSubtle, fontStyle: 'italic' as const }}>
+          No follow-up set — edit to add one.
+        </p>
+      )}
+    </div>
+  )
+}
+
+function BodyBlock({ stepLabel, text }: { stepLabel: string; text: string }) {
+  return (
+    <div>
+      <div style={{
+        ...mono, fontSize: 9, color: colors.textSubtle,
+        letterSpacing: '0.1em', textTransform: 'uppercase' as const,
+        marginBottom: 4,
+      }}>
+        {stepLabel}
+      </div>
+      <p style={{ margin: 0, fontSize: 13, color: colors.textMuted, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+        {text}
+      </p>
     </div>
   )
 }
@@ -516,9 +548,9 @@ function Graveyard({
                     </IconBtn>
                   </div>
                 </div>
-                <p style={{ margin: '0 0 8px', fontSize: 12, color: colors.textMuted, lineHeight: 1.5 }}>
-                  {t.body}
-                </p>
+                <div style={{ marginBottom: 8 }}>
+                  <SequenceBodies body={t.body} body2={t.body2} />
+                </div>
                 <div style={{ ...mono, fontSize: 11, color: colors.textSubtle, display: 'flex', gap: 14 }}>
                   <span>{stats.all.sent} sent</span>
                   <span>{stats.all.positives} +1 ({(stats.all.positiveRate * 100).toFixed(0)}%)</span>
@@ -537,26 +569,28 @@ function Graveyard({
 // Modals
 // =================================================================
 function TemplateModal({
-  onClose, onSave, title, initialLabel = '', initialBody = '',
+  onClose, onSave, title, initialLabel = '', initialBody = '', initialBody2 = '',
 }: {
   onClose: () => void
-  onSave: (label: string, body: string) => void | Promise<void>
+  onSave: (label: string, body: string, body2: string) => void | Promise<void>
   title: string
   initialLabel?: string
   initialBody?: string
+  initialBody2?: string
 }) {
   const [label, setLabel] = useState(initialLabel)
   const [body, setBody] = useState(initialBody)
+  const [body2, setBody2] = useState(initialBody2)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
   async function handleSave() {
-    const l = label.trim(), b = body.trim()
+    const l = label.trim(), b = body.trim(), b2 = body2.trim()
     if (!l) { setError('Label is required.'); return }
-    if (!b) { setError('Message body is required.'); return }
+    if (!b) { setError('Initial message is required.'); return }
     setError(null); setSaving(true)
     try {
-      await onSave(l, b)
+      await onSave(l, b, b2)
     } catch (err) {
       setError(describeError(err) || 'Save failed. Check your network or Supabase RLS.')
       setSaving(false)
@@ -574,12 +608,21 @@ function TemplateModal({
           style={modalInputStyle}
         />
       </Field>
-      <Field label="Message Body">
+      <Field label="Initial Message">
         <textarea
           value={body}
           onChange={e => setBody(e.target.value)}
           placeholder="Hey {{firstName}} — quick question about your shop..."
-          rows={6}
+          rows={5}
+          style={{ ...modalInputStyle, resize: 'vertical', fontFamily: 'inherit' }}
+        />
+      </Field>
+      <Field label="Follow-up (30 min later)">
+        <textarea
+          value={body2}
+          onChange={e => setBody2(e.target.value)}
+          placeholder="Just bumping this up — wanted to make sure you saw it..."
+          rows={5}
           style={{ ...modalInputStyle, resize: 'vertical', fontFamily: 'inherit' }}
         />
       </Field>

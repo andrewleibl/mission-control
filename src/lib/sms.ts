@@ -7,6 +7,7 @@ export interface SmsTemplate {
   id: string
   label: string
   body: string
+  body2: string
   status: TemplateStatus
   createdAt: number
 }
@@ -48,7 +49,9 @@ export async function loadTemplates(): Promise<SmsTemplate[]> {
     const { data, error } = await sb.from('sms_templates').select('*').order('created_at', { ascending: false })
     if (error) { console.error('loadTemplates', error); return [] }
     return (data ?? []).map(r => ({
-      id: r.id, label: r.label, body: r.body, status: r.status, createdAt: r.created_at,
+      id: r.id, label: r.label, body: r.body,
+      body2: r.body_2 ?? '',
+      status: r.status, createdAt: r.created_at,
     }))
   })
 }
@@ -76,27 +79,29 @@ export async function loadWins(): Promise<SmsWin[]> {
   })
 }
 
-export async function createTemplate(label: string, body: string): Promise<SmsTemplate> {
+export async function createTemplate(label: string, body: string, body2: string): Promise<SmsTemplate> {
   const tpl: SmsTemplate = {
     id: newId('tpl'),
-    label, body,
+    label, body, body2,
     status: 'active',
     createdAt: Date.now(),
   }
   const { createClient } = await import('@/lib/supabase')
   const sb = createClient()
   const { error } = await sb.from('sms_templates').insert({
-    id: tpl.id, label: tpl.label, body: tpl.body, status: tpl.status, created_at: tpl.createdAt,
+    id: tpl.id, label: tpl.label, body: tpl.body, body_2: tpl.body2,
+    status: tpl.status, created_at: tpl.createdAt,
   })
   if (error) throw error
   invalidate(CK_TEMPLATES)
   return tpl
 }
 
-export async function updateTemplate(id: string, patch: Partial<Pick<SmsTemplate, 'label' | 'body' | 'status'>>): Promise<void> {
+export async function updateTemplate(id: string, patch: Partial<Pick<SmsTemplate, 'label' | 'body' | 'body2' | 'status'>>): Promise<void> {
   const row: Record<string, unknown> = {}
   if (patch.label !== undefined) row.label = patch.label
   if (patch.body !== undefined) row.body = patch.body
+  if (patch.body2 !== undefined) row.body_2 = patch.body2
   if (patch.status !== undefined) row.status = patch.status
   const { createClient } = await import('@/lib/supabase')
   const sb = createClient()

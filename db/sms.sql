@@ -5,9 +5,11 @@ create table if not exists sms_templates (
   id text primary key,
   label text not null,
   body text not null,
+  body_2 text not null default '',
   status text not null default 'active' check (status in ('active','paused','killed')),
   created_at bigint not null
 );
+alter table sms_templates add column if not exists body_2 text not null default '';
 
 create table if not exists sms_sends (
   template_id text not null references sms_templates(id) on delete cascade,
