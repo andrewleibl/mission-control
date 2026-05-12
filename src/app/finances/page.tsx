@@ -625,6 +625,10 @@ export default function FinancesPage() {
           onSkip={skipProj}
           onEditAndConfirm={openEditConfirm}
           onDeleteTx={deleteTx}
+          onEditTx={(id) => {
+            const tx = txs.find(t => t.id === id)
+            if (tx) setTxModal({ kind: 'edit', tx })
+          }}
         />
       )}
       {tab === 'stats' && (

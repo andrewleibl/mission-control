@@ -19,6 +19,7 @@ interface Props {
   onSkip: (projection: ProjectedTransaction) => void
   onEditAndConfirm: (projection: ProjectedTransaction) => void
   onDeleteTx: (id: string) => void
+  onEditTx: (id: string) => void
 }
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
@@ -57,7 +58,7 @@ interface CalendarEntry {
   projection?: ProjectedTransaction
 }
 
-export default function CalendarView({ txs, rules, clients, onAddForDay, onApprove, onSkip, onEditAndConfirm, onDeleteTx }: Props) {
+export default function CalendarView({ txs, rules, clients, onAddForDay, onApprove, onSkip, onEditAndConfirm, onDeleteTx, onEditTx }: Props) {
   const [view, setView] = useState<ViewMode>('month')
   const [cursor, setCursor] = useState<Date>(TODAY)
   const [selectedDayIso, setSelectedDayIso] = useState<string | null>(null)
@@ -234,6 +235,7 @@ export default function CalendarView({ txs, rules, clients, onAddForDay, onAppro
             onSkip={onSkip}
             onEditAndConfirm={onEditAndConfirm}
             onDeleteTx={onDeleteTx}
+            onEditTx={onEditTx}
           />
         )}
       </div>
@@ -250,6 +252,7 @@ export default function CalendarView({ txs, rules, clients, onAddForDay, onAppro
           onSkip={onSkip}
           onEditAndConfirm={onEditAndConfirm}
           onDeleteTx={onDeleteTx}
+          onEditTx={onEditTx}
         />
       )}
 
@@ -477,7 +480,7 @@ function WeekGrid({
 
 // ------------------ Day list ------------------
 function DayList({
-  dateIso, entries, clients, onAddForDay, onApprove, onSkip, onEditAndConfirm, onDeleteTx,
+  dateIso, entries, clients, onAddForDay, onApprove, onSkip, onEditAndConfirm, onDeleteTx, onEditTx,
 }: {
   dateIso: string
   entries: CalendarEntry[]
@@ -487,6 +490,7 @@ function DayList({
   onSkip: (p: ProjectedTransaction) => void
   onEditAndConfirm: (p: ProjectedTransaction) => void
   onDeleteTx: (id: string) => void
+  onEditTx: (id: string) => void
 }) {
   const sorted = [...entries].sort((a, b) => a.type.localeCompare(b.type))
   return (
@@ -499,6 +503,7 @@ function DayList({
       onSkip={onSkip}
       onEditAndConfirm={onEditAndConfirm}
       onDeleteTx={onDeleteTx}
+      onEditTx={onEditTx}
       compact={false}
     />
   )
@@ -506,7 +511,7 @@ function DayList({
 
 // ------------------ Side panel ------------------
 function SidePanel({
-  dateIso, entries, clients, onClose, onAddForDay, onApprove, onSkip, onEditAndConfirm, onDeleteTx,
+  dateIso, entries, clients, onClose, onAddForDay, onApprove, onSkip, onEditAndConfirm, onDeleteTx, onEditTx,
 }: {
   dateIso: string
   entries: CalendarEntry[]
@@ -517,6 +522,7 @@ function SidePanel({
   onSkip: (p: ProjectedTransaction) => void
   onEditAndConfirm: (p: ProjectedTransaction) => void
   onDeleteTx: (id: string) => void
+  onEditTx: (id: string) => void
 }) {
   return (
     <>
@@ -539,6 +545,7 @@ function SidePanel({
           onSkip={onSkip}
           onEditAndConfirm={onEditAndConfirm}
           onDeleteTx={onDeleteTx}
+          onEditTx={onEditTx}
           onClose={onClose}
           compact={true}
         />
@@ -549,7 +556,7 @@ function SidePanel({
 
 // ------------------ Day contents (shared by day view + side panel) ------------------
 function DayContents({
-  dateIso, entries, clients, onAddForDay, onApprove, onSkip, onEditAndConfirm, onDeleteTx, onClose, compact,
+  dateIso, entries, clients, onAddForDay, onApprove, onSkip, onEditAndConfirm, onDeleteTx, onEditTx, onClose, compact,
 }: {
   dateIso: string
   entries: CalendarEntry[]
@@ -559,6 +566,7 @@ function DayContents({
   onSkip: (p: ProjectedTransaction) => void
   onEditAndConfirm: (p: ProjectedTransaction) => void
   onDeleteTx: (id: string) => void
+  onEditTx: (id: string) => void
   onClose?: () => void
   compact: boolean
 }) {
@@ -639,7 +647,13 @@ function DayContents({
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {confirmedEntries.map((e, i) => (
-              <TxRow key={i} entry={e} clients={clients} onDelete={() => onDeleteTx(e.txId!)} />
+              <TxRow
+                key={i}
+                entry={e}
+                clients={clients}
+                onDelete={() => onDeleteTx(e.txId!)}
+                onEdit={() => onEditTx(e.txId!)}
+              />
             ))}
           </div>
         </div>
@@ -763,18 +777,25 @@ function PendingRow({ entry, clients, onApprove, onSkip, onEdit }: { entry: Cale
 }
 
 // ------------------ Confirmed transaction row ------------------
-function TxRow({ entry, clients, onDelete }: { entry: CalendarEntry; clients: ClientSummary[]; onDelete: () => void }) {
+function TxRow({ entry, clients, onDelete, onEdit }: { entry: CalendarEntry; clients: ClientSummary[]; onDelete: () => void; onEdit: () => void }) {
   const isIncome = entry.type === 'income'
   const color = isIncome ? colors.accent : colors.red
   const client = entry.clientId ? clients.find(c => c.id === entry.clientId) : undefined
 
   return (
-    <div style={{
-      display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10,
-      padding: '8px 12px',
-      background: colors.cardBgElevated,
-      borderRadius: borders.radius.medium,
-    }}>
+    <div
+      onClick={onEdit}
+      role="button"
+      tabIndex={0}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onEdit() } }}
+      style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10,
+        padding: '8px 12px',
+        background: colors.cardBgElevated,
+        borderRadius: borders.radius.medium,
+        cursor: 'pointer', transition: 'background 0.12s',
+      }}
+    >
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: colors.text, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
           {entry.category}
@@ -786,10 +807,26 @@ function TxRow({ entry, clients, onDelete }: { entry: CalendarEntry; clients: Cl
       <div style={{ fontSize: 14, fontWeight: 700, color, fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
         {isIncome ? '+' : '−'}{fmt(entry.amount)}
       </div>
-      <button onClick={onDelete} style={{
-        background: 'none', border: 'none', color: colors.textMuted,
-        cursor: 'pointer', fontSize: 12, opacity: 0.4, padding: '4px 6px',
-      }}>✕</button>
+      <button
+        onClick={e => { e.stopPropagation(); onEdit() }}
+        title="Edit"
+        style={{
+          background: 'none', border: 'none', color: colors.textMuted,
+          cursor: 'pointer', fontSize: 12, opacity: 0.55, padding: '4px 6px',
+        }}
+      >
+        ✎
+      </button>
+      <button
+        onClick={e => { e.stopPropagation(); onDelete() }}
+        title="Delete"
+        style={{
+          background: 'none', border: 'none', color: colors.textMuted,
+          cursor: 'pointer', fontSize: 12, opacity: 0.4, padding: '4px 6px',
+        }}
+      >
+        ✕
+      </button>
     </div>
   )
 }
