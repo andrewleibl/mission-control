@@ -9,8 +9,9 @@ import {
   loadTransactions, loadRules,
 } from '@/lib/finances'
 import {
-  MonthBreakdown, Contributor, DEFAULT_GOAL_KEY,
-  buildBreakdowns, loadGoals, setGoal, clearGoal,
+  MonthBreakdown, Contributor, DEFAULT_GOAL_KEY, WeekBreakdown, PacingInfo,
+  buildBreakdowns, buildWeekBreakdown, getPacing,
+  loadGoals, setGoal, clearGoal,
 } from '@/lib/projections'
 
 function fmt(n: number) {
@@ -310,9 +311,12 @@ function MonthCard({
   onRemoveOverride: () => void
 }) {
   const [showDetails, setShowDetails] = useState(false)
+  const [showWeekly, setShowWeekly] = useState(false)
   const onTrack = month.goal > 0 && month.net >= month.goal
   const pct = month.goal > 0 ? Math.min(100, Math.max(0, (month.net / month.goal) * 100)) : 0
   const pctOver = month.goal > 0 && month.net > month.goal ? ((month.net / month.goal) - 1) * 100 : 0
+  const pacing = useMemo(() => getPacing(month), [month])
+  const weeks = useMemo(() => (showWeekly ? buildWeekBreakdown(month) : []), [month, showWeekly])
 
   return (
     <div style={{
@@ -447,23 +451,117 @@ function MonthCard({
         </div>
       )}
 
-      {/* Contributors toggle */}
-      {month.contributors.length > 0 && (
+      {/* Pacing hint (current month only) */}
+      {pacing && <PacingHint pacing={pacing} />}
+
+      {/* Toggle row */}
+      <div style={{ display: 'flex', gap: 14, marginTop: 4, flexWrap: 'wrap' }}>
         <button
-          onClick={() => setShowDetails(s => !s)}
+          onClick={() => setShowWeekly(s => !s)}
           style={{
             ...mono, background: 'transparent', border: 'none',
             color: colors.textMuted, fontSize: 11, padding: '6px 0',
             cursor: 'pointer', letterSpacing: '0.04em',
           }}
         >
-          {showDetails ? '▾ hide breakdown' : '▸ show breakdown'}
+          {showWeekly ? '▾ hide weekly breakdown' : '▸ weekly breakdown'}
         </button>
-      )}
+        {month.contributors.length > 0 && (
+          <button
+            onClick={() => setShowDetails(s => !s)}
+            style={{
+              ...mono, background: 'transparent', border: 'none',
+              color: colors.textMuted, fontSize: 11, padding: '6px 0',
+              cursor: 'pointer', letterSpacing: '0.04em',
+            }}
+          >
+            {showDetails ? '▾ hide line items' : '▸ show line items'}
+          </button>
+        )}
+      </div>
+
+      {showWeekly && <WeeklyBreakdown weeks={weeks} />}
 
       {showDetails && month.contributors.length > 0 && (
         <ContributorList contributors={month.contributors} />
       )}
+    </div>
+  )
+}
+
+function PacingHint({ pacing }: { pacing: PacingInfo }) {
+  const { dayOfMonth, daysInMonth, expectedNet, actualNet, gap, status } = pacing
+  const color = status === 'ahead' ? colors.accent : status === 'behind' ? colors.orange : colors.textMuted
+  const label =
+    status === 'ahead' ? `Ahead by ${fmt(gap)}` :
+    status === 'behind' ? `Behind by ${fmt(-gap)}` :
+    'On pace'
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+      padding: '8px 12px', marginBottom: 8,
+      background: color + '12',
+      border: `1px solid ${color}33`,
+      borderRadius: borders.radius.small,
+      ...mono, fontSize: 11,
+    }}>
+      <span style={{ color: colors.textMuted }}>
+        Day <span style={{ color: colors.text, fontWeight: 700 }}>{dayOfMonth}</span> of {daysInMonth}
+        <span style={{ marginLeft: 10 }}>
+          You're at <span style={{ color: colors.text, fontWeight: 700 }}>{fmt(actualNet)}</span>
+          <span style={{ color: colors.textSubtle }}> · pace expects </span>
+          <span style={{ color: colors.text, fontWeight: 700 }}>{fmt(expectedNet)}</span>
+        </span>
+      </span>
+      <span style={{ color, fontWeight: 700, letterSpacing: '0.04em' }}>{label}</span>
+    </div>
+  )
+}
+
+function WeeklyBreakdown({ weeks }: { weeks: WeekBreakdown[] }) {
+  if (weeks.length === 0) return null
+  return (
+    <div style={{ marginTop: 8, display: 'grid', gap: 4 }}>
+      {weeks.map(w => {
+        const accent = w.isCurrent ? colors.accent : colors.border
+        const netColor = w.net > 0 ? colors.accent : w.net < 0 ? colors.red : colors.textMuted
+        return (
+          <div key={w.startIso} style={{
+            display: 'grid', gridTemplateColumns: '140px 1fr 1fr 1fr',
+            alignItems: 'center', gap: 8,
+            padding: '8px 12px',
+            background: colors.cardBg,
+            border: `1px solid ${accent}`,
+            borderRadius: borders.radius.small,
+            opacity: w.isPast && !w.isCurrent ? 0.7 : 1,
+          }} className="proj-week-row">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ ...mono, fontSize: 12, fontWeight: 600, color: colors.text }}>{w.label}</span>
+              {w.isCurrent && (
+                <span style={{
+                  ...mono, fontSize: 9, fontWeight: 600, letterSpacing: '0.06em',
+                  textTransform: 'uppercase' as const, color: colors.accent,
+                  padding: '1px 5px', borderRadius: 3,
+                  background: colors.accent + '22',
+                }}>Now</span>
+              )}
+            </div>
+            <WeekStat label="Income" value={w.income} color={colors.accent} />
+            <WeekStat label="Expense" value={w.expense} color={colors.red} />
+            <WeekStat label="Net" value={w.net} color={netColor} signed />
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function WeekStat({ label, value, color, signed }: { label: string; value: number; color: string; signed?: boolean }) {
+  const display = signed && value >= 0 && value !== 0 ? '+' + fmt(value).replace('−', '') : fmt(value)
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+      <span style={{ ...mono, fontSize: 9, color: colors.textMuted, letterSpacing: '0.06em', textTransform: 'uppercase' as const }}>{label}</span>
+      <span style={{ ...mono, fontSize: 13, fontWeight: 700, color }}>{display}</span>
     </div>
   )
 }

@@ -150,6 +150,82 @@ export function buildBreakdowns(
   return out
 }
 
+// ---------- Weekly breakdown ----------
+
+export interface WeekBreakdown {
+  label: string          // "May 1 – 7"
+  startIso: string
+  endIso: string
+  income: number
+  expense: number
+  net: number
+  isPast: boolean        // entire week ended before today
+  isCurrent: boolean     // today falls inside this week
+}
+
+export function buildWeekBreakdown(month: MonthBreakdown): WeekBreakdown[] {
+  const [yearStr, mStr] = month.iso.split('-')
+  const year = parseInt(yearStr, 10)
+  const monthIndex = parseInt(mStr, 10) - 1
+  const lastDay = new Date(year, monthIndex + 1, 0).getDate()
+  const todayIso = ymd(new Date())
+
+  const buckets: { start: number; end: number }[] = []
+  for (let d = 1; d <= lastDay; d += 7) {
+    buckets.push({ start: d, end: Math.min(d + 6, lastDay) })
+  }
+
+  const monthLabel = new Date(year, monthIndex, 1).toLocaleDateString('en-US', { month: 'short' })
+
+  return buckets.map(({ start, end }) => {
+    const startIso = ymd(new Date(year, monthIndex, start))
+    const endIso = ymd(new Date(year, monthIndex, end))
+    let income = 0, expense = 0
+    for (const c of month.contributors) {
+      if (c.date < startIso || c.date > endIso) continue
+      if (c.type === 'income') income += c.amount
+      else expense += c.amount
+    }
+    const label = start === end ? `${monthLabel} ${start}` : `${monthLabel} ${start} – ${end}`
+    return {
+      label, startIso, endIso,
+      income, expense,
+      net: income - expense,
+      isPast: endIso < todayIso,
+      isCurrent: todayIso >= startIso && todayIso <= endIso,
+    }
+  })
+}
+
+// ---------- Pacing (only meaningful for current month) ----------
+
+export interface PacingInfo {
+  dayOfMonth: number
+  daysInMonth: number
+  pctElapsed: number     // 0..1
+  expectedNet: number    // pro-rated goal for elapsed portion
+  actualNet: number
+  gap: number            // actualNet − expectedNet (positive = ahead, negative = behind)
+  status: 'ahead' | 'behind' | 'onpace'
+}
+
+export function getPacing(month: MonthBreakdown): PacingInfo | null {
+  if (!month.isCurrent || month.goal <= 0) return null
+  const today = new Date()
+  const [yearStr, mStr] = month.iso.split('-')
+  const year = parseInt(yearStr, 10)
+  const monthIndex = parseInt(mStr, 10) - 1
+  const daysInMonth = new Date(year, monthIndex + 1, 0).getDate()
+  const dayOfMonth = today.getDate()
+  const pctElapsed = Math.min(1, dayOfMonth / daysInMonth)
+  const expectedNet = month.goal * pctElapsed
+  const gap = month.net - expectedNet
+  let status: 'ahead' | 'behind' | 'onpace' = 'onpace'
+  // 5% tolerance band around expected; outside that, ahead or behind.
+  if (Math.abs(gap) > month.goal * 0.05) status = gap > 0 ? 'ahead' : 'behind'
+  return { dayOfMonth, daysInMonth, pctElapsed, expectedNet, actualNet: month.net, gap, status }
+}
+
 // ---------- Goals storage (Supabase) ----------
 
 const CK_GOALS = 'projection_goals'

@@ -422,6 +422,15 @@ button {
   }
   .proj-month-strip > * { border-left: none !important; border-top: 1px solid var(--border) !important; }
   .proj-month-strip > *:first-child { border-top: none !important; }
+  /* Weekly rows: stack label + 3 stats on narrow screens */
+  .proj-week-row {
+    grid-template-columns: 1fr 1fr 1fr !important;
+    grid-template-rows: auto auto !important;
+    gap: 6px 10px !important;
+  }
+  .proj-week-row > *:first-child {
+    grid-column: 1 / -1 !important;
+  }
 }
 
 /* Retention calendar body: allow horizontal scroll on mobile */
