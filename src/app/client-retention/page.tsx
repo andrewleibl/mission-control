@@ -422,6 +422,7 @@ function WeekGrid({
                 display: 'flex', flexDirection: 'column', gap: 6,
                 transition: 'background 0.1s',
                 minHeight: 260,
+                minWidth: 0, overflow: 'hidden',
               }}
               onMouseEnter={e => { if (!isToday) e.currentTarget.style.background = 'rgba(255,255,255,0.02)' }}
               onMouseLeave={e => { if (!isToday) e.currentTarget.style.background = 'transparent' }}
@@ -474,16 +475,17 @@ function ExpandedEventChip({ event, clientName, onClick }: { event: RetentionEve
         textDecoration: event.completed ? 'line-through' : 'none',
         border: 'none', cursor: 'pointer', fontFamily: 'inherit',
         textAlign: 'left' as const,
+        width: '100%', minWidth: 0, overflow: 'hidden',
       }}
       title={`${EVENT_TYPE_LABELS[event.type]} — ${event.title}`}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0, width: '100%' }}>
         <Icon size={10} strokeWidth={2.25} color={cp.fg} style={{ flexShrink: 0 }} />
-        <span style={{ ...mono, fontSize: 10, fontWeight: 700, color: cp.fg, letterSpacing: '0.04em' }}>
+        <span style={{ ...mono, fontSize: 10, fontWeight: 700, color: cp.fg, letterSpacing: '0.04em', flexShrink: 0 }}>
           {EVENT_TYPE_LABELS[event.type].toUpperCase()}
         </span>
         {event.time && (
-          <span style={{ ...mono, fontSize: 9, color: cp.fg, opacity: 0.7, marginLeft: 'auto' }}>
+          <span style={{ ...mono, fontSize: 9, color: cp.fg, opacity: 0.7, marginLeft: 'auto', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
             {event.time}
           </span>
         )}
