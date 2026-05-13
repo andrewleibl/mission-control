@@ -11,6 +11,29 @@ import {
   groupByBucket, tasksDueToday, tasksOverdue, tasksUpcoming, starredOpen,
 } from '@/lib/today-data'
 import { Client, loadClients } from '@/lib/clients-data'
+import {
+  RetentionEvent, EVENT_TYPE_LABELS,
+  loadEvents, saveEvents,
+} from '@/lib/retention-data'
+
+const RETENTION_PREFIX = 'ret:'
+function isRetentionTaskId(id: string) { return id.startsWith(RETENTION_PREFIX) }
+function retentionIdFromTaskId(id: string) { return id.slice(RETENTION_PREFIX.length) }
+
+function eventToTask(e: RetentionEvent, clientBusiness: string): Task {
+  return {
+    id: `${RETENTION_PREFIX}${e.id}`,
+    title: `${EVENT_TYPE_LABELS[e.type]} — ${clientBusiness}: ${e.title}`,
+    dueDate: e.date,
+    dueTime: e.time,
+    starred: false,
+    status: e.completed ? 'done' : 'open',
+    clientId: e.clientId,
+    notes: e.notes || undefined,
+    createdAt: e.createdAt,
+    completedAt: e.completed ? e.createdAt : undefined,
+  }
+}
 
 type ViewMode = 'list' | 'calendar'
 type FilterKey = 'all' | 'today' | 'overdue' | 'starred'
@@ -44,6 +67,7 @@ function fmtDueDate(iso?: string): string {
 export default function TodayPage() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [clients, setClients] = useState<Client[]>([])
+  const [retentionEvents, setRetentionEvents] = useState<RetentionEvent[]>([])
   const [view, setView] = useState<ViewMode>('list')
   const [filter, setFilter] = useState<FilterKey>('all')
   const [showCompleted, setShowCompleted] = useState(false)
@@ -57,6 +81,7 @@ export default function TodayPage() {
   useEffect(() => {
     loadTasks().then(setTasks)
     loadClients().then(setClients)
+    loadEvents().then(setRetentionEvents)
   }, [])
 
   // Auto-dismiss toast
@@ -89,6 +114,7 @@ export default function TodayPage() {
   }, [modal])
 
   function persistTasks(next: Task[]) { setTasks(next); saveTasks(next) }
+  function persistEvents(next: RetentionEvent[]) { setRetentionEvents(next); saveEvents(next) }
 
   function addTask(data: Omit<Task, 'id' | 'createdAt' | 'completedAt'>) {
     const newTask: Task = {
@@ -100,14 +126,27 @@ export default function TodayPage() {
     showToast(data.starred ? '⭐ Task added as priority' : 'Task added')
   }
   function updateTask(updated: Task) {
+    if (isRetentionTaskId(updated.id)) return // retention items edit only via /client-retention
     persistTasks(tasks.map(t => t.id === updated.id ? updated : t))
     showToast('Task updated')
   }
   function deleteTask(id: string) {
+    if (isRetentionTaskId(id)) {
+      showToast('Delete retention items from the Retention page', 'info')
+      return
+    }
     persistTasks(tasks.filter(t => t.id !== id))
     showToast('Task deleted', 'info')
   }
   function toggleDone(id: string) {
+    if (isRetentionTaskId(id)) {
+      const eventId = retentionIdFromTaskId(id)
+      const ev = retentionEvents.find(e => e.id === eventId)
+      const becomingDone = !!ev && !ev.completed
+      persistEvents(retentionEvents.map(e => e.id === eventId ? { ...e, completed: !e.completed } : e))
+      showToast(becomingDone ? 'Done ✓' : 'Reopened', becomingDone ? 'success' : 'info')
+      return
+    }
     const task = tasks.find(t => t.id === id)
     const becomingDone = task?.status !== 'done'
     persistTasks(tasks.map(t => {
@@ -118,6 +157,10 @@ export default function TodayPage() {
     showToast(becomingDone ? 'Done ✓' : 'Reopened', becomingDone ? 'success' : 'info')
   }
   function toggleStar(id: string) {
+    if (isRetentionTaskId(id)) {
+      showToast('Retention items can\'t be starred — star them in their own list', 'info')
+      return
+    }
     const task = tasks.find(t => t.id === id)
     persistTasks(tasks.map(t => t.id === id ? { ...t, starred: !t.starred } : t))
     showToast(task?.starred ? 'Unstarred' : 'Starred as priority', task?.starred ? 'info' : 'success')
@@ -125,13 +168,21 @@ export default function TodayPage() {
 
   // ─── Derived ───────────────────────────────────────────────
 
-  const todayCount = tasksDueToday(tasks).length
-  const overdueCount = tasksOverdue(tasks).length
-  const upcomingCount = tasksUpcoming(tasks, 7).length
-  const starredCount = starredOpen(tasks).length
+  const mergedTasks = useMemo(() => {
+    const retentionTasks = retentionEvents.map(e => {
+      const c = clients.find(cl => cl.id === e.clientId)
+      return eventToTask(e, c?.business ?? 'Unknown')
+    })
+    return [...tasks, ...retentionTasks]
+  }, [tasks, retentionEvents, clients])
+
+  const todayCount = tasksDueToday(mergedTasks).length
+  const overdueCount = tasksOverdue(mergedTasks).length
+  const upcomingCount = tasksUpcoming(mergedTasks, 7).length
+  const starredCount = starredOpen(mergedTasks).length
 
   const visible = useMemo(() => {
-    let v = tasks
+    let v = mergedTasks
     if (!showCompleted) v = v.filter(t => t.status !== 'done')
     switch (filter) {
       case 'today': return v.filter(t => t.dueDate === todayIso())
@@ -139,7 +190,7 @@ export default function TodayPage() {
       case 'starred': return v.filter(t => t.starred)
       default: return v
     }
-  }, [tasks, filter, showCompleted])
+  }, [mergedTasks, filter, showCompleted])
 
   return (
     <PageContainer>
@@ -170,7 +221,7 @@ export default function TodayPage() {
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const }}>
           {FILTERS.map(f => {
             const active = filter === f.key
-            const count = f.key === 'all' ? tasks.filter(t => t.status !== 'done').length :
+            const count = f.key === 'all' ? mergedTasks.filter(t => t.status !== 'done').length :
               f.key === 'today' ? todayCount :
               f.key === 'overdue' ? overdueCount :
               starredCount
@@ -212,7 +263,13 @@ export default function TodayPage() {
           clients={clients}
           onToggleDone={toggleDone}
           onToggleStar={toggleStar}
-          onEdit={t => setModal({ kind: 'edit', task: t })}
+          onEdit={t => {
+            if (isRetentionTaskId(t.id)) {
+              window.location.href = '/client-retention'
+              return
+            }
+            setModal({ kind: 'edit', task: t })
+          }}
           onDelete={deleteTask}
         />
       )}
@@ -373,6 +430,7 @@ function TaskRow({
   const isInProgress = task.status === 'in-progress'
   const isOverdue = task.dueDate && task.dueDate < todayIso() && !isDone
   const isToday = task.dueDate === todayIso()
+  const isRetention = isRetentionTaskId(task.id)
 
   return (
     <div
@@ -380,8 +438,8 @@ function TaskRow({
         display: 'flex', alignItems: 'center', gap: 10,
         padding: '10px 14px',
         background: colors.cardBgElevated,
-        border: `1px solid ${isInProgress ? 'rgba(99,179,237,0.3)' : task.starred && !isDone ? 'rgba(227,179,65,0.25)' : colors.border}`,
-        borderLeft: isInProgress ? `3px solid ${colors.blue}` : undefined,
+        border: `1px solid ${isRetention ? 'rgba(159,122,234,0.3)' : isInProgress ? 'rgba(99,179,237,0.3)' : task.starred && !isDone ? 'rgba(227,179,65,0.25)' : colors.border}`,
+        borderLeft: isRetention ? `3px solid ${colors.purple}` : isInProgress ? `3px solid ${colors.blue}` : undefined,
         borderRadius: borders.radius.medium,
         opacity: isDone ? 0.55 : 1,
         transition: 'background 0.1s',
@@ -400,18 +458,20 @@ function TaskRow({
         {isDone && <Check size={12} strokeWidth={3} color="#fff" />}
       </button>
 
-      {/* Star */}
-      <button onClick={onToggleStar} style={{
-        background: 'transparent', border: 'none', cursor: 'pointer', padding: 0,
-        flexShrink: 0, lineHeight: 0,
-      }} title={task.starred ? 'Unstar' : 'Star (priority)'}>
-        <Star
-          size={14} strokeWidth={2}
-          color={task.starred ? colors.yellow : colors.textMuted}
-          fill={task.starred ? colors.yellow : 'none'}
-          style={{ opacity: task.starred ? 1 : 0.4 }}
-        />
-      </button>
+      {/* Star (hidden for retention items — they can't be starred) */}
+      {!isRetention && (
+        <button onClick={onToggleStar} style={{
+          background: 'transparent', border: 'none', cursor: 'pointer', padding: 0,
+          flexShrink: 0, lineHeight: 0,
+        }} title={task.starred ? 'Unstar' : 'Star (priority)'}>
+          <Star
+            size={14} strokeWidth={2}
+            color={task.starred ? colors.yellow : colors.textMuted}
+            fill={task.starred ? colors.yellow : 'none'}
+            style={{ opacity: task.starred ? 1 : 0.4 }}
+          />
+        </button>
+      )}
 
       {/* Title + meta */}
       <button
@@ -440,6 +500,16 @@ function TaskRow({
               IN PROGRESS
             </span>
           )}
+          {isRetention && (
+            <span style={{
+              ...mono,
+              fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 3,
+              background: 'rgba(159,122,234,0.15)', color: colors.purple,
+              letterSpacing: '0.08em', flexShrink: 0,
+            }}>
+              RETENTION
+            </span>
+          )}
         </div>
         {(task.dueDate || client || task.notes) && (
           <div style={{
@@ -459,13 +529,17 @@ function TaskRow({
         )}
       </button>
 
-      {/* Actions */}
-      <button onClick={onEdit} style={iconActionStyle} title="Edit">
-        <Pencil size={11} strokeWidth={2} />
-      </button>
-      <button onClick={onDelete} style={{ ...iconActionStyle, color: colors.textMuted }} title="Delete">
-        <Trash2 size={11} strokeWidth={2} />
-      </button>
+      {/* Actions (retention items are managed from /client-retention) */}
+      {!isRetention && (
+        <>
+          <button onClick={onEdit} style={iconActionStyle} title="Edit">
+            <Pencil size={11} strokeWidth={2} />
+          </button>
+          <button onClick={onDelete} style={{ ...iconActionStyle, color: colors.textMuted }} title="Delete">
+            <Trash2 size={11} strokeWidth={2} />
+          </button>
+        </>
+      )}
     </div>
   )
 }

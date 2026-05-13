@@ -426,7 +426,16 @@ function WeekGrid({
               onMouseLeave={e => { if (!isToday) e.currentTarget.style.background = 'transparent' }}
             >
               {cellEvents.length === 0 && (
-                <span style={{ ...mono, fontSize: 11, color: colors.textMuted, opacity: 0.4 }}>—</span>
+                <div style={{
+                  height: 56,
+                  border: `1px dashed ${colors.border}`,
+                  borderRadius: 5,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: colors.textMuted, opacity: 0.35,
+                  ...mono, fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase' as const,
+                }}>
+                  + Add
+                </div>
               )}
               {cellEvents.map(ev => {
                 const c = clients.find(c => c.id === ev.clientId)
