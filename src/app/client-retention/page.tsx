@@ -8,6 +8,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { PageContainer, PageHeader, colors, cardStyle, cardStyleAccent, borders, mono } from '@/components/DesignSystem'
+import ProspectsKanban from './ProspectsKanban'
 import {
   RetentionEvent, EventType, EVENT_TYPE_LABELS,
   loadEvents, saveEvents, commsEntryFromEvent,
@@ -61,7 +62,10 @@ function fmtTime(s?: string): string { return s || '' }
 // =================================================================
 // Page
 // =================================================================
+type MainTab = 'active' | 'prospects'
+
 export default function RetentionPage() {
+  const [tab, setTab] = useState<MainTab>('active')
   const [events, setEvents] = useState<RetentionEvent[]>([])
   const [clients, setClients] = useState<Client[]>([])
   const [comms, setComms] = useState<CommsEntry[]>([])
@@ -185,6 +189,31 @@ export default function RetentionPage() {
         }
       />
 
+      {/* Tab switcher */}
+      <div style={{ display: 'flex', gap: 4, marginBottom: 24, borderBottom: `1px solid ${colors.border}`, paddingBottom: 0 }}>
+        {([
+          { key: 'active', label: 'Active Clients' },
+          { key: 'prospects', label: 'Prospects' },
+        ] as { key: MainTab; label: string }[]).map(t => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            style={{
+              padding: '8px 18px', background: 'transparent', border: 'none',
+              borderBottom: `2px solid ${tab === t.key ? colors.accent : 'transparent'}`,
+              color: tab === t.key ? colors.accent : colors.textMuted,
+              fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+              marginBottom: -1, transition: 'color 0.15s',
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'prospects' && <ProspectsKanban />}
+
+      {tab === 'active' && <>
       {/* KPI Strip */}
       <div className="kpi-strip" style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
         <Kpi label="This Week" value={String(weekCount)} accent={weekCount > 0 ? colors.accent : colors.textMuted} />
@@ -293,6 +322,7 @@ export default function RetentionPage() {
           }}
         />
       )}
+      </>}
     </PageContainer>
   )
 }
