@@ -421,6 +421,7 @@ function WeekGrid({
                 cursor: 'pointer',
                 display: 'flex', flexDirection: 'column', gap: 6,
                 transition: 'background 0.1s',
+                minHeight: 260,
               }}
               onMouseEnter={e => { if (!isToday) e.currentTarget.style.background = 'rgba(255,255,255,0.02)' }}
               onMouseLeave={e => { if (!isToday) e.currentTarget.style.background = 'transparent' }}
