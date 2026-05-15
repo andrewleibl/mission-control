@@ -432,7 +432,7 @@ function WeekGrid({
       </div>
 
       {/* Body */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', minHeight: 400 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', height: 400 }}>
         {days.map((d, i) => {
           const iso = toIso(d)
           const cellEvents = events.filter(e => e.date === iso).sort((a, b) => (a.time ?? '').localeCompare(b.time ?? ''))
@@ -451,7 +451,7 @@ function WeekGrid({
                 cursor: 'pointer',
                 display: 'flex', flexDirection: 'column', gap: 6,
                 transition: 'background 0.1s',
-                minHeight: 260,
+                height: 400,
                 minWidth: 0, overflow: 'hidden',
               }}
               onMouseEnter={e => { if (!isToday) e.currentTarget.style.background = 'rgba(255,255,255,0.02)' }}
@@ -697,7 +697,7 @@ function MonthGrid({
           }}>{w}</div>
         ))}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gridTemplateRows: 'repeat(6, 110px)' }}>
         {cells.map((d, i) => {
           const iso = toIso(d)
           const cellEvents = events.filter(e => e.date === iso)
@@ -711,7 +711,7 @@ function MonthGrid({
                 onAddForDay(iso)
               }}
               style={{
-                minHeight: 110,
+                height: 110, overflow: 'hidden',
                 padding: '6px 8px',
                 borderRight: ((i + 1) % 7 !== 0) ? `1px solid ${colors.border}` : undefined,
                 borderBottom: i < 35 ? `1px solid ${colors.border}` : undefined,

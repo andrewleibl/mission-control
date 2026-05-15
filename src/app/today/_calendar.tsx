@@ -278,7 +278,7 @@ function MonthGrid({ cursor, entriesByDay, onAddForDay }: { cursor: Date; entrie
           <div key={w} style={{ ...mono, padding: '10px 12px', fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', color: colors.textMuted }}>{w}</div>
         ))}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gridTemplateRows: 'repeat(6, 110px)' }}>
         {cells.map((d, i) => {
           const iso = toIso(d)
           const entries = (entriesByDay[iso] ?? []).slice(0, 4)
@@ -290,7 +290,7 @@ function MonthGrid({ cursor, entriesByDay, onAddForDay }: { cursor: Date; entrie
               key={i}
               onClick={() => onAddForDay(iso)}
               style={{
-                minHeight: 100, padding: '6px 8px',
+                height: 110, overflow: 'hidden', padding: '6px 8px',
                 borderRight: ((i + 1) % 7 !== 0) ? `1px solid ${colors.border}` : undefined,
                 borderBottom: i < 35 ? `1px solid ${colors.border}` : undefined,
                 background: isToday ? 'rgba(56,161,87,0.05)' : 'transparent',
