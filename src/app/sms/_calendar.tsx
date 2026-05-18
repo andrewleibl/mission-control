@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { ChevronLeft, ChevronRight, ThumbsUp, CalendarCheck2, Send } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ThumbsUp, CalendarCheck2, Send, Plus, Trash2, Pencil } from 'lucide-react'
 import { colors, cardStyle, borders, mono } from '@/components/DesignSystem'
-import { SmsTemplate, SmsSend, SmsWin } from '@/lib/sms'
+import { SmsTemplate, SmsSend, SmsWin, WinType } from '@/lib/sms'
 
 type Granularity = 'day' | 'week' | 'month'
 
@@ -118,10 +118,14 @@ function getDayStats(
 
 export default function SmsCalendar({
   templates, sends, wins,
+  onSendCountChange, onLogWinAt, onDeleteWin,
 }: {
   templates: SmsTemplate[]
   sends: SmsSend[]
   wins: SmsWin[]
+  onSendCountChange?: (templateId: string, day: string, count: number) => Promise<void>
+  onLogWinAt?: (templateId: string, type: WinType, loggedAt: number) => Promise<void>
+  onDeleteWin?: (id: string) => Promise<void>
 }) {
   const [granularity, setGranularity] = useState<Granularity>('month')
   const [cursor, setCursor] = useState<Date>(() => {
@@ -197,7 +201,12 @@ export default function SmsCalendar({
       </div>
 
       {granularity === 'day' && (
-        <DayView iso={ymd(cursor)} templates={templates} sends={sends} wins={wins} />
+        <DayView
+          iso={ymd(cursor)} templates={templates} sends={sends} wins={wins}
+          onSendCountChange={onSendCountChange}
+          onLogWinAt={onLogWinAt}
+          onDeleteWin={onDeleteWin}
+        />
       )}
       {granularity === 'week' && (
         <WeekView anchor={cursor} templates={templates} sends={sends} wins={wins} onSelectDay={selectDay} />
@@ -502,11 +511,15 @@ function WeekView({
 // =================================================================
 function DayView({
   iso, templates, sends, wins,
+  onSendCountChange, onLogWinAt, onDeleteWin,
 }: {
   iso: string
   templates: SmsTemplate[]
   sends: SmsSend[]
   wins: SmsWin[]
+  onSendCountChange?: (templateId: string, day: string, count: number) => Promise<void>
+  onLogWinAt?: (templateId: string, type: WinType, loggedAt: number) => Promise<void>
+  onDeleteWin?: (id: string) => Promise<void>
 }) {
   const stats = useMemo(
     () => getDayStats(iso, templates, sends, wins),
@@ -527,6 +540,30 @@ function DayView({
       .sort((a, b) => b.loggedAt - a.loggedAt),
     [wins, dayStart, dayEnd],
   )
+
+  const [editingSent, setEditingSent] = useState<string | null>(null) // templateId being edited
+  const [sentDraft, setSentDraft] = useState('')
+
+  async function commitSentEdit(templateId: string) {
+    const count = parseInt(sentDraft, 10)
+    if (!isNaN(count) && count >= 0 && onSendCountChange) {
+      await onSendCountChange(templateId, iso, count)
+    }
+    setEditingSent(null)
+    setSentDraft('')
+  }
+
+  function startEditSent(templateId: string, currentSent: number) {
+    setEditingSent(templateId)
+    setSentDraft(String(currentSent))
+  }
+
+  async function addWin(templateId: string, type: WinType) {
+    if (!onLogWinAt) return
+    // Use noon on the selected day so it sorts predictably
+    const ts = new Date(iso + 'T12:00:00').getTime()
+    await onLogWinAt(templateId, type, ts)
+  }
 
   return (
     <div style={{ display: 'grid', gap: 16 }}>
@@ -583,27 +620,69 @@ function DayView({
                     }}>{t.status}</span>
                   )}
                 </div>
-                <div className="sms-day-tpl-stats" style={{ display: 'flex', gap: 18, ...mono, fontSize: 12, flexWrap: 'wrap' }}>
-                  <span style={{ color: colors.text }}>
+                <div className="sms-day-tpl-stats" style={{ display: 'flex', gap: 14, ...mono, fontSize: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+                  {/* Editable sent count */}
+                  <span style={{ color: colors.text, display: 'flex', alignItems: 'center', gap: 4 }}>
                     <span style={{ color: colors.textMuted }}>sent </span>
-                    <span style={{ fontWeight: 700 }}>{t.sent}</span>
-                  </span>
-                  <span style={{ color: colors.accent }}>
-                    <span style={{ color: colors.textMuted }}>+1 </span>
-                    <span style={{ fontWeight: 700 }}>{t.positives}</span>
-                    {t.sent > 0 && (
-                      <span style={{ color: colors.textSubtle, marginLeft: 4 }}>
-                        ({((t.positives / t.sent) * 100).toFixed(0)}%)
-                      </span>
+                    {editingSent === t.templateId ? (
+                      <input
+                        autoFocus
+                        type="number"
+                        value={sentDraft}
+                        onChange={e => setSentDraft(e.target.value)}
+                        onBlur={() => commitSentEdit(t.templateId)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') commitSentEdit(t.templateId)
+                          if (e.key === 'Escape') setEditingSent(null)
+                        }}
+                        style={{
+                          width: 60, background: colors.cardBg, border: `1px solid ${colors.accent}`,
+                          borderRadius: 4, color: colors.text, fontSize: 12, padding: '2px 6px',
+                          fontFamily: 'inherit', fontWeight: 700,
+                        }}
+                      />
+                    ) : (
+                      <button
+                        onClick={() => startEditSent(t.templateId, t.sent)}
+                        title="Click to edit"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '1px 4px', borderRadius: 3, fontFamily: 'inherit', color: colors.text, fontWeight: 700, fontSize: 12, display: 'flex', alignItems: 'center', gap: 3 }}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                      >
+                        {t.sent} <Pencil size={9} color={colors.textMuted} />
+                      </button>
                     )}
                   </span>
-                  <span style={{ color: colors.purple }}>
+
+                  {/* Positive reply */}
+                  <span style={{ color: colors.accent, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ color: colors.textMuted }}>+1 </span>
+                    <span style={{ fontWeight: 700 }}>{t.positives}</span>
+                    {t.sent > 0 && <span style={{ color: colors.textSubtle }}>({((t.positives / t.sent) * 100).toFixed(0)}%)</span>}
+                    {onLogWinAt && (
+                      <button
+                        onClick={() => addWin(t.templateId, 'positive_reply')}
+                        title="Add positive reply"
+                        style={{ background: `${colors.accent}20`, border: `1px solid ${colors.accent}40`, borderRadius: 3, cursor: 'pointer', padding: '1px 5px', color: colors.accent, fontSize: 10, fontFamily: 'inherit' }}
+                      >
+                        +
+                      </button>
+                    )}
+                  </span>
+
+                  {/* Booked */}
+                  <span style={{ color: colors.purple, display: 'flex', alignItems: 'center', gap: 4 }}>
                     <span style={{ color: colors.textMuted }}>booked </span>
                     <span style={{ fontWeight: 700 }}>{t.booked}</span>
-                    {t.positives > 0 && (
-                      <span style={{ color: colors.textSubtle, marginLeft: 4 }}>
-                        ({((t.booked / t.positives) * 100).toFixed(0)}%)
-                      </span>
+                    {t.positives > 0 && <span style={{ color: colors.textSubtle }}>({((t.booked / t.positives) * 100).toFixed(0)}%)</span>}
+                    {onLogWinAt && (
+                      <button
+                        onClick={() => addWin(t.templateId, 'booked_meeting')}
+                        title="Add booked meeting"
+                        style={{ background: 'rgba(159,122,234,0.15)', border: '1px solid rgba(159,122,234,0.3)', borderRadius: 3, cursor: 'pointer', padding: '1px 5px', color: colors.purple, fontSize: 10, fontFamily: 'inherit' }}
+                      >
+                        +
+                      </button>
                     )}
                   </span>
                 </div>
@@ -648,6 +727,17 @@ function DayView({
                 <span style={{ ...mono, fontSize: 11, color: colors.textMuted }}>
                   {new Date(w.loggedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                 </span>
+                {onDeleteWin && (
+                  <button
+                    onClick={() => onDeleteWin(w.id)}
+                    title="Delete this win"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: colors.textMuted, lineHeight: 1 }}
+                    onMouseEnter={e => (e.currentTarget.style.color = colors.red)}
+                    onMouseLeave={e => (e.currentTarget.style.color = colors.textMuted)}
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                )}
               </div>
             ))}
           </div>

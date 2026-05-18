@@ -8,7 +8,7 @@ import {
   SmsTemplate, SmsSend, SmsWin, TemplateStats,
   loadTemplates, loadSends, loadWins,
   createTemplate, updateTemplate, deleteTemplate,
-  setSendCount, logWin, deleteWin,
+  setSendCount, logWin, logWinAt, deleteWin,
   getStats, coolingSignal, todayIso,
 } from '@/lib/sms'
 
@@ -77,6 +77,11 @@ export default function SmsPage() {
     setWins(prev => [w, ...prev])
   }
 
+  async function handleLogWinAt(templateId: string, type: 'positive_reply' | 'booked_meeting', loggedAt: number) {
+    const w = await logWinAt(templateId, type, loggedAt)
+    setWins(prev => [w, ...prev])
+  }
+
   async function handleDeleteWin(id: string) {
     await deleteWin(id)
     setWins(prev => prev.filter(w => w.id !== id))
@@ -108,7 +113,12 @@ export default function SmsPage() {
       {loading ? (
         <div style={{ color: colors.textMuted, padding: 40, textAlign: 'center' }}>Loading…</div>
       ) : viewMode === 'calendar' ? (
-        <SmsCalendar templates={templates} sends={sends} wins={wins} />
+        <SmsCalendar
+          templates={templates} sends={sends} wins={wins}
+          onSendCountChange={handleSetSendCount}
+          onLogWinAt={handleLogWinAt}
+          onDeleteWin={handleDeleteWin}
+        />
       ) : viewMode === 'stats' ? (
         <SmsStats templates={templates} sends={sends} wins={wins} />
       ) : (

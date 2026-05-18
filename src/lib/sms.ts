@@ -148,6 +148,19 @@ export async function logWin(templateId: string, type: WinType, note?: string): 
   return win
 }
 
+export async function logWinAt(templateId: string, type: WinType, loggedAt: number, note?: string): Promise<SmsWin> {
+  const win: SmsWin = { id: newId('win'), templateId, type, note, loggedAt }
+  const { createClient } = await import('@/lib/supabase')
+  const sb = createClient()
+  const { error } = await sb.from('sms_wins').insert({
+    id: win.id, template_id: win.templateId, type: win.type,
+    note: win.note ?? null, logged_at: win.loggedAt,
+  })
+  if (error) throw error
+  invalidate(CK_WINS)
+  return win
+}
+
 export async function deleteWin(id: string): Promise<void> {
   const { createClient } = await import('@/lib/supabase')
   const sb = createClient()
