@@ -8,15 +8,44 @@ import {
   HORIZON_LABELS, HORIZON_ORDER, CATEGORY_LABELS, CATEGORY_COLOR, STATUS_LABELS, STATUS_COLOR,
   loadGoals, saveGoals, progressPct, milestonesCompleted, nextMilestone, fmtValue, fmtDeadline,
 } from '@/lib/growth-data'
+import { loadTransactions, sumIncome, txsInMonth, netProfit } from '@/lib/finances'
+import { loadClients } from '@/lib/clients-data'
+
+// Returns the live auto-synced value for a goal, or null if manual
+function liveValueFor(goal: Goal, liveRevenue: number, liveClientCount: number): number | null {
+  if (goal.category === 'revenue') return liveRevenue
+  if (goal.category === 'clients') return liveClientCount
+  return null
+}
+
+// Returns goal with currentValue replaced by live data if applicable
+function withLive(goal: Goal, liveRevenue: number, liveClientCount: number): Goal {
+  const live = liveValueFor(goal, liveRevenue, liveClientCount)
+  if (live === null) return goal
+  return { ...goal, currentValue: live }
+}
+
+const NOW_MONTH = new Date().toISOString().slice(0, 7)
 
 export default function GrowthPage() {
   const [goals, setGoals] = useState<Goal[]>([])
+  const [liveRevenue, setLiveRevenue] = useState(0)
+  const [liveClientCount, setLiveClientCount] = useState(0)
   const [horizonFilter, setHorizonFilter] = useState<GoalHorizon | 'all'>('all')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [goalModal, setGoalModal] = useState<{ mode: 'add' } | { mode: 'edit'; goal: Goal } | null>(null)
   const [showCompleted, setShowCompleted] = useState(false)
 
-  useEffect(() => { loadGoals().then(setGoals) }, [])
+  useEffect(() => {
+    loadGoals().then(setGoals)
+    loadTransactions().then(txs => {
+      const monthTxs = txsInMonth(txs, NOW_MONTH)
+      setLiveRevenue(sumIncome(monthTxs))
+    })
+    loadClients().then(clients => {
+      setLiveClientCount(clients.filter(c => c.status === 'active' || c.status === 'onboarding').length)
+    })
+  }, [])
 
   function persistGoals(next: Goal[]) { setGoals(next); saveGoals(next) }
   function addGoal(g: Goal) { persistGoals([g, ...goals]) }
@@ -26,13 +55,15 @@ export default function GrowthPage() {
     if (selectedId === id) setSelectedId(null)
   }
 
-  const active = goals.filter(g => g.status !== 'completed' && g.status !== 'paused')
-  const atRisk = goals.filter(g => g.status === 'at-risk')
-  const completed = goals.filter(g => g.status === 'completed')
-  const totalMilestonesDone = goals.reduce((s, g) => s + milestonesCompleted(g), 0)
+  const liveGoals = useMemo(() => goals.map(g => withLive(g, liveRevenue, liveClientCount)), [goals, liveRevenue, liveClientCount])
+
+  const active = liveGoals.filter(g => g.status !== 'completed' && g.status !== 'paused')
+  const atRisk = liveGoals.filter(g => g.status === 'at-risk')
+  const completed = liveGoals.filter(g => g.status === 'completed')
+  const totalMilestonesDone = liveGoals.reduce((s, g) => s + milestonesCompleted(g), 0)
 
   const visible = useMemo(() => {
-    let v = showCompleted ? goals : goals.filter(g => g.status !== 'completed')
+    let v = showCompleted ? liveGoals : liveGoals.filter(g => g.status !== 'completed')
     if (horizonFilter !== 'all') v = v.filter(g => g.horizon === horizonFilter)
     const statusOrder: Record<GoalStatus, number> = { 'at-risk': 0, active: 1, paused: 2, completed: 3 }
     return [...v].sort((a, b) =>
@@ -40,9 +71,9 @@ export default function GrowthPage() {
         ? statusOrder[a.status] - statusOrder[b.status]
         : progressPct(b) - progressPct(a)
     )
-  }, [goals, horizonFilter, showCompleted])
+  }, [liveGoals, horizonFilter, showCompleted])
 
-  const selectedGoal = selectedId ? goals.find(g => g.id === selectedId) : null
+  const selectedGoal = selectedId ? liveGoals.find(g => g.id === selectedId) : null
 
   return (
     <PageContainer>
@@ -168,6 +199,11 @@ function GoalCard({ goal, onClick }: { goal: Goal; onClick: () => void }) {
             <span style={{ ...mono, fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 3, background: 'rgba(125,138,153,0.1)', color: colors.textMuted, letterSpacing: '0.06em' }}>
               {HORIZON_LABELS[goal.horizon].toUpperCase()}
             </span>
+            {(goal.category === 'revenue' || goal.category === 'clients') && (
+              <span style={{ ...mono, fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 3, background: 'rgba(56,161,87,0.12)', color: colors.accent, letterSpacing: '0.06em' }}>
+                ⚡ LIVE
+              </span>
+            )}
           </div>
           <div style={{ fontSize: 17, fontWeight: 700, color: colors.text, lineHeight: 1.2, textDecoration: isComplete ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
             {goal.title}
@@ -327,7 +363,16 @@ function GoalDetailPanel({ goal, onClose, onUpdate, onDelete, onEdit }: { goal: 
           <div style={{ ...cardStyleAccent, padding: '16px 18px', marginBottom: 20 }}>
             <div style={{ ...mono, fontSize: 9, fontWeight: 600, color: colors.textMuted, letterSpacing: '0.08em', marginBottom: 10 }}>PROGRESS</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12 }}>
-              {editingCurrentValue ? (
+              {(goal.category === 'revenue' || goal.category === 'clients') ? (
+                <div style={{ display: 'flex', flex: 1, alignItems: 'center', gap: 10 }}>
+                  <span style={{ ...mono, fontSize: 26, fontWeight: 700, color: colors.accent, fontVariantNumeric: 'tabular-nums' as const }}>
+                    {fmtValue(goal.currentValue, goal.unit)}
+                  </span>
+                  <span style={{ ...mono, fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 3, background: 'rgba(56,161,87,0.12)', color: colors.accent, letterSpacing: '0.06em' }}>
+                    ⚡ LIVE
+                  </span>
+                </div>
+              ) : editingCurrentValue ? (
                 <input autoFocus value={currentValueDraft} onChange={e => setCurrentValueDraft(e.target.value)}
                   onBlur={saveCurrentValue}
                   onKeyDown={e => { if (e.key === 'Enter') saveCurrentValue(); if (e.key === 'Escape') setEditingCurrentValue(false) }}
@@ -351,7 +396,11 @@ function GoalDetailPanel({ goal, onClose, onUpdate, onDelete, onEdit }: { goal: 
             <div style={{ height: 6, background: colors.border, borderRadius: 3, overflow: 'hidden' }}>
               <div style={{ height: '100%', width: `${pct}%`, background: goal.status === 'at-risk' ? colors.red : colors.accent, borderRadius: 3 }} />
             </div>
-            <div style={{ ...mono, fontSize: 10, color: colors.textMuted, marginTop: 8 }}>Click the current value to update it</div>
+            <div style={{ ...mono, fontSize: 10, color: colors.textMuted, marginTop: 8 }}>
+              {(goal.category === 'revenue' || goal.category === 'clients')
+                ? `Auto-synced from live ${goal.category === 'revenue' ? 'Finances (this month)' : 'Clients (active count)'}`
+                : 'Click the current value to update it'}
+            </div>
           </div>
         </div>
 
