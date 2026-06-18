@@ -63,7 +63,7 @@ export const EXPENSE_CATEGORIES = [
 
 // ---------- Storage — Supabase ----------
 
-import { cached, setCache } from '@/lib/cache'
+import { cached, setCache, invalidate } from '@/lib/cache'
 
 export async function loadTransactions(): Promise<Transaction[]> {
   return cached('transactions', async () => {
@@ -91,6 +91,17 @@ export async function saveTransactions(txs: Transaction[]): Promise<void> {
   }))
   await sb.from('transactions').delete().gte('created_at', 0)
   if (rows.length > 0) await sb.from('transactions').insert(rows)
+}
+
+// Single-row date change — used by the calendar drag-and-drop so moving one
+// transaction doesn't rewrite the whole table (unlike saveTransactions, which
+// is the wipe-and-reinsert pattern). Caller updates local state optimistically.
+export async function updateTransactionDate(id: string, newDate: string): Promise<void> {
+  const { createClient } = await import('@/lib/supabase')
+  const sb = createClient()
+  const { error } = await sb.from('transactions').update({ date: newDate }).eq('id', id)
+  if (error) throw error
+  invalidate('transactions')
 }
 
 export async function loadRules(): Promise<RecurringRule[]> {

@@ -897,9 +897,9 @@ export default function TasksPage() {
 
 
       {/* Main Content */}
-      <div style={{ display: 'flex', gap: 0, flex: 1, minHeight: 0 }}>
+      <div className="stack-mobile-flex" style={{ display: 'flex', gap: 0, flex: 1, minHeight: 0 }}>
         {/* Kanban Columns */}
-        <div style={{ flex: 1, overflowX: 'auto', paddingBottom: 8 }}>
+        <div className="kanban-scroll-mobile" style={{ flex: 1, overflowX: 'auto', paddingBottom: 8 }}>
           <DragDropContext onDragEnd={onDragEnd}>
             <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', minWidth: 'max-content' }}>
               {COLUMNS.map(col => {

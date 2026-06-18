@@ -10,13 +10,14 @@ import {
   PageContainer, PageHeader, colors, cardStyle, cardStyleAccent, borders, mono,
 } from '@/components/DesignSystem'
 
-// Data libs
-import { loadTasks, tasksOverdue, tasksDueToday, tasksUpcoming, Task } from '@/lib/today-data'
-import { loadClients, Client } from '@/lib/clients-data'
-import { loadEvents, RetentionEvent, overdueEvents, upcomingEvents, daysSinceLastEvent, toIso, addDays } from '@/lib/retention-data'
+// Data libs — load* fetchers for the Supabase-backed data now run server-side
+// via /api/dashboard (one round-trip). Only sales calls (localStorage) load here.
+import { tasksOverdue, tasksDueToday, tasksUpcoming, Task } from '@/lib/today-data'
+import { Client } from '@/lib/clients-data'
+import { RetentionEvent, overdueEvents, upcomingEvents, daysSinceLastEvent, toIso, addDays } from '@/lib/retention-data'
 import { loadCalls, computeStats, SalesCall } from '@/lib/sales-data'
 import { loadTemplates, loadSends, loadWins, SmsTemplate, SmsSend, SmsWin, getStats, coolingSignal } from '@/lib/sms'
-import { loadTransactions, Transaction, sumIncome, sumExpenses, netProfit, txsInMonth } from '@/lib/finances'
+import { Transaction, sumIncome, sumExpenses, netProfit, txsInMonth } from '@/lib/finances'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -196,15 +197,18 @@ export default function DashboardPage() {
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
+    // Heavy Supabase data (tasks/clients/events/transactions) comes from ONE
+    // server round-trip — the mobile bottleneck was 7 separate client queries.
+    // SMS (RLS-sensitive) + Sales (localStorage) load client-side, as before.
     Promise.all([
-      loadTasks(), loadClients(), loadEvents(),
-      loadCalls(), loadTemplates(), loadSends(), loadWins(),
-      loadTransactions(),
-    ]).then(([t, c, e, sc, tmpl, s, w, tx]) => {
-      setTasks(t); setClients(c); setEvents(e)
+      fetch('/api/dashboard').then(r => r.json()),
+      loadCalls(),
+      loadTemplates(), loadSends(), loadWins(),
+    ]).then(([d, sc, tmpl, s, w]) => {
+      setTasks(d.tasks ?? []); setClients(d.clients ?? []); setEvents(d.events ?? [])
       setCalls(sc); setTemplates(tmpl); setSends(s); setWins(w)
-      setTxs(tx); setLoaded(true)
-    })
+      setTxs(d.txs ?? []); setLoaded(true)
+    }).catch(() => setLoaded(true))
   }, [])
 
   // ─── Derived ──────────────────────────────────────────────────────────────
@@ -216,7 +220,7 @@ export default function DashboardPage() {
   const overdueEventList = useMemo(() => overdueEvents(events), [events])
   const upcomingEventList = useMemo(() => upcomingEvents(events, 7), [events])
 
-  const activeClients = useMemo(() => clients.filter(c => c.status === 'active' || c.status === 'at_risk'), [clients])
+  const activeClients = useMemo(() => clients.filter(c => c.status === 'active'), [clients])
   const staleClients = useMemo(() => activeClients.filter(c => daysSinceLastEvent(c.id, events) > 14), [activeClients, events])
 
   const salesStats = useMemo(() => computeStats(calls), [calls])
@@ -285,7 +289,7 @@ export default function DashboardPage() {
       />
 
       {/* ── KPI Strip ──────────────────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 10, marginBottom: 24 }}>
+      <div className="stat-strip-mobile" style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 10, marginBottom: 24 }}>
         <KpiCard label="Revenue MTD" value={fmtCurrency(monthRevenue)} sub={`net ${fmtCurrency(monthNet)}`} color={colors.accent} icon={DollarSign} href="/finances" />
         <KpiCard label="Active Clients" value={String(activeClients.length)} sub={`${staleClients.length} need attention`} color={staleClients.length > 0 ? colors.yellow : colors.accent} icon={Users} href="/clients" />
         <KpiCard label="Overdue Tasks" value={String(overdueTaskList.length)} sub={`${todayTaskList.length} due today`} color={overdueTaskList.length > 0 ? colors.red : colors.accent} icon={CheckSquare} href="/today" />
@@ -295,7 +299,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Row 2: Timeline + Urgency ──────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16, marginBottom: 16 }}>
+      <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16, marginBottom: 16 }}>
         {/* Timeline */}
         <div style={{ ...cardStyle, padding: 18 }}>
           <SectionHeader title="Next 7 Days" href="/today" />
@@ -320,7 +324,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Row 3: Sales Funnel + Client Health + SMS Hot List ─────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 16 }}>
+      <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 16 }}>
         {/* Sales funnel */}
         <div style={{ ...cardStyle, padding: 18 }}>
           <SectionHeader title="Sales Funnel (Month)" href="/sales" />
@@ -389,7 +393,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Row 4: Finances + Upcoming events ──────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+      <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         {/* Financial snapshot */}
         <div style={{ ...cardStyle, padding: 18 }}>
           <SectionHeader title={`Finances — ${NOW_MONTH}`} href="/finances" />

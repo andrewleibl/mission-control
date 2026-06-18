@@ -1,7 +1,7 @@
 // Shared client module — single source of truth across the app.
 // Used by /clients (full command center) and /finances (per-client tagging).
 
-export type ClientStatus = 'active' | 'at_risk' | 'churned' | 'prospect' | 'onboarding'
+export type ClientStatus = 'active' | 'churned' | 'prospect' | 'onboarding' | 'archived'
 
 export type ServiceType = 'ads' | 'web' | 'retainer' | 'project' | 'other'
 
@@ -13,13 +13,37 @@ export const SERVICE_TYPE_LABELS: Record<ServiceType, string> = {
   other: 'Other',
 }
 
+// Multi-service model — replaces the single serviceType + monthlyRetainer in the
+// UI. A client can carry several services, each with its own payment structure.
+export type ServiceKind = 'website' | 'ads_leads' | 'ads_appt'
+export const SERVICE_KIND_LABELS: Record<ServiceKind, string> = {
+  website: 'Website',
+  ads_leads: 'Ads + Leads',
+  ads_appt: 'Ads + Appt Booking',
+}
+export type PayModel = 'monthly' | 'per_appt' | 'per_lead' | 'one_time'
+export const PAY_MODEL_LABELS: Record<PayModel, string> = {
+  monthly: 'Monthly retainer',
+  per_appt: 'Per appointment',
+  per_lead: 'Per lead',
+  one_time: 'One-time',
+}
+export interface ClientService { kind: ServiceKind; pay: PayModel; amount: number }
+// MRR = sum of monthly-retainer services only (per-appt/per-lead are variable →
+// they flow into LTV via actual Finances income, not into recurring revenue).
+export function deriveMRR(services: ClientService[] | undefined): number {
+  return (services ?? []).filter(s => s.pay === 'monthly').reduce((sum, s) => sum + (s.amount || 0), 0)
+}
+
 export type Client = {
   id: string
   name: string
   business: string
   status: ClientStatus
-  serviceType: ServiceType
-  monthlyRetainer: number // what they pay you per month; 0 for project-only
+  serviceType: ServiceType // legacy single type — kept for back-compat
+  services?: ClientService[] // new multi-service model (UI source of truth)
+  signedDate?: string // ISO date — when they signed
+  monthlyRetainer: number // derived from monthly services; drives MRR everywhere
   startDate?: string // ISO date — when relationship began
   renewalDate: string // ISO date or 'N/A' (for project-only)
   lastContact: string // ISO date
@@ -47,7 +71,7 @@ export const seedClients: Client[] = [
     id: '2',
     name: 'PJ Sparks',
     business: 'We Do Hardscape',
-    status: 'at_risk',
+    status: 'active',
     serviceType: 'ads',
     monthlyRetainer: 285,
     startDate: '2026-02-09',
@@ -124,6 +148,8 @@ function row2client(r: Record<string, unknown>): Client {
   return {
     id: r.id as string, name: r.name as string, business: r.business as string,
     status: r.status as ClientStatus, serviceType: r.service_type as ServiceType,
+    services: Array.isArray(r.services) ? (r.services as ClientService[]) : undefined,
+    signedDate: (r.signed_date as string) ?? (r.start_date as string) ?? undefined,
     monthlyRetainer: r.monthly_retainer as number,
     startDate: (r.start_date as string) ?? undefined,
     renewalDate: r.renewal_date as string,
@@ -154,6 +180,7 @@ export async function saveClients(clients: Client[]): Promise<void> {
   const rows = clients.map(c => ({
     id: c.id, name: c.name, business: c.business, status: c.status,
     service_type: c.serviceType, monthly_retainer: c.monthlyRetainer,
+    services: c.services ?? [], signed_date: c.signedDate ?? null,
     start_date: c.startDate ?? null, renewal_date: c.renewalDate,
     last_contact: c.lastContact ?? null, contact_email: c.contactEmail ?? null,
     contact_phone: c.contactPhone ?? null, notes: c.notes, created_at: c.createdAt,
@@ -369,9 +396,9 @@ export interface HealthBreakdown {
 const STATUS_BASE: Record<ClientStatus, number> = {
   active: 85,
   onboarding: 70,
-  at_risk: 40,
   prospect: 60,
   churned: 10,
+  archived: 10,
 }
 
 export function computeHealth(

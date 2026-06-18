@@ -1,48 +1,48 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Pencil } from 'lucide-react'
 import { colors, cardStyle, borders, mono } from '@/components/DesignSystem'
 import {
   Client, ClientStatus, ServiceType, SERVICE_TYPE_LABELS,
+  ClientService, ServiceKind, PayModel, SERVICE_KIND_LABELS, PAY_MODEL_LABELS, deriveMRR,
   CommsEntry, CommsType, ActionItem, FinanceTxLite,
-  computeHealth, healthColor, daysSince, daysUntil, lastContactDate,
+  daysSince, daysUntil, lastContactDate,
   openActionItems, computePaymentStatus, computeLTV,
 } from '@/lib/clients-data'
 
-type DetailTab = 'overview' | 'comms' | 'account'
+type DetailTab = 'overview' | 'account'
 
 const TABS: { key: DetailTab; label: string }[] = [
   { key: 'overview', label: 'Overview' },
-  { key: 'comms', label: 'Comms' },
   { key: 'account', label: 'Account' },
 ]
 
 const STATUS_LABELS: Record<ClientStatus, string> = {
   active: 'ACTIVE',
-  at_risk: 'AT RISK',
   onboarding: 'ONBOARDING',
   prospect: 'PROSPECT',
   churned: 'CHURNED',
+  archived: 'ARCHIVED',
 }
 
 function statusColor(status: ClientStatus): string {
   switch (status) {
     case 'active': return colors.accent
-    case 'at_risk': return colors.red
     case 'onboarding': return colors.yellow
     case 'prospect': return colors.blue
     case 'churned': return colors.textMuted
+    case 'archived': return colors.textMuted
   }
 }
 
 function statusBg(status: ClientStatus): string {
   switch (status) {
     case 'active': return 'rgba(56,161,87,0.12)'
-    case 'at_risk': return 'rgba(255,123,114,0.12)'
     case 'onboarding': return 'rgba(227,179,65,0.12)'
     case 'prospect': return 'rgba(99,179,237,0.12)'
     case 'churned': return 'rgba(125,138,153,0.12)'
+    case 'archived': return 'rgba(125,138,153,0.12)'
   }
 }
 
@@ -141,16 +141,6 @@ export default function ClientDetail({
               onDeleteAction={onDeleteAction}
             />
           )}
-          {tab === 'comms' && (
-            <CommsTab
-              clientId={client.id}
-              comms={comms}
-              onAdd={onAddComms}
-              onUpdate={onUpdateComms}
-              onTogglePin={onTogglePinComms}
-              onDelete={onDeleteComms}
-            />
-          )}
           {tab === 'account' && (
             <AccountTab client={client} onUpdateClient={onUpdateClient} />
           )}
@@ -175,30 +165,11 @@ function OverviewTab({
   onToggleAction: (id: string) => void
   onDeleteAction: (id: string) => void
 }) {
-  const health = computeHealth(client, comms, actions, txs)
-  const lastContact = lastContactDate(client, comms)
-  const openItems = openActionItems(client.id, actions)
   const payment = computePaymentStatus(client, txs)
   const ltv = computeLTV(client, txs)
 
-  // Activity timeline: combine comms entries + action items, last 5
-  const timeline = [
-    ...comms.filter(c => c.clientId === client.id).map(c => ({
-      kind: 'comms' as const, date: c.date, summary: `${c.type[0].toUpperCase() + c.type.slice(1)} — ${c.summary}`,
-    })),
-    ...actions.filter(a => a.clientId === client.id).map(a => ({
-      kind: 'action' as const, date: new Date(a.createdAt).toISOString().slice(0, 10),
-      summary: a.completed ? `Completed: ${a.title}` : `Added: ${a.title}`,
-    })),
-  ].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5)
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-      {/* Health Breakdown */}
-      <Section label="Health Breakdown">
-        <HealthBreakdownCard score={health.score} components={health.components} />
-      </Section>
-
       {/* LTV Snapshot */}
       <Section label="Lifetime Value">
         <LTVSnapshot ltv={ltv} />
@@ -214,35 +185,6 @@ function OverviewTab({
         <RevenueHistory clientId={client.id} txs={txs} />
       </Section>
 
-      {/* Open Action Items */}
-      <Section label={`Open Action Items (${openItems.length})`}>
-        <ActionItemsList
-          clientId={client.id}
-          items={openItems}
-          onAdd={onAddAction}
-          onToggle={onToggleAction}
-          onDelete={onDeleteAction}
-        />
-      </Section>
-
-      {/* Activity Timeline */}
-      <Section label="Recent Activity">
-        {timeline.length === 0 ? (
-          <Empty>No activity yet — add an action item or log a conversation in the Comms tab.</Empty>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {timeline.map((e, i) => (
-              <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'baseline', fontSize: 12 }}>
-                <span style={{ ...mono, color: colors.textMuted, minWidth: 48, fontVariantNumeric: 'tabular-nums' as const }}>
-                  {fmtDate(e.date)}
-                </span>
-                <span style={{ color: colors.text, lineHeight: 1.5 }}>{e.summary}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </Section>
-
       {/* Notes */}
       <Section label="Notes">
         <NotesEditor
@@ -250,67 +192,6 @@ function OverviewTab({
           onChange={notes => onUpdateClient({ ...client, notes })}
         />
       </Section>
-
-      {/* Last Contact info */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between',
-        padding: '10px 14px', background: colors.cardBgElevated,
-        borderRadius: borders.radius.medium,
-        fontSize: 11,
-      }}>
-        <span style={{ color: colors.textMuted }}>
-          Last contact: <span style={{ ...mono, color: colors.text }}>{fmtDate(lastContact)}</span>
-        </span>
-        <span style={{ color: colors.textMuted }}>
-          Renewal: <span style={{ ...mono, color: colors.text }}>{client.renewalDate === 'N/A' ? '—' : fmtDate(client.renewalDate)}</span>
-        </span>
-      </div>
-    </div>
-  )
-}
-
-// ---- Health breakdown card ----
-function HealthBreakdownCard({ score, components }: { score: number; components: { label: string; impact: number }[] }) {
-  const hColor = healthColor(score)
-  const accent = hColor === 'green' ? colors.accent : hColor === 'yellow' ? colors.yellow : colors.red
-  return (
-    <div style={{
-      padding: '16px 18px',
-      background: hColor === 'green' ? 'rgba(56,161,87,0.06)' : hColor === 'yellow' ? 'rgba(227,179,65,0.06)' : 'rgba(255,123,114,0.06)',
-      border: `1px solid ${hColor === 'green' ? 'rgba(56,161,87,0.2)' : hColor === 'yellow' ? 'rgba(227,179,65,0.2)' : 'rgba(255,123,114,0.2)'}`,
-      borderRadius: borders.radius.medium,
-    }}>
-      {/* Score + bar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
-        <div style={{ ...mono, fontSize: 32, fontWeight: 700, color: accent, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
-          {score}
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ ...mono, fontSize: 9, color: colors.textMuted, letterSpacing: '0.08em', fontWeight: 600, marginBottom: 4 }}>
-            HEALTH
-          </div>
-          <div style={{ height: 5, background: colors.border, borderRadius: 3, overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${score}%`, background: accent, transition: 'width 0.3s' }} />
-          </div>
-        </div>
-      </div>
-
-      {/* Component breakdown */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {components.map((c, i) => (
-          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-            <span style={{ color: colors.text }}>{c.label}</span>
-            <span style={{
-              ...mono,
-              fontVariantNumeric: 'tabular-nums' as const,
-              fontWeight: 600,
-              color: c.impact > 0 ? colors.accent : c.impact < 0 ? colors.red : colors.textMuted,
-            }}>
-              {c.impact > 0 ? '+' : ''}{c.impact}
-            </span>
-          </div>
-        ))}
-      </div>
     </div>
   )
 }
@@ -390,7 +271,7 @@ function LTVSnapshot({ ltv }: { ltv: ReturnType<typeof computeLTV> }) {
       border: `1px solid ${isEmpty ? colors.border : 'rgba(56,161,87,0.2)'}`,
       borderRadius: borders.radius.medium,
       display: 'grid',
-      gridTemplateColumns: '1.4fr 1fr 1fr',
+      gridTemplateColumns: '1.4fr 1fr',
       gap: 16,
     }}>
       <LTVCell
@@ -398,17 +279,12 @@ function LTVSnapshot({ ltv }: { ltv: ReturnType<typeof computeLTV> }) {
         value={fmtMoney(ltv.total)}
         color={isEmpty ? colors.textMuted : colors.accent}
         emphasized
+        sub={ltv.paymentCount > 0 ? `${ltv.paymentCount} payment${ltv.paymentCount === 1 ? '' : 's'}` : undefined}
       />
       <LTVCell
         label="Tenure"
         value={ltv.tenureLabel}
         color={colors.text}
-      />
-      <LTVCell
-        label="Avg / Mo"
-        value={fmtMoney(Math.round(ltv.avgPerMonth))}
-        color={colors.text}
-        sub={ltv.paymentCount > 0 ? `${ltv.paymentCount} payment${ltv.paymentCount === 1 ? '' : 's'}` : undefined}
       />
     </div>
   )
@@ -434,6 +310,7 @@ function LTVCell({ label, value, color, emphasized, sub }: { label: string; valu
 
 // ---- Revenue history — last 6 months from this client ----
 function RevenueHistory({ clientId, txs }: { clientId: string; txs: FinanceTxLite[] }) {
+  const [hover, setHover] = useState<number | null>(null)
   const now = new Date()
   const months: { label: string; ym: string; total: number }[] = []
   const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -448,7 +325,6 @@ function RevenueHistory({ clientId, txs }: { clientId: string; txs: FinanceTxLit
 
   const max = Math.max(1, ...months.map(m => m.total))
   const sumTotal = months.reduce((s, m) => s + m.total, 0)
-  const avg = sumTotal / months.length
 
   if (sumTotal === 0) {
     return (
@@ -467,30 +343,36 @@ function RevenueHistory({ clientId, txs }: { clientId: string; txs: FinanceTxLit
       background: colors.cardBgElevated,
       borderRadius: borders.radius.medium,
     }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10, fontSize: 11 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12, fontSize: 11 }}>
         <span style={{ color: colors.textMuted }}>
           6-mo total: <span style={{ ...mono, color: colors.accent, fontWeight: 600 }}>${sumTotal.toLocaleString('en-US')}</span>
         </span>
-        <span style={{ color: colors.textMuted }}>
-          Avg/mo: <span style={{ ...mono, color: colors.text, fontWeight: 600 }}>${Math.round(avg).toLocaleString('en-US')}</span>
+        <span style={{ ...mono, fontSize: 11, color: hover !== null ? colors.accent : colors.textSubtle }}>
+          {hover !== null ? `${months[hover].label} · $${months[hover].total.toLocaleString('en-US')}` : 'hover a bar'}
         </span>
       </div>
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 56 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 70 }}>
         {months.map((m, i) => {
           const heightPct = max > 0 ? (m.total / max) * 100 : 0
+          const active = hover === i
           return (
-            <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-              <div
-                title={`${m.label}: $${m.total.toLocaleString('en-US')}`}
-                style={{
+            <div key={i}
+              onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}
+              style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+              {/* reference track — gives the bars a visible scale */}
+              <div style={{ position: 'relative', width: '100%', height: 52, display: 'flex', alignItems: 'flex-end', background: 'rgba(255,255,255,0.04)', borderRadius: '3px 3px 0 0' }}>
+                <div style={{
                   width: '100%', height: `${heightPct}%`, minHeight: m.total > 0 ? 2 : 0,
-                  background: m.total > 0 ? colors.accent : 'transparent',
-                  borderRadius: '2px 2px 0 0',
-                  opacity: 0.85,
-                  transition: 'opacity 0.15s',
-                }}
-              />
-              <div style={{ ...mono, fontSize: 9, color: colors.textMuted, letterSpacing: '0.04em' }}>
+                  background: colors.accent, opacity: active ? 1 : 0.8,
+                  borderRadius: '3px 3px 0 0', transition: 'opacity 0.12s',
+                }} />
+                {active && m.total > 0 && (
+                  <div style={{ position: 'absolute', top: -15, left: '50%', transform: 'translateX(-50%)', ...mono, fontSize: 10, fontWeight: 700, color: colors.accent, whiteSpace: 'nowrap' as const }}>
+                    ${m.total.toLocaleString('en-US')}
+                  </div>
+                )}
+              </div>
+              <div style={{ ...mono, fontSize: 9, color: active ? colors.text : colors.textMuted, letterSpacing: '0.04em' }}>
                 {m.label}
               </div>
             </div>
@@ -510,67 +392,29 @@ function AccountTab({ client, onUpdateClient }: { client: Client; onUpdateClient
         <FieldRow label="Business Name" value={client.business} onSave={v => onUpdateClient({ ...client, business: v })} />
       </Section>
 
-      <Section label="Engagement">
-        <FieldRow
-          label="Status"
-          value={client.status}
-          display={STATUS_LABELS[client.status]}
-          options={[
-            { value: 'onboarding', label: 'Onboarding' },
-            { value: 'active', label: 'Active' },
-            { value: 'at_risk', label: 'At Risk' },
-            { value: 'prospect', label: 'Prospect' },
-            { value: 'churned', label: 'Churned' },
-          ]}
-          onSave={v => onUpdateClient({ ...client, status: v as ClientStatus })}
-        />
-        <FieldRow
-          label="Service Type"
-          value={client.serviceType}
-          display={SERVICE_TYPE_LABELS[client.serviceType]}
-          options={[
-            { value: 'ads', label: 'Ads' },
-            { value: 'web', label: 'Web Design' },
-            { value: 'retainer', label: 'Retainer' },
-            { value: 'project', label: 'Project' },
-            { value: 'other', label: 'Other' },
-          ]}
-          onSave={v => onUpdateClient({ ...client, serviceType: v as ServiceType })}
-        />
-        <FieldRow
-          label="Monthly Retainer"
-          value={String(client.monthlyRetainer)}
-          display={client.monthlyRetainer > 0 ? `${fmtMoney(client.monthlyRetainer)}/mo` : 'Project-based'}
-          inputType="number"
-          mono
-          onSave={v => onUpdateClient({ ...client, monthlyRetainer: parseFloat(v) || 0 })}
+      <Section label="Services & Payment">
+        <ServicesEditor
+          services={client.services ?? []}
+          onChange={services => onUpdateClient({ ...client, services, monthlyRetainer: deriveMRR(services) })}
         />
       </Section>
 
       <Section label="Dates">
         <FieldRow
-          label="Start Date"
-          value={client.startDate ?? ''}
-          display={client.startDate ? fmtDate(client.startDate) : '—'}
+          label="Signed"
+          value={client.signedDate ?? ''}
+          display={client.signedDate ? fmtDate(client.signedDate) : '—'}
           inputType="date"
           mono
-          onSave={v => onUpdateClient({ ...client, startDate: v || undefined })}
+          onSave={v => onUpdateClient({ ...client, signedDate: v || undefined })}
         />
         <FieldRow
-          label="Renewal Date"
+          label="Renewal (optional)"
           value={client.renewalDate === 'N/A' ? '' : client.renewalDate}
-          display={client.renewalDate === 'N/A' ? 'N/A' : fmtDate(client.renewalDate)}
+          display={client.renewalDate === 'N/A' ? '—' : fmtDate(client.renewalDate)}
           inputType="date"
           mono
           onSave={v => onUpdateClient({ ...client, renewalDate: v || 'N/A' })}
-        />
-        <FieldRow
-          label="Last Contact"
-          value={client.lastContact}
-          display={fmtDate(client.lastContact)}
-          inputType="date"
-          mono
-          onSave={v => onUpdateClient({ ...client, lastContact: v })}
         />
       </Section>
 
@@ -590,6 +434,39 @@ function AccountTab({ client, onUpdateClient }: { client: Client; onUpdateClient
           onSave={v => onUpdateClient({ ...client, contactPhone: v.trim() || undefined })}
         />
       </Section>
+    </div>
+  )
+}
+
+// ---- Services & per-service payment editor (Account tab) ----
+function ServicesEditor({ services, onChange }: { services: ClientService[]; onChange: (s: ClientService[]) => void }) {
+  const [local, setLocal] = useState<ClientService[]>(services)
+  useEffect(() => { setLocal(services) }, [services])
+  const editLocal = (i: number, patch: Partial<ClientService>) => setLocal(local.map((s, idx) => idx === i ? { ...s, ...patch } : s))
+  const commit = (next: ClientService[]) => { setLocal(next); onChange(next) }
+  const sel: React.CSSProperties = { background: colors.cardBg, border: `1px solid ${colors.border}`, borderRadius: 6, color: colors.text, fontSize: 12, padding: '6px 8px', fontFamily: 'inherit', outline: 'none' }
+  const unit = (p: PayModel) => p === 'monthly' ? '/mo' : p === 'per_appt' ? '/appt' : p === 'per_lead' ? '/lead' : ''
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {local.length === 0 && <div style={{ fontSize: 12, color: colors.textMuted }}>No services yet — add one below.</div>}
+      {local.map((s, i) => (
+        <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' as const, background: colors.cardBgElevated, borderRadius: borders.radius.small, padding: 8 }}>
+          <select value={s.kind} onChange={e => commit(local.map((x, idx) => idx === i ? { ...x, kind: e.target.value as ServiceKind } : x))} style={{ ...sel, flex: '1 1 140px' }}>
+            {(Object.keys(SERVICE_KIND_LABELS) as ServiceKind[]).map(k => <option key={k} value={k}>{SERVICE_KIND_LABELS[k]}</option>)}
+          </select>
+          <select value={s.pay} onChange={e => commit(local.map((x, idx) => idx === i ? { ...x, pay: e.target.value as PayModel } : x))} style={{ ...sel, flex: '1 1 130px' }}>
+            {(Object.keys(PAY_MODEL_LABELS) as PayModel[]).map(p => <option key={p} value={p}>{PAY_MODEL_LABELS[p]}</option>)}
+          </select>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <span style={{ ...mono, fontSize: 12, color: colors.textMuted }}>$</span>
+            <input type="number" value={s.amount || ''} onChange={e => editLocal(i, { amount: parseFloat(e.target.value) || 0 })} onBlur={() => onChange(local)} style={{ ...sel, ...mono, width: 72 }} />
+            <span style={{ ...mono, fontSize: 11, color: colors.textMuted, minWidth: 28 }}>{unit(s.pay)}</span>
+          </div>
+          <button onClick={() => commit(local.filter((_, idx) => idx !== i))} title="Remove" style={{ marginLeft: 'auto', background: 'transparent', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: 16, lineHeight: 1 }}>×</button>
+        </div>
+      ))}
+      <button onClick={() => commit([...local, { kind: 'ads_leads', pay: 'monthly', amount: 0 }])} style={{ alignSelf: 'flex-start', background: colors.accent + '18', border: `1px solid ${colors.accent}44`, borderRadius: borders.radius.small, color: colors.accent, fontSize: 12, fontWeight: 600, padding: '6px 12px', cursor: 'pointer' }}>+ Add service</button>
+      {deriveMRR(local) > 0 && <div style={{ ...mono, fontSize: 11, color: colors.textMuted, marginTop: 2 }}>MRR from monthly services: <span style={{ color: colors.accent, fontWeight: 700 }}>{fmtMoney(deriveMRR(local))}/mo</span></div>}
     </div>
   )
 }
@@ -829,59 +706,31 @@ function ActionItemsList({
 }
 
 // ---- Notes editor ----
+// Bullet-point notes editor. Each line of `value` is one bullet. Commits on
+// blur (not per keystroke — client saves are wipe-and-reinsert).
 function NotesEditor({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const [draft, setDraft] = useState(value)
-  const [editing, setEditing] = useState(false)
-
-  function save() {
-    onChange(draft)
-    setEditing(false)
-  }
-
-  if (editing) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <textarea
-          autoFocus
-          value={draft}
-          onChange={e => setDraft(e.target.value)}
-          style={{
-            width: '100%', minHeight: 80,
-            background: colors.cardBg, border: `1px solid ${colors.border}`,
-            borderRadius: borders.radius.medium, padding: '10px 12px',
-            color: colors.text, fontSize: 13, outline: 'none', resize: 'vertical' as const,
-            fontFamily: 'inherit', lineHeight: 1.5,
-          }}
-        />
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <button onClick={() => { setDraft(value); setEditing(false) }} style={{
-            padding: '6px 12px', fontSize: 12, background: 'transparent', color: colors.textMuted,
-            border: `1px solid ${colors.border}`, borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit',
-          }}>Cancel</button>
-          <button onClick={save} style={{
-            padding: '6px 14px', fontSize: 12, fontWeight: 600,
-            background: colors.accent, color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit',
-          }}>Save</button>
-        </div>
-      </div>
-    )
-  }
-
+  const [bullets, setBullets] = useState<string[]>(value ? value.split('\n') : [])
+  useEffect(() => { setBullets(value ? value.split('\n') : []) }, [value])
+  const commit = (next: string[]) => { setBullets(next); onChange(next.map(b => b.trim()).filter(Boolean).join('\n')) }
+  const editAt = (i: number, v: string) => setBullets(bullets.map((b, idx) => idx === i ? v : b))
   return (
-    <div
-      onClick={() => { setDraft(value); setEditing(true) }}
-      style={{
-        padding: '12px 14px',
-        background: colors.cardBgElevated,
-        borderRadius: borders.radius.medium,
-        border: `1px solid ${colors.border}`,
-        cursor: 'text',
-        fontSize: 13, color: value ? colors.text : colors.textMuted,
-        lineHeight: 1.5, minHeight: 24,
-        whiteSpace: 'pre-wrap' as const,
-      }}
-    >
-      {value || 'Click to add notes...'}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {bullets.length === 0 && <div style={{ fontSize: 12, color: colors.textMuted }}>No notes yet — add a bullet below.</div>}
+      {bullets.map((b, i) => (
+        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ color: colors.accent, fontSize: 15, lineHeight: 1 }}>•</span>
+          <input
+            value={b}
+            onChange={e => editAt(i, e.target.value)}
+            onBlur={() => commit(bullets)}
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); setBullets([...bullets.slice(0, i + 1), '', ...bullets.slice(i + 1)]) } }}
+            placeholder="Add a note…"
+            style={{ flex: 1, background: colors.cardBg, border: `1px solid ${colors.border}`, borderRadius: 6, padding: '7px 10px', color: colors.text, fontSize: 13, outline: 'none', fontFamily: 'inherit', lineHeight: 1.4 }}
+          />
+          <button onClick={() => commit(bullets.filter((_, idx) => idx !== i))} title="Remove" style={{ background: 'transparent', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: 15, lineHeight: 1 }}>×</button>
+        </div>
+      ))}
+      <button onClick={() => setBullets([...bullets, ''])} style={{ alignSelf: 'flex-start', background: colors.accent + '18', border: `1px solid ${colors.accent}44`, borderRadius: 6, color: colors.accent, fontSize: 12, fontWeight: 600, padding: '5px 10px', cursor: 'pointer' }}>+ Add bullet</button>
     </div>
   )
 }

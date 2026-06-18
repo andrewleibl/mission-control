@@ -86,7 +86,7 @@ export default function CallerPerformance() {
       </div>
 
       {/* Top Stats */}
-      <div style={statsGridStyle}>
+      <div className="stat-strip-mobile" style={statsGridStyle}>
         <div style={statCardStyle}>
           <div style={{ fontSize: 28, fontWeight: 700, color: '#3B82F6' }}>{totalDials}</div>
           <div style={{ fontSize: 12, color: '#718096', marginTop: 4 }}>Total Dials This Week</div>
@@ -117,7 +117,7 @@ export default function CallerPerformance() {
       </div>
 
       {/* Main Content */}
-      <div style={{ display: 'flex', gap: 20 }}>
+      <div className="stack-mobile-flex" style={{ display: 'flex', gap: 20 }}>
         {/* Left: Caller Cards */}
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -196,7 +196,7 @@ export default function CallerPerformance() {
                   </div>
 
                   {/* Key Metrics */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 12 }}>
+                  <div className="stat-strip-mobile" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 12 }}>
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontSize: 18, fontWeight: 700, color: '#F7FAFC' }}>{caller.totalStats.dials}</div>
                       <div style={{ fontSize: 10, color: '#718096' }}>Total Dials</div>

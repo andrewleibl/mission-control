@@ -9,29 +9,53 @@ import { Trophy, TrendingDown, Flame, Send, ThumbsUp, CalendarCheck2, ArrowRight
 import { colors, cardStyle, borders, mono } from '@/components/DesignSystem'
 import { SmsTemplate, SmsSend, SmsWin, getStats, coolingSignal } from '@/lib/sms'
 
-type Period = '7d' | '30d' | '90d' | 'all'
+type Period = 'today' | '7d' | '30d' | '90d' | 'all' | 'custom'
 
 const PERIOD_LABEL: Record<Period, string> = {
+  'today': 'Today',
   '7d': 'Last 7 days',
   '30d': 'Last 30 days',
   '90d': 'Last 90 days',
   'all': 'All-time',
+  'custom': 'Custom range',
+}
+
+const PERIOD_SHORT: Record<Period, string> = {
+  'today': 'Today',
+  '7d': '7D',
+  '30d': '30D',
+  '90d': '90D',
+  'all': 'All',
+  'custom': 'Custom',
 }
 
 const MIN_SENDS_FOR_LEADERBOARD = 20
 
+// Local-date YYYY-MM-DD. Sends are logged with a LOCAL day key (see lib/sms
+// todayIso), so all "today"/range math here must use local date too —
+// toISOString() is UTC and rolls the day over after ~7pm CT, zeroing out
+// today's stats until midnight local.
+function ymdLocal(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
 function isoDaysAgo(n: number): string {
   const d = new Date()
   d.setDate(d.getDate() - n)
-  return d.toISOString().slice(0, 10)
+  return ymdLocal(d)
 }
 
 function todayIso() {
-  return new Date().toISOString().slice(0, 10)
+  return ymdLocal(new Date())
 }
 
-function periodBounds(p: Period): { fromIso: string | null; toIso: string | null } {
+function periodBounds(p: Period, customFrom?: string, customTo?: string): { fromIso: string | null; toIso: string | null } {
   if (p === 'all') return { fromIso: null, toIso: null }
+  if (p === 'today') return { fromIso: todayIso(), toIso: todayIso() }
+  if (p === 'custom') return { fromIso: customFrom || null, toIso: customTo || null }
   const days = p === '7d' ? 6 : p === '30d' ? 29 : 89
   return { fromIso: isoDaysAgo(days), toIso: todayIso() }
 }
@@ -126,14 +150,14 @@ function buildTrend(
   const positivesByDay = new Map<string, number>()
   const bookedByDay = new Map<string, number>()
   for (const w of wins) {
-    const day = new Date(w.loggedAt).toISOString().slice(0, 10)
+    const day = ymdLocal(new Date(w.loggedAt))
     if (w.type === 'positive_reply') positivesByDay.set(day, (positivesByDay.get(day) ?? 0) + 1)
     else bookedByDay.set(day, (bookedByDay.get(day) ?? 0) + 1)
   }
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date()
     d.setDate(d.getDate() - i)
-    const iso = d.toISOString().slice(0, 10)
+    const iso = ymdLocal(d)
     const sent = sendsByDay.get(iso) ?? 0
     const positives = positivesByDay.get(iso) ?? 0
     const booked = bookedByDay.get(iso) ?? 0
@@ -188,7 +212,9 @@ export default function SmsStats({
   wins: SmsWin[]
 }) {
   const [period, setPeriod] = useState<Period>('30d')
-  const bounds = periodBounds(period)
+  const [customFrom, setCustomFrom] = useState(() => isoDaysAgo(29))
+  const [customTo, setCustomTo] = useState(() => todayIso())
+  const bounds = periodBounds(period, customFrom, customTo)
 
   const totals = useMemo(
     () => aggregate(templates, sends, wins, bounds.fromIso, bounds.toIso),
@@ -207,7 +233,13 @@ export default function SmsStats({
     [templates, sends, wins],
   )
 
-  const trendDays = period === '7d' ? 7 : period === '90d' ? 90 : 30
+  const trendDays =
+    period === 'today' ? 1
+    : period === '7d' ? 7
+    : period === '90d' ? 90
+    : period === 'custom'
+      ? Math.min(180, Math.max(1, Math.round((new Date(customTo).getTime() - new Date(customFrom).getTime()) / 86400000) + 1))
+    : 30
   const trend = useMemo(() => buildTrend(sends, wins, trendDays), [sends, wins, trendDays])
 
   const dow = useMemo(
@@ -222,7 +254,14 @@ export default function SmsStats({
   return (
     <div style={{ display: 'grid', gap: 18 }}>
       {/* Period selector */}
-      <PeriodSelector value={period} onChange={setPeriod} />
+      <PeriodSelector
+        value={period}
+        onChange={setPeriod}
+        customFrom={customFrom}
+        customTo={customTo}
+        onChangeCustomFrom={setCustomFrom}
+        onChangeCustomTo={setCustomTo}
+      />
 
       {/* Top KPI strip */}
       <div style={{
@@ -403,36 +442,79 @@ export default function SmsStats({
 // Sub-components
 // =================================================================
 
-function PeriodSelector({ value, onChange }: { value: Period; onChange: (p: Period) => void }) {
-  const options: Period[] = ['7d', '30d', '90d', 'all']
+function PeriodSelector({
+  value, onChange, customFrom, customTo, onChangeCustomFrom, onChangeCustomTo,
+}: {
+  value: Period
+  onChange: (p: Period) => void
+  customFrom: string
+  customTo: string
+  onChangeCustomFrom: (s: string) => void
+  onChangeCustomTo: (s: string) => void
+}) {
+  const options: Period[] = ['today', '7d', '30d', '90d', 'all', 'custom']
   return (
-    <div style={{
-      display: 'inline-flex', background: colors.cardBg,
-      border: `1px solid ${colors.border}`, borderRadius: borders.radius.medium,
-      padding: 3, gap: 2,
-    }}>
-      {options.map(opt => {
-        const active = value === opt
-        return (
-          <button
-            key={opt}
-            onClick={() => onChange(opt)}
-            style={{
-              ...mono,
-              background: active ? colors.accent + '22' : 'transparent',
-              border: 'none', borderRadius: borders.radius.small,
-              color: active ? colors.accent : colors.textMuted,
-              fontSize: 12, fontWeight: 600, padding: '7px 14px',
-              cursor: 'pointer', letterSpacing: '0.04em',
-              textTransform: 'uppercase' as const,
-            }}
-          >
-            {opt === 'all' ? 'All' : opt}
-          </button>
-        )
-      })}
+    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
+      <div style={{
+        display: 'inline-flex', background: colors.cardBg,
+        border: `1px solid ${colors.border}`, borderRadius: borders.radius.medium,
+        padding: 3, gap: 2, flexWrap: 'wrap',
+      }}>
+        {options.map(opt => {
+          const active = value === opt
+          return (
+            <button
+              key={opt}
+              onClick={() => onChange(opt)}
+              style={{
+                ...mono,
+                background: active ? colors.accent + '22' : 'transparent',
+                border: 'none', borderRadius: borders.radius.small,
+                color: active ? colors.accent : colors.textMuted,
+                fontSize: 12, fontWeight: 600, padding: '7px 14px',
+                cursor: 'pointer', letterSpacing: '0.04em',
+                textTransform: 'uppercase' as const,
+              }}
+            >
+              {PERIOD_SHORT[opt]}
+            </button>
+          )
+        })}
+      </div>
+      {value === 'custom' && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <input
+            type="date"
+            value={customFrom}
+            max={customTo || undefined}
+            onChange={e => onChangeCustomFrom(e.target.value)}
+            style={dateInputStyle}
+          />
+          <span style={{ color: colors.textMuted, fontSize: 12 }}>→</span>
+          <input
+            type="date"
+            value={customTo}
+            min={customFrom || undefined}
+            onChange={e => onChangeCustomTo(e.target.value)}
+            style={dateInputStyle}
+          />
+        </div>
+      )}
     </div>
   )
+}
+
+const dateInputStyle: React.CSSProperties = {
+  background: colors.cardBg,
+  border: `1px solid ${colors.border}`,
+  borderRadius: 6,
+  color: colors.text,
+  fontSize: 12,
+  fontWeight: 500,
+  padding: '6px 8px',
+  outline: 'none',
+  fontFamily: 'inherit',
+  colorScheme: 'dark',
 }
 
 function KpiCard({

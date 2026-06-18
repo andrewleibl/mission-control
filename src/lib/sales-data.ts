@@ -1,5 +1,5 @@
 export type CallSource = 'website' | 'referral' | 'cold_outreach' | 'meta_ads' | 'instagram' | 'other'
-export type CallOutcome = 'pending' | 'no_show' | 'not_qualified' | 'proposal' | 'closed_won' | 'closed_lost'
+export type CallOutcome = 'pending' | 'no_show' | 'rescheduled' | 'not_qualified' | 'proposal' | 'closed_won' | 'closed_lost'
 
 export type SalesCall = {
   id: string
@@ -41,6 +41,7 @@ export const SOURCE_META: Record<CallSource, { label: string; color: string }> =
 export const OUTCOME_META: Record<CallOutcome, { label: string; color: string }> = {
   pending:       { label: 'Pending',       color: '#718096' },
   no_show:       { label: 'No Show',       color: '#FC8181' },
+  rescheduled:   { label: 'Rescheduled',   color: '#63B3ED' },
   not_qualified: { label: 'Not Qualified', color: '#F6AD55' },
   proposal:      { label: 'Proposal Out',  color: '#9F7AEA' },
   closed_won:    { label: 'Closed Won',    color: '#38A157' },
@@ -63,7 +64,7 @@ export type SalesStats = {
 }
 
 export function computeStats(calls: SalesCall[]): SalesStats {
-  const past = calls.filter(c => c.outcome !== 'pending')
+  const past = calls.filter(c => c.outcome !== 'pending' && c.outcome !== 'rescheduled')
   const showed = past.filter(c => c.showed).length
   const qualified = past.filter(c => c.qualified).length
   const closedWon = past.filter(c => c.outcome === 'closed_won').length

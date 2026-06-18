@@ -6,7 +6,7 @@ import {
   Transaction, RecurringRule, Frequency, TxType, ProjectedTransaction,
   loadTransactions, saveTransactions, loadRules, saveRules,
   projectRecurring, confirmed, sumIncome, sumExpenses,
-  approveProjection, skipProjection,
+  approveProjection, skipProjection, updateTransactionDate,
 } from '@/lib/finances'
 import { getClientsForTagging, ClientSummary } from '@/lib/clients-data'
 import dynamic from 'next/dynamic'
@@ -525,6 +525,18 @@ export default function FinancesPage() {
   function persistTxs(next: Transaction[]) { setTxs(next); saveTransactions(next) }
   function persistRules(next: RecurringRule[]) { setRules(next); saveRules(next) }
 
+  // Drag-and-drop: move a transaction to another day. Single-row update so a
+  // drag doesn't rewrite the whole table; optimistic with revert on failure.
+  function moveTx(id: string, newDate: string) {
+    const tx = txs.find(t => t.id === id)
+    if (!tx || tx.date === newDate) return
+    const prev = txs
+    setTxs(txs.map(t => t.id === id ? { ...t, date: newDate } : t))
+    updateTransactionDate(id, newDate)
+      .then(() => showToast('Transaction moved'))
+      .catch(() => { setTxs(prev); showToast('Could not move transaction', 'error') })
+  }
+
   function deleteTx(id: string) {
     persistTxs(txs.filter(t => t.id !== id))
     showToast('Transaction deleted', 'info')
@@ -659,6 +671,7 @@ export default function FinancesPage() {
             const tx = txs.find(t => t.id === id)
             if (tx) setTxModal({ kind: 'edit', tx })
           }}
+          onMoveTx={moveTx}
         />
       )}
       {tab === 'stats' && (

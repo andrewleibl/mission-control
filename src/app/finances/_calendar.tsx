@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd'
 import { colors, cardStyle, borders } from '@/components/DesignSystem'
 import {
   Transaction, RecurringRule, ProjectedTransaction,
@@ -20,9 +21,10 @@ interface Props {
   onEditAndConfirm: (projection: ProjectedTransaction) => void
   onDeleteTx: (id: string) => void
   onEditTx: (id: string) => void
+  onMoveTx: (id: string, newDate: string) => void
 }
 
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+const MONTHS =['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 const WEEKDAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 
 function fmt(n: number) { return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) }
@@ -58,8 +60,17 @@ interface CalendarEntry {
   projection?: ProjectedTransaction
 }
 
-export default function CalendarView({ txs, rules, clients, onAddForDay, onApprove, onSkip, onEditAndConfirm, onDeleteTx, onEditTx }: Props) {
+export default function CalendarView({ txs, rules, clients, onAddForDay, onApprove, onSkip, onEditAndConfirm, onDeleteTx, onEditTx, onMoveTx }: Props) {
   const [view, setView] = useState<ViewMode>('month')
+
+  // Drag a transaction chip onto another day → re-date it. droppableId = day ISO,
+  // draggableId = transaction id (only confirmed txs are draggable).
+  function onDragEnd(result: DropResult) {
+    const { draggableId, destination, source } = result
+    if (!destination) return
+    if (destination.droppableId === source.droppableId) return
+    onMoveTx(draggableId, destination.droppableId)
+  }
   const [cursor, setCursor] = useState<Date>(TODAY)
   const [selectedDayIso, setSelectedDayIso] = useState<string | null>(null)
   const [popover, setPopover] = useState<{ projection: ProjectedTransaction; x: number; y: number } | null>(null)
@@ -200,6 +211,7 @@ export default function CalendarView({ txs, rules, clients, onAddForDay, onAppro
       </div>
 
       {/* Body */}
+      <DragDropContext onDragEnd={onDragEnd}>
       <div className="retention-cal-body" style={{ ...cardStyle, padding: 0, overflowX: 'auto' }}>
         {view === 'month' && (
           <MonthGrid
@@ -239,6 +251,7 @@ export default function CalendarView({ txs, rules, clients, onAddForDay, onAppro
           />
         )}
       </div>
+      </DragDropContext>
 
       {/* Side panel for selected day */}
       {selectedDayIso && view !== 'day' && (
@@ -363,10 +376,7 @@ function MonthGrid({
                 position: 'relative',
                 opacity: dim ? 0.35 : 1,
                 display: 'flex', flexDirection: 'column', gap: 4,
-                transition: 'background 0.1s',
               }}
-              onMouseEnter={e => { if (!isToday) e.currentTarget.style.background = 'rgba(255,255,255,0.02)' }}
-              onMouseLeave={e => { if (!isToday) e.currentTarget.style.background = 'transparent' }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <span style={{
@@ -376,21 +386,46 @@ function MonthGrid({
                 }}>{d.getDate()}</span>
               </div>
 
-              {/* Transaction chips */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, overflow: 'hidden' }}>
-                {entries.slice(0, 3).map((e, idx) => (
-                  <Chip
-                    key={idx}
-                    entry={e}
-                    onProjectedClick={onProjectedClick}
-                  />
-                ))}
-                {entries.length > 3 && (
-                  <span style={{ fontSize: 10, color: colors.textMuted, paddingLeft: 4 }}>
-                    +{entries.length - 3} more
-                  </span>
+              {/* Transaction chips — Droppable directly wraps the draggables */}
+              <Droppable droppableId={iso}>
+                {(dropProvided, dropSnapshot) => (
+                  <div
+                    ref={dropProvided.innerRef}
+                    {...dropProvided.droppableProps}
+                    style={{
+                      display: 'flex', flexDirection: 'column', gap: 2, flex: 1,
+                      minHeight: 36, borderRadius: 4,
+                      background: dropSnapshot.isDraggingOver ? 'rgba(56,161,87,0.16)' : 'transparent',
+                      transition: 'background 0.1s',
+                    }}
+                  >
+                    {(() => {
+                      let dIndex = -1
+                      return entries.slice(0, 3).map((e, idx) => {
+                        if (e.kind === 'tx' && e.txId) {
+                          dIndex++
+                          return (
+                            <DraggableChip
+                              key={e.txId}
+                              draggableId={e.txId}
+                              index={dIndex}
+                              entry={e}
+                              onProjectedClick={onProjectedClick}
+                            />
+                          )
+                        }
+                        return <Chip key={idx} entry={e} onProjectedClick={onProjectedClick} />
+                      })
+                    })()}
+                    {dropProvided.placeholder}
+                    {entries.length > 3 && (
+                      <span style={{ fontSize: 10, color: colors.textMuted, paddingLeft: 4 }}>
+                        +{entries.length - 3} more
+                      </span>
+                    )}
+                  </div>
                 )}
-              </div>
+              </Droppable>
 
               {/* Daily rollup at the bottom */}
               {(incomeSum > 0 || expenseSum > 0) && (
@@ -451,26 +486,50 @@ function WeekGrid({
           const entries = entriesByDay[iso] ?? []
           const isToday = iso === TODAY_ISO
           return (
-            <div
-              key={i}
-              onClick={() => onSelectDay(iso)}
-              style={{
-                padding: '10px 12px',
-                borderRight: i < 6 ? `1px solid ${colors.border}` : undefined,
-                background: isToday ? 'rgba(56,161,87,0.04)' : 'transparent',
-                cursor: 'pointer',
-                display: 'flex', flexDirection: 'column', gap: 4,
-              }}
-              onMouseEnter={e => { if (!isToday) e.currentTarget.style.background = 'rgba(255,255,255,0.02)' }}
-              onMouseLeave={e => { if (!isToday) e.currentTarget.style.background = 'transparent' }}
-            >
-              {entries.length === 0 && (
-                <span style={{ fontSize: 11, color: colors.textMuted, opacity: 0.4 }}>—</span>
+            <Droppable droppableId={iso} key={iso}>
+              {(dropProvided, dropSnapshot) => (
+                <div
+                  ref={dropProvided.innerRef}
+                  {...dropProvided.droppableProps}
+                  onClick={() => onSelectDay(iso)}
+                  style={{
+                    padding: '10px 12px',
+                    borderRight: i < 6 ? `1px solid ${colors.border}` : undefined,
+                    background: dropSnapshot.isDraggingOver
+                      ? 'rgba(56,161,87,0.12)'
+                      : isToday ? 'rgba(56,161,87,0.04)' : 'transparent',
+                    cursor: 'pointer',
+                    display: 'flex', flexDirection: 'column', gap: 4,
+                    minHeight: '100%',
+                    transition: 'background 0.1s',
+                  }}
+                >
+                  {entries.length === 0 && !dropSnapshot.isDraggingOver && (
+                    <span style={{ fontSize: 11, color: colors.textMuted, opacity: 0.4 }}>—</span>
+                  )}
+                  {(() => {
+                    let dIndex = -1
+                    return entries.map((e, idx) => {
+                      if (e.kind === 'tx' && e.txId) {
+                        dIndex++
+                        return (
+                          <DraggableChip
+                            key={e.txId}
+                            draggableId={e.txId}
+                            index={dIndex}
+                            entry={e}
+                            onProjectedClick={onProjectedClick}
+                            expanded
+                          />
+                        )
+                      }
+                      return <Chip key={idx} entry={e} onProjectedClick={onProjectedClick} expanded />
+                    })
+                  })()}
+                  {dropProvided.placeholder}
+                </div>
               )}
-              {entries.map((e, idx) => (
-                <Chip key={idx} entry={e} onProjectedClick={onProjectedClick} expanded />
-              ))}
-            </div>
+            </Droppable>
           )
         })}
       </div>
@@ -526,9 +585,9 @@ function SidePanel({
 }) {
   return (
     <>
-      <div onClick={onClose} style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 90,
-      }} />
+      {/* No backdrop on purpose: a full-screen scrim would intercept (or visually
+          dim) calendar drags. The panel docks on the right with its own shadow
+          for separation and closes via the × button. */}
       <div className="side-panel" style={{
         position: 'fixed', top: 0, right: 0, bottom: 0,
         width: 380, background: colors.cardBg,
@@ -683,6 +742,38 @@ function DayContents({
 }
 
 // ------------------ Chip (used in calendar cells) ------------------
+// A confirmed-transaction chip wrapped as a drag source. dnd positions the
+// dragging node `position: fixed`, so it isn't clipped by ancestor overflow —
+// no portal needed (matches the working Tasks board pattern).
+function DraggableChip({
+  draggableId, index, entry, onProjectedClick, expanded,
+}: {
+  draggableId: string
+  index: number
+  entry: CalendarEntry
+  onProjectedClick: (p: ProjectedTransaction, e: React.MouseEvent) => void
+  expanded?: boolean
+}) {
+  return (
+    <Draggable draggableId={draggableId} index={index}>
+      {(provided, snapshot) => (
+        <div
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}
+          style={{
+            cursor: 'grab',
+            opacity: snapshot.isDragging ? 0.9 : 1,
+            ...provided.draggableProps.style,
+          }}
+        >
+          <Chip entry={entry} onProjectedClick={onProjectedClick} expanded={expanded} />
+        </div>
+      )}
+    </Draggable>
+  )
+}
+
 function Chip({
   entry, expanded, onProjectedClick,
 }: {

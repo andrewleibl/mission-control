@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import dynamic from 'next/dynamic'
-import { Plus, Pause, Play, Skull, Pencil, RotateCcw, Trash2, ChevronDown, ChevronUp, X, ThumbsUp, CalendarCheck2, List, Calendar as CalendarIcon, BarChart3 } from 'lucide-react'
+import { Plus, Pause, Play, Skull, Pencil, RotateCcw, Trash2, ChevronDown, ChevronUp, X, ThumbsUp, CalendarCheck2, List, Calendar as CalendarIcon, BarChart3, Users } from 'lucide-react'
 import { PageContainer, PageHeader, colors, cardStyle, cardStyleAccent, borders, mono } from '@/components/DesignSystem'
 import {
   SmsTemplate, SmsSend, SmsWin, TemplateStats,
@@ -14,8 +14,9 @@ import {
 
 const SmsCalendar = dynamic(() => import('./_calendar'), { ssr: false })
 const SmsStats = dynamic(() => import('./_stats'), { ssr: false })
+const SmsPipeline = dynamic(() => import('./_pipeline'), { ssr: false })
 
-type ViewMode = 'templates' | 'calendar' | 'stats'
+type ViewMode = 'templates' | 'pipeline' | 'calendar' | 'stats'
 
 export default function SmsPage() {
   const [templates, setTemplates] = useState<SmsTemplate[]>([])
@@ -26,7 +27,8 @@ export default function SmsPage() {
   const [editing, setEditing] = useState<SmsTemplate | null>(null)
   const [graveyardOpen, setGraveyardOpen] = useState(false)
   const [winLog, setWinLog] = useState<SmsTemplate | null>(null)
-  const [viewMode, setViewMode] = useState<ViewMode>('templates')
+  const [viewMode, setViewMode] = useState<ViewMode>('pipeline')
+  const [bulkSent, setBulkSent] = useState('')
 
   useEffect(() => {
     let cancelled = false
@@ -72,6 +74,22 @@ export default function SmsPage() {
     })
   }
 
+  // Split a single daily total evenly across all ACTIVE templates (remainder
+  // goes to the first few), and set the given day's send count for each.
+  async function handleSplitSentForDay(day: string, total: number) {
+    const act = templates.filter(t => t.status === 'active')
+    const n = act.length
+    if (n === 0 || !Number.isFinite(total) || total < 0) return
+    const base = Math.floor(total / n)
+    const remainder = total - base * n
+    await Promise.all(act.map((t, i) => handleSetSendCount(t.id, day, base + (i < remainder ? 1 : 0))))
+  }
+
+  async function handleBulkSent(total: number) {
+    await handleSplitSentForDay(todayIso(), total)
+    setBulkSent('')
+  }
+
   async function handleLogWin(templateId: string, type: 'positive_reply' | 'booked_meeting') {
     const w = await logWin(templateId, type)
     setWins(prev => [w, ...prev])
@@ -85,6 +103,39 @@ export default function SmsPage() {
   async function handleDeleteWin(id: string) {
     await deleteWin(id)
     setWins(prev => prev.filter(w => w.id !== id))
+  }
+
+  // Set the exact number of wins of a type for a template on a given day —
+  // reconciles win rows (adds or deletes) to match. Lets you fix past-day
+  // positive-reply / booked counts from the calendar without tapping +1 N times.
+  async function handleSetWinCount(templateId: string, type: 'positive_reply' | 'booked_meeting', day: string, count: number) {
+    if (count < 0 || !Number.isFinite(count)) return
+    const dayStart = new Date(day + 'T00:00:00').getTime()
+    const dayEnd = new Date(day + 'T23:59:59.999').getTime()
+    const existing = wins.filter(w => w.templateId === templateId && w.type === type && w.loggedAt >= dayStart && w.loggedAt <= dayEnd)
+    const cur = existing.length
+    if (count === cur) return
+    const noon = new Date(day + 'T12:00:00').getTime()
+    if (count > cur) {
+      const added: SmsWin[] = []
+      for (let i = 0; i < count - cur; i++) added.push(await logWinAt(templateId, type, noon))
+      setWins(prev => [...added, ...prev])
+    } else {
+      const toDelete = existing.slice(0, cur - count)
+      for (const w of toDelete) await deleteWin(w.id)
+      const ids = new Set(toDelete.map(w => w.id))
+      setWins(prev => prev.filter(w => !ids.has(w.id)))
+    }
+  }
+
+  // Remove the most recent win of a given type logged TODAY for a template —
+  // lets you undo an accidental +1 (or +2) tap without digging into the win log.
+  async function handleRemoveTodayWin(templateId: string, type: 'positive_reply' | 'booked_meeting') {
+    const start = new Date(); start.setHours(0, 0, 0, 0)
+    const todays = wins.filter(w => w.templateId === templateId && w.type === type && w.loggedAt >= start.getTime())
+    if (todays.length === 0) return
+    const latest = todays.reduce((a, b) => (a.loggedAt >= b.loggedAt ? a : b))
+    await handleDeleteWin(latest.id)
   }
 
   return (
@@ -116,17 +167,35 @@ export default function SmsPage() {
         <SmsCalendar
           templates={templates} sends={sends} wins={wins}
           onSendCountChange={handleSetSendCount}
+          onSplitSentForDay={handleSplitSentForDay}
           onLogWinAt={handleLogWinAt}
           onDeleteWin={handleDeleteWin}
+          onSetWinCount={handleSetWinCount}
         />
       ) : viewMode === 'stats' ? (
         <SmsStats templates={templates} sends={sends} wins={wins} />
+      ) : viewMode === 'pipeline' ? (
+        <SmsPipeline templates={templates} onWinsChanged={() => loadWins().then(setWins)} />
       ) : (
         <>
           {live.length === 0 ? (
             <EmptyState onCreate={() => setShowNew(true)} />
           ) : (
             <div style={{ display: 'grid', gap: 16 }}>
+              <div style={{ ...cardStyle, padding: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: colors.text }}>Log total sent today</div>
+                  <div style={{ fontSize: 11, color: colors.textMuted }}>Splits evenly across {templates.filter(t => t.status === 'active').length} active template{templates.filter(t => t.status === 'active').length === 1 ? '' : 's'} (overwrites today)</div>
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input type="number" value={bulkSent} onChange={e => setBulkSent(e.target.value)} placeholder="e.g. 1000"
+                    style={{ width: 120, background: colors.cardBgElevated, border: `1px solid ${colors.border}`, borderRadius: 8, padding: '9px 12px', color: colors.text, fontSize: 14, outline: 'none' }} />
+                  <button onClick={() => handleBulkSent(parseInt(bulkSent || '0', 10))} disabled={!bulkSent}
+                    style={{ background: colors.accent, color: '#fff', border: 'none', borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 700, cursor: bulkSent ? 'pointer' : 'not-allowed', opacity: bulkSent ? 1 : 0.5 }}>
+                    Split &amp; Log
+                  </button>
+                </div>
+              </div>
               {live.map(t => (
                 <TemplateCard
                   key={t.id}
@@ -137,6 +206,8 @@ export default function SmsPage() {
                   onSetSendCount={(count) => handleSetSendCount(t.id, todayIso(), count)}
                   onLogReply={() => handleLogWin(t.id, 'positive_reply')}
                   onLogBooked={() => handleLogWin(t.id, 'booked_meeting')}
+                  onRemoveReply={() => handleRemoveTodayWin(t.id, 'positive_reply')}
+                  onRemoveBooked={() => handleRemoveTodayWin(t.id, 'booked_meeting')}
                   onPause={() => handleUpdate(t.id, { status: t.status === 'paused' ? 'active' : 'paused' })}
                   onKill={() => handleUpdate(t.id, { status: 'killed' })}
                   onEdit={() => setEditing(t)}
@@ -193,11 +264,61 @@ export default function SmsPage() {
 }
 
 // =================================================================
+// Win stepper — +1 with an undo (−) and today's count
+// =================================================================
+function WinStepper({
+  color, icon, label, todayCount, paused, onAdd, onRemove,
+}: {
+  color: string
+  icon: React.ReactNode
+  label: string
+  todayCount: number
+  paused: boolean
+  onAdd: () => void
+  onRemove: () => void
+}) {
+  const canRemove = !paused && todayCount > 0
+  return (
+    <div style={{ display: 'flex', gap: 6, flex: '1 1 160px' }}>
+      <button
+        onClick={onRemove}
+        disabled={!canRemove}
+        title={`Undo a ${label.toLowerCase()} logged today`}
+        style={{
+          width: 40, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: colors.cardBg, border: `1px solid ${color}66`,
+          borderRadius: borders.radius.medium, color,
+          fontSize: 20, fontWeight: 600, lineHeight: 1,
+          cursor: canRemove ? 'pointer' : 'not-allowed', opacity: canRemove ? 1 : 0.35,
+        }}
+      >
+        −
+      </button>
+      <button
+        onClick={onAdd}
+        disabled={paused}
+        style={{
+          flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+          background: color + '22', border: `1px solid ${color}66`,
+          borderRadius: borders.radius.medium, color,
+          fontSize: 13, fontWeight: 600, padding: '11px 12px',
+          cursor: paused ? 'not-allowed' : 'pointer', transition: 'all 0.15s',
+        }}
+      >
+        {icon}
+        <span>+1 {label}</span>
+        <span style={{ ...mono, fontSize: 12, opacity: 0.75 }}>({todayCount} today)</span>
+      </button>
+    </div>
+  )
+}
+
+// =================================================================
 // Template Card
 // =================================================================
 function TemplateCard({
   template, stats, cooling, todaySent,
-  onSetSendCount, onLogReply, onLogBooked,
+  onSetSendCount, onLogReply, onLogBooked, onRemoveReply, onRemoveBooked,
   onPause, onKill, onEdit, onOpenLog,
 }: {
   template: SmsTemplate
@@ -207,6 +328,8 @@ function TemplateCard({
   onSetSendCount: (n: number) => void
   onLogReply: () => void
   onLogBooked: () => void
+  onRemoveReply: () => void
+  onRemoveBooked: () => void
   onPause: () => void
   onKill: () => void
   onEdit: () => void
@@ -275,36 +398,24 @@ function TemplateCard({
 
       {/* Action row */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <button
-          onClick={onLogReply}
-          disabled={paused}
-          style={{
-            flex: '1 1 140px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            background: colors.accent + '22', border: `1px solid ${colors.accent}66`,
-            borderRadius: borders.radius.medium, color: colors.accent,
-            fontSize: 13, fontWeight: 600, padding: '11px 14px',
-            cursor: paused ? 'not-allowed' : 'pointer', transition: 'all 0.15s',
-          }}
-        >
-          <ThumbsUp size={15} strokeWidth={2} />
-          <span>+1 Positive Reply</span>
-        </button>
-        <button
-          onClick={onLogBooked}
-          disabled={paused}
-          style={{
-            flex: '1 1 140px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            background: colors.purple + '22', border: `1px solid ${colors.purple}66`,
-            borderRadius: borders.radius.medium, color: colors.purple,
-            fontSize: 13, fontWeight: 600, padding: '11px 14px',
-            cursor: paused ? 'not-allowed' : 'pointer', transition: 'all 0.15s',
-          }}
-        >
-          <CalendarCheck2 size={15} strokeWidth={2} />
-          <span>+1 Booked Meeting</span>
-        </button>
+        <WinStepper
+          color={colors.accent}
+          icon={<ThumbsUp size={15} strokeWidth={2} />}
+          label="Positive Reply"
+          todayCount={stats.today.positives}
+          paused={paused}
+          onAdd={onLogReply}
+          onRemove={onRemoveReply}
+        />
+        <WinStepper
+          color={colors.purple}
+          icon={<CalendarCheck2 size={15} strokeWidth={2} />}
+          label="Booked Meeting"
+          todayCount={stats.today.booked}
+          paused={paused}
+          onAdd={onLogBooked}
+          onRemove={onRemoveBooked}
+        />
         <div style={{
           display: 'flex', alignItems: 'center', gap: 8,
           background: colors.cardBg, border: `1px solid ${colors.border}`,
@@ -427,6 +538,7 @@ function StatNum({ value, sub, subIcon, color, rate }: { value: number; sub?: st
 
 function ViewToggle({ value, onChange }: { value: ViewMode; onChange: (v: ViewMode) => void }) {
   const items: { key: ViewMode; label: string; Icon: typeof List }[] = [
+    { key: 'pipeline', label: 'Pipeline', Icon: Users },
     { key: 'templates', label: 'Templates', Icon: List },
     { key: 'calendar', label: 'Calendar', Icon: CalendarIcon },
     { key: 'stats', label: 'Stats', Icon: BarChart3 },

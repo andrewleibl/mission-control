@@ -302,7 +302,7 @@ function StatsView({ calls, onEdit }: { calls: SalesCall[]; onEdit: (c: SalesCal
         <Kpi label="Pipeline" value={fmtCurrency(stats.pipeline)} sub="proposals out" color={colors.yellow} icon={DollarSign} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16, marginBottom: 20 }}>
+      <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16, marginBottom: 20 }}>
         <div style={{ ...cardStyle, padding: 20 }}>
           <div style={{ ...mono, fontSize: 10, fontWeight: 700, color: colors.textMuted, letterSpacing: '0.08em', marginBottom: 16 }}>
             CALLS PER WEEK — LAST 10 WEEKS
@@ -357,7 +357,8 @@ function StatsView({ calls, onEdit }: { calls: SalesCall[]; onEdit: (c: SalesCal
             No calls logged yet. Click "Log Call" to get started.
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div className="responsive-table">
+          <table style={{ width: '100%', minWidth: 640, borderCollapse: 'collapse' }}>
             <thead>
               <tr>
                 {['Date', 'Prospect', 'Service', 'Source', 'Showed', 'Qualified', 'Outcome', 'Value'].map(h => (
@@ -384,11 +385,11 @@ function StatsView({ calls, onEdit }: { calls: SalesCall[]; onEdit: (c: SalesCal
                   <td style={{ padding: '10px 8px', borderBottom: `1px solid ${colors.border}` }}>
                     <span style={{ ...mono, fontSize: 9, fontWeight: 700, color: SOURCE_META[c.source].color }}>{SOURCE_META[c.source].label}</span>
                   </td>
-                  <td style={{ padding: '10px 8px', fontSize: 13, borderBottom: `1px solid ${colors.border}`, color: c.outcome === 'pending' ? colors.textMuted : c.showed ? colors.accent : colors.red }}>
-                    {c.outcome === 'pending' ? '—' : c.showed ? '✓' : '✗'}
+                  <td style={{ padding: '10px 8px', fontSize: 13, borderBottom: `1px solid ${colors.border}`, color: c.outcome === 'pending' || c.outcome === 'rescheduled' ? colors.textMuted : c.showed ? colors.accent : colors.red }}>
+                    {c.outcome === 'pending' || c.outcome === 'rescheduled' ? '—' : c.showed ? '✓' : '✗'}
                   </td>
-                  <td style={{ padding: '10px 8px', fontSize: 13, borderBottom: `1px solid ${colors.border}`, color: c.outcome === 'pending' ? colors.textMuted : c.qualified ? colors.accent : colors.red }}>
-                    {c.outcome === 'pending' ? '—' : c.qualified ? '✓' : '✗'}
+                  <td style={{ padding: '10px 8px', fontSize: 13, borderBottom: `1px solid ${colors.border}`, color: c.outcome === 'pending' || c.outcome === 'rescheduled' ? colors.textMuted : c.qualified ? colors.accent : colors.red }}>
+                    {c.outcome === 'pending' || c.outcome === 'rescheduled' ? '—' : c.qualified ? '✓' : '✗'}
                   </td>
                   <td style={{ padding: '10px 8px', borderBottom: `1px solid ${colors.border}` }}>
                     <OutcomeBadge outcome={c.outcome} />
@@ -400,6 +401,7 @@ function StatsView({ calls, onEdit }: { calls: SalesCall[]; onEdit: (c: SalesCal
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>
@@ -433,7 +435,7 @@ function CalendarView({ calls, onAddForDay, onEdit }: {
   const selectedCalls = selectedDay ? (callsByDay[selectedDay] ?? []) : []
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 16 }}>
+    <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 16 }}>
       <div style={{ ...cardStyle, padding: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <button onClick={() => setCursor(addMonths(cursor, -1))} style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', padding: 4 }}>

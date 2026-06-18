@@ -132,7 +132,7 @@ export default function PipelinePage() {
           ))}
         </section>
 
-        <section style={{ display: 'flex', flexWrap: 'wrap', gap: 14 }}>
+        <section className="stack-mobile-flex" style={{ display: 'flex', flexWrap: 'wrap', gap: 14 }}>
           <div style={{ border: '1px solid #1f1f1f', background: 'linear-gradient(180deg, #121212 0%, #101010 100%)', borderRadius: 12, overflow: 'hidden', flex: '1 1 720px', minWidth: 0, boxShadow: '0 10px 30px rgba(0,0,0,0.25)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: 10, borderBottom: '1px solid #1f1f1f', flexWrap: 'wrap', background: 'rgba(255,255,255,0.01)' }}>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>

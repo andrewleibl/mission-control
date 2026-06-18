@@ -4,9 +4,10 @@ import { useState, useEffect, useMemo } from 'react'
 import {
   ChevronLeft, ChevronRight, Plus, X,
   Video, Phone, MessageSquare, Mail, Users as UsersIcon, FileText, Flag,
-  Pencil, Trash2, Check, ExternalLink,
+  Pencil, Trash2, Check, ExternalLink, BarChart2,
   type LucideIcon,
 } from 'lucide-react'
+import { getReportByEventId, upsertReport, ClientReport, ReportType } from '@/lib/reports-data'
 import { PageContainer, PageHeader, colors, cardStyle, cardStyleAccent, borders, mono } from '@/components/DesignSystem'
 import ProspectsKanban from './ProspectsKanban'
 import {
@@ -137,7 +138,7 @@ export default function RetentionPage() {
   const overdueCount = overdueEvents(events).length
   const upcomingCount = upcomingEvents(events, 7).length
   const staleCount = clients.filter(c =>
-    (c.status === 'active' || c.status === 'at_risk') &&
+    c.status === 'active' &&
     daysSinceLastEvent(c.id, events) > 14
   ).length
 
@@ -900,6 +901,11 @@ function SidePanel({
           }}>SYNCED → COMMS</span>
         </div>
 
+        {/* Report section — only for report/loom events */}
+        {(event.type === 'report' || event.type === 'loom') && (
+          <ReportSection eventId={event.id} clientId={event.clientId} eventDate={event.date} />
+        )}
+
         {/* Actions */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <button onClick={onToggleCompleted} style={{
@@ -935,6 +941,96 @@ function SidePanel({
         </div>
       </div>
     </>
+  )
+}
+
+// ---- Report Section (inside SidePanel for report/loom events) ----
+function ReportSection({ eventId, clientId, eventDate }: { eventId: string; clientId: string; eventDate: string }) {
+  const [report, setReport] = useState<ClientReport | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    getReportByEventId(eventId).then(r => { if (!cancelled) setReport(r) })
+    return () => { cancelled = true }
+  }, [eventId])
+
+  async function createReport(type: ReportType) {
+    const id = `rpt_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`
+    const d = new Date(eventDate + 'T12:00:00')
+    const weekStart = new Date(d); weekStart.setDate(d.getDate() - 6)
+    const newReport: ClientReport = {
+      id, clientId, eventId, reportType: type,
+      weekStart: weekStart.toISOString().slice(0, 10),
+      weekEnd: eventDate,
+      lastWeekSummary: '', nextWeekOutlook: '', changesBeingMade: '',
+      createdAt: Date.now(), updatedAt: Date.now(),
+    }
+    await upsertReport(newReport)
+    setReport(newReport)
+    window.open(`/reports/${id}`, '_blank')
+  }
+
+  return (
+    <div style={{
+      marginBottom: 16, padding: '14px 16px',
+      background: 'rgba(56,161,87,0.05)',
+      border: `1px solid rgba(56,161,87,0.2)`,
+      borderRadius: borders.radius.medium,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+        <BarChart2 size={13} color={colors.accent} strokeWidth={2} />
+        <span style={{ ...mono, fontSize: 10, fontWeight: 700, color: colors.accent, letterSpacing: '0.08em' }}>
+          CLIENT REPORT
+        </span>
+      </div>
+
+      {report ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ fontSize: 12, color: colors.textMuted }}>
+            {report.reportType === 'lead_gen' ? 'Lead Gen' : 'Sales Campaign'} · {report.weekStart} → {report.weekEnd}
+          </div>
+          <a
+            href={`/reports/${report.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              padding: '8px 0', borderRadius: borders.radius.medium,
+              background: colors.accent, color: '#fff',
+              fontSize: 12, fontWeight: 600, textDecoration: 'none', fontFamily: 'inherit',
+            }}
+          >
+            <ExternalLink size={12} strokeWidth={2} /> Open Full Report
+          </a>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ fontSize: 12, color: colors.textMuted, marginBottom: 4 }}>No report yet. Create one:</div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button
+              onClick={() => createReport('lead_gen')}
+              style={{
+                flex: 1, padding: '7px 0', borderRadius: borders.radius.medium,
+                border: `1px solid ${colors.border}`, background: 'transparent',
+                color: colors.text, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >
+              Lead Gen
+            </button>
+            <button
+              onClick={() => createReport('sales_campaign')}
+              style={{
+                flex: 1, padding: '7px 0', borderRadius: borders.radius.medium,
+                border: `1px solid ${colors.border}`, background: 'transparent',
+                color: colors.text, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >
+              Sales Campaign
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 

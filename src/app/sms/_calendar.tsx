@@ -118,14 +118,16 @@ function getDayStats(
 
 export default function SmsCalendar({
   templates, sends, wins,
-  onSendCountChange, onLogWinAt, onDeleteWin,
+  onSendCountChange, onSplitSentForDay, onLogWinAt, onDeleteWin, onSetWinCount,
 }: {
   templates: SmsTemplate[]
   sends: SmsSend[]
   wins: SmsWin[]
   onSendCountChange?: (templateId: string, day: string, count: number) => Promise<void>
+  onSplitSentForDay?: (day: string, total: number) => Promise<void>
   onLogWinAt?: (templateId: string, type: WinType, loggedAt: number) => Promise<void>
   onDeleteWin?: (id: string) => Promise<void>
+  onSetWinCount?: (templateId: string, type: WinType, day: string, count: number) => Promise<void>
 }) {
   const [granularity, setGranularity] = useState<Granularity>('month')
   const [cursor, setCursor] = useState<Date>(() => {
@@ -204,8 +206,10 @@ export default function SmsCalendar({
         <DayView
           iso={ymd(cursor)} templates={templates} sends={sends} wins={wins}
           onSendCountChange={onSendCountChange}
+          onSplitSentForDay={onSplitSentForDay}
           onLogWinAt={onLogWinAt}
           onDeleteWin={onDeleteWin}
+          onSetWinCount={onSetWinCount}
         />
       )}
       {granularity === 'week' && (
@@ -511,15 +515,17 @@ function WeekView({
 // =================================================================
 function DayView({
   iso, templates, sends, wins,
-  onSendCountChange, onLogWinAt, onDeleteWin,
+  onSendCountChange, onSplitSentForDay, onLogWinAt, onDeleteWin, onSetWinCount,
 }: {
   iso: string
   templates: SmsTemplate[]
   sends: SmsSend[]
   wins: SmsWin[]
   onSendCountChange?: (templateId: string, day: string, count: number) => Promise<void>
+  onSplitSentForDay?: (day: string, total: number) => Promise<void>
   onLogWinAt?: (templateId: string, type: WinType, loggedAt: number) => Promise<void>
   onDeleteWin?: (id: string) => Promise<void>
+  onSetWinCount?: (templateId: string, type: WinType, day: string, count: number) => Promise<void>
 }) {
   const stats = useMemo(
     () => getDayStats(iso, templates, sends, wins),
@@ -558,11 +564,30 @@ function DayView({
     setSentDraft(String(currentSent))
   }
 
+  // Click-to-edit exact win counts (positive replies / booked) for a past day.
+  const [editingWin, setEditingWin] = useState<{ t: string; type: WinType } | null>(null)
+  const [winDraft, setWinDraft] = useState('')
+  function startEditWin(t: string, type: WinType, current: number) { setEditingWin({ t, type }); setWinDraft(String(current)) }
+  async function commitWinEdit(t: string, type: WinType) {
+    const n = parseInt(winDraft, 10)
+    if (!isNaN(n) && n >= 0 && onSetWinCount) await onSetWinCount(t, type, iso, n)
+    setEditingWin(null); setWinDraft('')
+  }
+
   async function addWin(templateId: string, type: WinType) {
     if (!onLogWinAt) return
     // Use noon on the selected day so it sorts predictably
     const ts = new Date(iso + 'T12:00:00').getTime()
     await onLogWinAt(templateId, type, ts)
+  }
+
+  const activeCount = useMemo(
+    () => templates.filter(t => t.status === 'active').length,
+    [templates],
+  )
+
+  async function commitTotalSent(total: number) {
+    if (onSplitSentForDay) await onSplitSentForDay(iso, total)
   }
 
   return (
@@ -572,7 +597,15 @@ function DayView({
         ...cardStyle, padding: 18,
         display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0,
       }}>
-        <DayKpi icon={<Send size={14} />} label="Sent" value={stats.sent.toLocaleString()} />
+        {onSplitSentForDay && activeCount > 0 ? (
+          <EditableTotalKpi
+            total={stats.sent}
+            activeCount={activeCount}
+            onCommit={commitTotalSent}
+          />
+        ) : (
+          <DayKpi icon={<Send size={14} />} label="Sent" value={stats.sent.toLocaleString()} />
+        )}
         <DayKpi
           icon={<ThumbsUp size={14} />} label="+1 Replies" value={String(stats.positives)}
           accent={colors.accent} divider
@@ -657,7 +690,16 @@ function DayView({
                   {/* Positive reply */}
                   <span style={{ color: colors.accent, display: 'flex', alignItems: 'center', gap: 4 }}>
                     <span style={{ color: colors.textMuted }}>+1 </span>
-                    <span style={{ fontWeight: 700 }}>{t.positives}</span>
+                    {editingWin && editingWin.t === t.templateId && editingWin.type === 'positive_reply' ? (
+                      <input autoFocus type="number" value={winDraft} onChange={e => setWinDraft(e.target.value)}
+                        onBlur={() => commitWinEdit(t.templateId, 'positive_reply')}
+                        onKeyDown={e => { if (e.key === 'Enter') commitWinEdit(t.templateId, 'positive_reply'); if (e.key === 'Escape') setEditingWin(null) }}
+                        style={{ width: 44, background: colors.cardBg, border: `1px solid ${colors.accent}`, borderRadius: 4, color: colors.text, fontSize: 12, padding: '2px 6px', fontFamily: 'inherit', fontWeight: 700 }} />
+                    ) : onSetWinCount ? (
+                      <button onClick={() => startEditWin(t.templateId, 'positive_reply', t.positives)} title="Click to set count" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: colors.accent, fontWeight: 700, fontSize: 12, fontFamily: 'inherit' }}>{t.positives}</button>
+                    ) : (
+                      <span style={{ fontWeight: 700 }}>{t.positives}</span>
+                    )}
                     {t.sent > 0 && <span style={{ color: colors.textSubtle }}>({((t.positives / t.sent) * 100).toFixed(0)}%)</span>}
                     {onLogWinAt && (
                       <button
@@ -673,7 +715,16 @@ function DayView({
                   {/* Booked */}
                   <span style={{ color: colors.purple, display: 'flex', alignItems: 'center', gap: 4 }}>
                     <span style={{ color: colors.textMuted }}>booked </span>
-                    <span style={{ fontWeight: 700 }}>{t.booked}</span>
+                    {editingWin && editingWin.t === t.templateId && editingWin.type === 'booked_meeting' ? (
+                      <input autoFocus type="number" value={winDraft} onChange={e => setWinDraft(e.target.value)}
+                        onBlur={() => commitWinEdit(t.templateId, 'booked_meeting')}
+                        onKeyDown={e => { if (e.key === 'Enter') commitWinEdit(t.templateId, 'booked_meeting'); if (e.key === 'Escape') setEditingWin(null) }}
+                        style={{ width: 44, background: colors.cardBg, border: `1px solid ${colors.purple}`, borderRadius: 4, color: colors.text, fontSize: 12, padding: '2px 6px', fontFamily: 'inherit', fontWeight: 700 }} />
+                    ) : onSetWinCount ? (
+                      <button onClick={() => startEditWin(t.templateId, 'booked_meeting', t.booked)} title="Click to set count" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: colors.purple, fontWeight: 700, fontSize: 12, fontFamily: 'inherit' }}>{t.booked}</button>
+                    ) : (
+                      <span style={{ fontWeight: 700 }}>{t.booked}</span>
+                    )}
                     {t.positives > 0 && <span style={{ color: colors.textSubtle }}>({((t.booked / t.positives) * 100).toFixed(0)}%)</span>}
                     {onLogWinAt && (
                       <button
@@ -743,6 +794,74 @@ function DayView({
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+// Editable "Sent" total — type one number and it splits evenly across active
+// templates for the selected day (mirrors the live "Log total sent today" box).
+function EditableTotalKpi({
+  total, activeCount, onCommit,
+}: {
+  total: number
+  activeCount: number
+  onCommit: (total: number) => void
+}) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState('')
+
+  function start() {
+    setDraft(String(total))
+    setEditing(true)
+  }
+  function commit() {
+    const n = parseInt(draft, 10)
+    if (!isNaN(n) && n >= 0 && n !== total) onCommit(n)
+    setEditing(false)
+  }
+
+  return (
+    <div style={{ padding: '4px 18px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <div style={{
+        ...mono, fontSize: 10, color: colors.textMuted,
+        letterSpacing: '0.08em', textTransform: 'uppercase' as const,
+        display: 'flex', alignItems: 'center', gap: 5,
+      }}>
+        <Send size={14} />
+        <span>Sent</span>
+      </div>
+      {editing ? (
+        <input
+          autoFocus
+          type="number"
+          value={draft}
+          onChange={e => setDraft(e.target.value)}
+          onBlur={commit}
+          onKeyDown={e => {
+            if (e.key === 'Enter') commit()
+            if (e.key === 'Escape') setEditing(false)
+          }}
+          style={{
+            ...mono, width: 100, background: colors.cardBg,
+            border: `1px solid ${colors.accent}`, borderRadius: 4,
+            color: colors.text, fontSize: 22, fontWeight: 700,
+            padding: '0 6px', outline: 'none', lineHeight: 1.2,
+          }}
+        />
+      ) : (
+        <button
+          onClick={start}
+          title={`Click to set the day's total — splits evenly across ${activeCount} active template${activeCount === 1 ? '' : 's'}`}
+          style={{
+            ...mono, background: 'none', border: 'none', cursor: 'pointer',
+            padding: 0, color: colors.text, fontSize: 26, fontWeight: 700,
+            lineHeight: 1, display: 'flex', alignItems: 'center', gap: 6, textAlign: 'left',
+          }}
+        >
+          {total.toLocaleString()}
+          <Pencil size={12} color={colors.textMuted} />
+        </button>
+      )}
     </div>
   )
 }

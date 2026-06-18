@@ -373,7 +373,7 @@ export default function ProspectsKanban() {
       </div>
 
       {/* Active pipeline columns */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 16 }}>
+      <div className="stat-strip-mobile" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 16 }}>
         {activeStages.map(s => {
           const cards = prospects.filter(p => p.stage === s.key)
           return (
