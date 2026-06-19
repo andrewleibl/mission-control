@@ -68,6 +68,7 @@ export async function runMetaSync(preset = 'last_30d'): Promise<SyncResult> {
 
   const now = Date.now()
   const rows: Record<string, unknown>[] = []
+  const dailyRows: Record<string, unknown>[] = []  // per-campaign per-day snapshots → sd_daily
   const errors: string[] = []
   const flags: string[] = []
 
@@ -113,11 +114,40 @@ export async function runMetaSync(preset = 'last_30d'): Promise<SyncResult> {
     } catch (e) {
       errors.push(`${acc.client}: ${e instanceof Error ? e.message : 'fetch failed'}`)
     }
+
+    // Daily breakdown (time_increment=1) → sd_daily, for day-over-day trends.
+    // Separate call so the aggregate sd_tests logic above is untouched; any
+    // failure here is non-fatal and never blocks the main sync.
+    try {
+      const dr = await fetch(`${API}/${acct}/insights?level=campaign&fields=campaign_name,spend,ctr,frequency,actions,date_start&time_increment=1&${windowParam}&limit=500&access_token=${encodeURIComponent(token)}`)
+      const dj = await dr.json()
+      if (!dj.error) {
+        for (const c of (dj.data ?? [])) {
+          const day = c.date_start
+          if (!day) continue
+          const label = c.campaign_name || '(unnamed)'
+          const spend = parseFloat(c.spend) || 0
+          const { leads } = leadResult(c.actions)
+          dailyRows.push({
+            client: acc.client, label, day,
+            spend, leads,
+            cpl: leads > 0 ? +(spend / leads).toFixed(2) : 0,
+            ctr: parseFloat(c.ctr) || 0,
+            frequency: parseFloat(c.frequency) || 0,
+            updated_at: now,
+          })
+        }
+      }
+    } catch { /* non-fatal — daily history just skips this account this round */ }
   }
 
   if (rows.length > 0) {
     const { error } = await sb.from('sd_tests').upsert(rows)
     if (error) return { ok: false, status: 500, error: error.message }
+  }
+  if (dailyRows.length > 0) {
+    const { error: dErr } = await sb.from('sd_daily').upsert(dailyRows, { onConflict: 'client,label,day' })
+    if (dErr) console.error('sd_daily upsert', dErr)  // non-fatal — don't fail the sync over history
   }
   invalidate('sd_tests')
   return { ok: true, synced: rows.length, accounts: accounts.length, errors, flags }
