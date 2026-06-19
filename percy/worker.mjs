@@ -218,6 +218,48 @@ const skills = {
       }
     },
   },
+
+  retention: {
+    description: 'client retention events/check-ins — open, overdue, due today',
+    async summarize() {
+      const { data } = await sb.from('retention_events').select('date,completed,type')
+      const open = (data ?? []).filter(r => !r.completed)
+      return {
+        open_events: open.length,
+        overdue: open.filter(r => r.date && r.date < TODAY_ISO).length,
+        due_today: open.filter(r => r.date === TODAY_ISO).length,
+        total_logged: (data ?? []).length,
+      }
+    },
+  },
+
+  projections: {
+    description: 'revenue projection targets (monthly net goal)',
+    async summarize() {
+      const { data } = await sb.from('projection_settings').select('scope,monthly_net_goal')
+      const rows = data ?? []
+      const g = rows.find(r => r.scope === 'global') ?? rows[0]
+      return { monthly_net_goal: g?.monthly_net_goal ?? null }
+    },
+  },
+
+  sops: {
+    description: 'standard operating procedures — count and categories',
+    async summarize() {
+      const { data } = await sb.from('sops').select('title,category')
+      const cats = {}
+      for (const r of (data ?? [])) cats[r.category || 'uncategorized'] = (cats[r.category || 'uncategorized'] || 0) + 1
+      return { total_sops: (data ?? []).length, by_category: cats, titles: (data ?? []).map(r => r.title).slice(0, 25) }
+    },
+  },
+
+  reports: {
+    description: 'per-client weekly ad/campaign reports (spend, leads, revenue, ROAS)',
+    async summarize() {
+      const { data } = await sb.from('reports').select('client,report_type,week_start,spend,leads,revenue,roas,created_at').order('created_at', { ascending: false }).limit(15)
+      return { recent: (data ?? []).map(r => ({ client: r.client, type: r.report_type, week: r.week_start, spend: r.spend, leads: r.leads, revenue: r.revenue, roas: r.roas })) }
+    },
+  },
 }
 
 // ── chart intent (v1 keyword detection; LLM routing comes later) ────────────

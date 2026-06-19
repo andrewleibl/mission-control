@@ -9,15 +9,6 @@ import {
 import { PageContainer, PageHeader, colors, cardStyle, borders, mono } from '@/components/DesignSystem'
 import { PercyChat, PercyChart, loadChats, askPercy, getChat, percyOnline, greetingStats } from '@/lib/percy'
 
-const QUICK_ASKS = [
-  'How many sales calls this week?',
-  'What did I net last month?',
-  'How is my SMS outreach doing?',
-  'How many active clients and my MRR?',
-  'Anything overdue?',
-  'Graph my calls per day for two weeks',
-]
-
 function TypingDots() {
   return (
     <span style={{ color: colors.textMuted, display: 'inline-flex', gap: 3, alignItems: 'center' }}>
@@ -163,7 +154,7 @@ export default function PercyPage() {
                 <Sparkles size={20} color={colors.accent} />
               </div>
               <div style={{ color: colors.text, fontSize: 14, fontWeight: 600, lineHeight: 1.5 }}>{greet || 'Ask Percy anything about your business.'}</div>
-              <div style={{ marginTop: 6, fontSize: 12, color: colors.textSubtle }}>Tap a suggestion below, or just type.</div>
+              <div style={{ marginTop: 6, fontSize: 12, color: colors.textSubtle }}>Type your question below.</div>
             </div>
           )}
           {chats.map(c => (
@@ -190,26 +181,19 @@ export default function PercyPage() {
           ))}
         </div>
 
-        {/* quick-ask chips + input */}
-        <div style={{ borderTop: `1px solid ${colors.border}` }}>
-          <div style={{ display: 'flex', gap: 7, padding: '10px 12px 0', overflowX: 'auto' }}>
-            {QUICK_ASKS.map(qa => (
-              <button key={qa} onClick={() => send(qa)} disabled={sending} style={{ flexShrink: 0, background: colors.cardBgElevated, border: `1px solid ${colors.border}`, borderRadius: 999, color: colors.textMuted, fontSize: 11, padding: '6px 11px', cursor: sending ? 'default' : 'pointer', whiteSpace: 'nowrap', fontFamily: 'inherit', opacity: sending ? 0.5 : 1 }}>{qa}</button>
-            ))}
-          </div>
-          <div style={{ padding: 12, display: 'flex', gap: 10 }}>
-            <input
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}
-              placeholder={online === false ? 'Percy is offline — start the worker on the Mac' : 'Ask Percy…'}
-              disabled={sending}
-              style={{ flex: 1, background: colors.bg, border: `1px solid ${colors.border}`, borderRadius: borders.radius.medium, color: colors.text, fontSize: 13, padding: '11px 14px', fontFamily: 'inherit', outline: 'none' }}
-            />
-            <button onClick={() => send()} disabled={sending || !input.trim()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: colors.accent, border: 'none', borderRadius: borders.radius.medium, color: '#fff', fontSize: 13, fontWeight: 600, padding: '0 16px', cursor: sending || !input.trim() ? 'default' : 'pointer', opacity: sending || !input.trim() ? 0.5 : 1 }}>
-              <Send size={15} />
-            </button>
-          </div>
+        {/* input */}
+        <div style={{ borderTop: `1px solid ${colors.border}`, padding: 12, display: 'flex', gap: 10 }}>
+          <input
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}
+            placeholder={online === false ? 'Percy is offline — start the worker on the Mac' : 'Ask Percy…'}
+            disabled={sending}
+            style={{ flex: 1, background: colors.bg, border: `1px solid ${colors.border}`, borderRadius: borders.radius.medium, color: colors.text, fontSize: 13, padding: '11px 14px', fontFamily: 'inherit', outline: 'none' }}
+          />
+          <button onClick={() => send()} disabled={sending || !input.trim()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: colors.accent, border: 'none', borderRadius: borders.radius.medium, color: '#fff', fontSize: 13, fontWeight: 600, padding: '0 16px', cursor: sending || !input.trim() ? 'default' : 'pointer', opacity: sending || !input.trim() ? 0.5 : 1 }}>
+            <Send size={15} />
+          </button>
         </div>
       </div>
     </PageContainer>
