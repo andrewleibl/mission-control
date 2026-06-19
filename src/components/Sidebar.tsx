@@ -4,13 +4,14 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   ListChecks, HeartHandshake, Wallet, Users, LayoutDashboard,
-  TrendingUp, ClipboardList, MessageSquare, LineChart, Menu, Target, Megaphone,
+  TrendingUp, ClipboardList, MessageSquare, LineChart, Menu, Target, Megaphone, Sparkles,
   type LucideIcon,
 } from 'lucide-react'
 import { colors } from '@/components/DesignSystem'
 
 const navItems: { href: string; label: string; Icon: LucideIcon }[] = [
   { href: '/dashboard', label: 'Dashboard', Icon: LayoutDashboard },
+  { href: '/percy', label: 'Percy', Icon: Sparkles },
   { href: '/today', label: 'Tasks', Icon: ListChecks },
   { href: '/sms', label: 'SMS', Icon: MessageSquare },
   { href: '/client-retention', label: 'Retention', Icon: HeartHandshake },
