@@ -1,7 +1,7 @@
 // Percy chat — client data layer. The UI writes questions into percy_chats and
 // polls for the worker's answer; percy_health drives the online/offline dot.
 
-export interface PercyChartPoint { day: string; value: number }
+export interface PercyChartPoint { label?: string; day?: string; value: number }
 export interface PercyChart { type: string; title: string; points: PercyChartPoint[] }
 
 export type PercyStatus = 'pending' | 'working' | 'answered' | 'error'

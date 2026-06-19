@@ -72,7 +72,19 @@ const skills = {
       const counts = {}
       for (let i = days - 1; i >= 0; i--) counts[daysAgoIso(i)] = 0
       for (const r of (data ?? [])) if (r.date in counts) counts[r.date]++
-      return { label: 'Sales calls per day', points: Object.entries(counts).map(([day, value]) => ({ day, value })) }
+      return { label: 'Sales calls per day', points: Object.entries(counts).map(([label, value]) => ({ label, value })) }
+    },
+    async byOutcome() {
+      const { data } = await sb.from('sales_calls').select('outcome')
+      const c = {}
+      for (const r of (data ?? [])) c[r.outcome] = (c[r.outcome] || 0) + 1
+      return { label: 'Calls by outcome', points: Object.entries(c).map(([label, value]) => ({ label, value })) }
+    },
+    async bySource() {
+      const { data } = await sb.from('sales_calls').select('source')
+      const c = {}
+      for (const r of (data ?? [])) c[r.source] = (c[r.source] || 0) + 1
+      return { label: 'Calls by source', points: Object.entries(c).map(([label, value]) => ({ label, value })) }
     },
   },
 
@@ -100,7 +112,14 @@ const skills = {
       const byDay = {}
       for (let i = days - 1; i >= 0; i--) byDay[daysAgoIso(i)] = 0
       for (const r of (data ?? [])) if (r.day in byDay) byDay[r.day] += Number(r.spend) || 0
-      return { label: 'Ad spend per day', points: Object.entries(byDay).map(([day, value]) => ({ day, value: +value.toFixed(2) })) }
+      return { label: 'Ad spend per day', points: Object.entries(byDay).map(([label, value]) => ({ label, value: +value.toFixed(2) })) }
+    },
+    async byClient() {
+      const { data } = await sb.from('sd_tests').select('client,spend,delivery')
+      const active = (data ?? []).filter(r => (r.delivery || '').toUpperCase() === 'ACTIVE')
+      const m = {}
+      for (const r of active) m[r.client] = (m[r.client] || 0) + (Number(r.spend) || 0)
+      return { label: 'Active spend by client', points: Object.entries(m).map(([label, value]) => ({ label, value: +value.toFixed(2) })) }
     },
   },
 
@@ -127,7 +146,7 @@ const skills = {
       const points = keys.map(mk => {
         const inc = rows.filter(r => r.type === 'income' && monthKey(r.date) === mk).reduce((s, r) => s + (Number(r.amount) || 0), 0)
         const exp = rows.filter(r => r.type === 'expense' && monthKey(r.date) === mk).reduce((s, r) => s + (Number(r.amount) || 0), 0)
-        return { day: mk, value: +(inc - exp).toFixed(2) }
+        return { label: mk, value: +(inc - exp).toFixed(2) }
       })
       return { label: 'Net profit by month', points }
     },
@@ -135,18 +154,23 @@ const skills = {
 }
 
 // ── chart intent (v1 keyword detection; LLM routing comes later) ────────────
-const CHART_RE = /\b(graph|chart|plot|trend(ing|s)?|over time|per day|each day|by day|by month|visuali[sz]e)\b/i
+const CHART_RE = /\b(graph|chart|plot|trend(ing|s)?|over time|per day|each day|by day|by month|by client|by outcome|by source|breakdown|split|distribution|pie|bar|visuali[sz]e)\b/i
 function pickChart(q) {
   if (!CHART_RE.test(q)) return null
-  const lower = q.toLowerCase()
+  const l = q.toLowerCase()
+  // categorical breakdowns → pie or bar
+  if (/outcome|status/.test(l)) return { type: /pie|breakdown|split|distribution/.test(l) ? 'pie' : 'bar', skill: 'sales_calls', fn: 'byOutcome', args: {} }
+  if (/source|channel/.test(l)) return { type: 'bar', skill: 'sales_calls', fn: 'bySource', args: {} }
+  if (/client/.test(l) && /spend|campaign|budget|ad/.test(l)) return { type: /pie|breakdown|split/.test(l) ? 'pie' : 'bar', skill: 'campaigns', fn: 'byClient', args: {} }
+  // time series → line or area
   let days = 14
-  const wk = lower.match(/(\d+)\s*(day|week)/)
+  const wk = l.match(/(\d+)\s*(day|week)/)
   if (wk) days = wk[2] === 'week' ? +wk[1] * 7 : +wk[1]
-  else if (/two weeks|2 weeks/.test(lower)) days = 14
-  else if (/month/.test(lower)) days = 30
-  if (/spend|budget/.test(lower)) return { skill: 'campaigns', kind: 'series', args: { days } }
-  if (/revenue|net|profit|income|finance/.test(lower)) return { skill: 'finances', kind: 'series', args: { months: 6 } }
-  return { skill: 'sales_calls', kind: 'series', args: { days } } // default
+  else if (/two weeks|2 weeks/.test(l)) days = 14
+  else if (/month/.test(l)) days = 30
+  if (/spend|budget|ad/.test(l)) return { type: 'area', skill: 'campaigns', fn: 'series', args: { days } }
+  if (/revenue|net|profit|income|finance/.test(l)) return { type: 'line', skill: 'finances', fn: 'series', args: { months: 6 } }
+  return { type: 'line', skill: 'sales_calls', fn: 'series', args: { days } }
 }
 
 // ── Claude CLI (Opus 4.8 via Max subscription) ──────────────────────────────
@@ -191,10 +215,10 @@ async function answer(row) {
     let chart = null
     let dataForPrompt = pack
     if (chartReq) {
-      const s = await skills[chartReq.skill][chartReq.kind](chartReq.args)
-      chart = { type: 'line', title: s.label, points: s.points }
-      // Feed the actual series to Percy so his caption reflects the real daily data.
-      dataForPrompt = { ...pack, chart_series: { title: s.label, points: s.points } }
+      const s = await skills[chartReq.skill][chartReq.fn](chartReq.args)
+      chart = { type: chartReq.type, title: s.label, points: s.points }
+      // Feed the actual data to Percy so his caption reflects what's charted.
+      dataForPrompt = { ...pack, chart_series: { title: s.label, type: chartReq.type, points: s.points } }
     }
 
     const instruction = chart
