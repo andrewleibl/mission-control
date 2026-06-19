@@ -5,8 +5,8 @@ import { Plus, Pencil, X, Upload, Layers, ImageIcon, Type, Star, Gauge, RefreshC
 import { PageContainer, PageHeader, colors, cardStyle, borders, mono } from '@/components/DesignSystem'
 import { invalidate } from '@/lib/cache'
 import {
-  Angle, Creative, Copy, Test, Rollup, Rec, RecType, Playbook, MetaAccount,
-  loadAngles, loadCreatives, loadCopy, loadTests, loadAccounts,
+  Angle, Creative, Copy, Test, Rollup, Rec, RecType, Playbook, MetaAccount, DailyPoint,
+  loadAngles, loadCreatives, loadCopy, loadTests, loadAccounts, loadDaily,
   upsertAngle, upsertCreative, upsertCopy, upsertTest, upsertAccount,
   deleteAngle, deleteCreative, deleteCopy, deleteTest, deleteAccount,
   newAngle, newCreative, newCopyItem, newTest, newAccount,
@@ -28,6 +28,7 @@ export default function ServiceDeliveryPage() {
   const [creatives, setCreatives] = useState<Creative[]>([])
   const [copy, setCopy] = useState<Copy[]>([])
   const [tests, setTests] = useState<Test[]>([])
+  const [daily, setDaily] = useState<DailyPoint[]>([])
   const [accounts, setAccounts] = useState<MetaAccount[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<Tab>('command')
@@ -36,9 +37,9 @@ export default function ServiceDeliveryPage() {
 
   useEffect(() => {
     let off = false
-    Promise.all([loadAngles(), loadCreatives(), loadCopy(), loadTests(), loadAccounts()]).then(([a, c, cp, t, ac]) => {
+    Promise.all([loadAngles(), loadCreatives(), loadCopy(), loadTests(), loadAccounts(), loadDaily()]).then(([a, c, cp, t, ac, d]) => {
       if (off) return
-      setAngles(a); setCreatives(c); setCopy(cp); setTests(t); setAccounts(ac); setLoading(false)
+      setAngles(a); setCreatives(c); setCopy(cp); setTests(t); setAccounts(ac); setDaily(d); setLoading(false)
     })
     return () => { off = true }
   }, [])
@@ -87,7 +88,7 @@ export default function ServiceDeliveryPage() {
           onSave={async c => { await upsertCopy(c); setCopy(p => merge(p, c)); flash('Copy saved') }}
           onDelete={async id => { await deleteCopy(id); setCopy(p => p.filter(x => x.id !== id)); flash('Copy deleted') }} />
       ) : (
-        <CampaignsTab tests={tests} angles={angles} creatives={creatives} copy={copy} niches={niches} angleName={angleName}
+        <CampaignsTab tests={tests} daily={daily} angles={angles} creatives={creatives} copy={copy} niches={niches} angleName={angleName}
           selectedClient={campaignClient} setSelectedClient={setCampaignClient}
           onSave={async t => { await upsertTest(t); setTests(p => merge(p, t)); flash('Campaign saved') }}
           onDelete={async id => { await deleteTest(id); setTests(p => p.filter(x => x.id !== id)); flash('Campaign deleted') }}
@@ -104,7 +105,8 @@ export default function ServiceDeliveryPage() {
             const r = await fetch('/api/meta-sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ preset: 'last_30d' }) })
             const j = await r.json()
             if (!r.ok) { flash(j.error || 'Sync failed'); return }
-            invalidate('sd_tests'); setTests(await loadTests())
+            invalidate('sd_tests'); invalidate('sd_daily')
+            setTests(await loadTests()); setDaily(await loadDaily())
             flash(`Synced ${j.synced} campaign${j.synced === 1 ? '' : 's'}${j.errors?.length ? ` · ${j.errors.length} error(s)` : ''}${j.flags?.length ? ` · ${j.flags.length} to verify` : ''}`)
           }} />
       )}
@@ -652,6 +654,31 @@ function deliveryMeta(d: string): { label: string; color: string; rank: number }
   return { label: u.charAt(0) + u.slice(1).toLowerCase(), color: colors.textMuted, rank: 2 }
 }
 
+// Tiny inline spend trend line for a campaign's recent daily snapshots.
+function Sparkline({ points, color }: { points: number[]; color: string }) {
+  if (points.length < 2) return <span style={{ ...mono, fontSize: 10, color: colors.textSubtle }}>—</span>
+  const w = 60, h = 16
+  const min = Math.min(...points), max = Math.max(...points)
+  const range = max - min || 1
+  const step = w / (points.length - 1)
+  const d = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${(i * step).toFixed(1)},${(h - ((p - min) / range) * h).toFixed(1)}`).join(' ')
+  return (
+    <svg width={w} height={h} style={{ display: 'block' }} aria-hidden>
+      <path d={d} fill="none" stroke={color} strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+// Most-recent-day vs prior-day spend change. Neutral signal (more spend isn't
+// inherently good/bad), so it's informational, not color-judged.
+function spendDelta(series: { spend: number }[]): { pct: number; up: boolean } | null {
+  if (series.length < 2) return null
+  const prev = series[series.length - 2].spend, curr = series[series.length - 1].spend
+  if (prev === 0 && curr === 0) return null
+  const pct = prev === 0 ? 100 : ((curr - prev) / prev) * 100
+  return { pct, up: curr >= prev }
+}
+
 // Relative "freshness" label for the last Meta sync.
 function timeAgo(ms: number): string {
   const s = Math.floor((Date.now() - ms) / 1000)
@@ -663,8 +690,8 @@ function timeAgo(ms: number): string {
   return `${Math.floor(h / 24)}d ago`
 }
 
-function CampaignsTab({ tests, angles, creatives, copy, niches, angleName, selectedClient, setSelectedClient, onSave, onDelete, onImport, accounts, onSaveAccount, onDeleteAccount, onSync }: {
-  tests: Test[]; angles: Angle[]; creatives: Creative[]; copy: Copy[]; niches: string[]; angleName: Map<string, string>
+function CampaignsTab({ tests, daily, angles, creatives, copy, niches, angleName, selectedClient, setSelectedClient, onSave, onDelete, onImport, accounts, onSaveAccount, onDeleteAccount, onSync }: {
+  tests: Test[]; daily: DailyPoint[]; angles: Angle[]; creatives: Creative[]; copy: Copy[]; niches: string[]; angleName: Map<string, string>
   selectedClient: string | null; setSelectedClient: (c: string | null) => void
   onSave: (t: Test) => Promise<void>; onDelete: (id: string) => Promise<void>; onImport: (rows: ReturnType<typeof parseMetaCsv>) => Promise<void>
   accounts: MetaAccount[]; onSaveAccount: (a: MetaAccount) => Promise<void>; onDeleteAccount: (id: string) => Promise<void>; onSync: () => Promise<void>
@@ -691,6 +718,14 @@ function CampaignsTab({ tests, angles, creatives, copy, niches, angleName, selec
     .sort((a, b) => deliveryMeta(a.delivery).rank - deliveryMeta(b.delivery).rank || b.spend - a.spend),
     [tests, selectedClient])
   const detailRollup = useMemo(() => rollupTests(detailTests), [detailTests])
+
+  // Per-campaign daily spend series (ascending by day), keyed client::label.
+  const seriesByCampaign = useMemo(() => {
+    const m = new Map<string, DailyPoint[]>()
+    for (const d of daily) { const k = `${d.client}::${d.label}`; const a = m.get(k) ?? []; a.push(d); m.set(k, a) }
+    for (const arr of m.values()) arr.sort((a, b) => a.day < b.day ? -1 : a.day > b.day ? 1 : 0)
+    return m
+  }, [daily])
 
   // Freshest Meta sync across all campaigns — drives the "Last synced" label so
   // you can always tell whether the numbers are live or stale.
@@ -763,8 +798,8 @@ function CampaignsTab({ tests, angles, creatives, copy, niches, angleName, selec
           </div>
           {detailTests.length === 0 ? <Empty msg="No campaigns for this client yet." /> : (
             <div className="responsive-table" style={{ ...cardStyle, padding: 0, overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 720 }}>
-                <thead><tr>{['Campaign', 'Status', 'Angle', 'Creative', 'Spend', 'Leads', 'CPL', 'CTR', 'Freq', 'Booked', ''].map(h => (
+              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 800 }}>
+                <thead><tr>{['Campaign', 'Status', 'Angle', 'Creative', 'Spend', 'Trend (14d)', 'Leads', 'CPL', 'CTR', 'Freq', 'Booked', ''].map(h => (
                   <th key={h} style={{ ...mono, fontSize: 9, fontWeight: 700, color: colors.textMuted, letterSpacing: '0.06em', textAlign: 'left', padding: '10px 8px', borderBottom: `1px solid ${colors.border}` }}>{h.toUpperCase()}</th>
                 ))}</tr></thead>
                 <tbody>
@@ -777,6 +812,18 @@ function CampaignsTab({ tests, angles, creatives, copy, niches, angleName, selec
                         <td style={{ padding: '9px 8px', fontSize: 11, color: colors.accent, borderBottom: `1px solid ${colors.border}` }}>{t.angleId ? (angleName.get(t.angleId) ?? '') : '—'}</td>
                         <td style={{ padding: '9px 8px', fontSize: 11, color: colors.textMuted, borderBottom: `1px solid ${colors.border}` }}>{t.creativeId ? (creativeName.get(t.creativeId) ?? '') : '—'}</td>
                         <td style={{ ...mono, padding: '9px 8px', fontSize: 12, color: colors.textMuted, borderBottom: `1px solid ${colors.border}` }}>{fmtMoney(t.spend)}</td>
+                        <td style={{ padding: '9px 8px', borderBottom: `1px solid ${colors.border}` }}>
+                          {(() => {
+                            const series = seriesByCampaign.get(`${t.client}::${t.label}`) ?? []
+                            const delta = spendDelta(series)
+                            return (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <Sparkline points={series.slice(-14).map(p => p.spend)} color={colors.blue} />
+                                {delta && <span style={{ ...mono, fontSize: 10, fontWeight: 700, color: delta.up ? colors.text : colors.textMuted }}>{delta.up ? '▲' : '▼'}{Math.abs(Math.round(delta.pct))}%</span>}
+                              </div>
+                            )
+                          })()}
+                        </td>
                         <td style={{ ...mono, padding: '9px 8px', fontSize: 12, color: colors.text, borderBottom: `1px solid ${colors.border}` }}>{t.leads}</td>
                         <td style={{ ...mono, padding: '9px 8px', fontSize: 12, color: colors.accent, fontWeight: 600, borderBottom: `1px solid ${colors.border}` }}>{t.cpl ? fmtMoney(t.cpl) : '—'}</td>
                         <td style={{ ...mono, padding: '9px 8px', fontSize: 12, color: colors.textMuted, borderBottom: `1px solid ${colors.border}` }}>{t.ctr ? t.ctr.toFixed(2) + '%' : '—'}</td>

@@ -36,7 +36,7 @@ export interface Test {
 
 export interface MetaAccount { id: string; client: string; adAccountId: string; active: boolean; createdAt: number }
 
-const CK_ANGLES = 'sd_angles', CK_CREATIVES = 'sd_creatives', CK_COPY = 'sd_copy', CK_TESTS = 'sd_tests', CK_ACCOUNTS = 'sd_accounts'
+const CK_ANGLES = 'sd_angles', CK_CREATIVES = 'sd_creatives', CK_COPY = 'sd_copy', CK_TESTS = 'sd_tests', CK_ACCOUNTS = 'sd_accounts', CK_DAILY = 'sd_daily'
 
 function newId(p: string) { return `${p}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}` }
 async function sb() { const { createClient } = await import('@/lib/supabase'); return createClient() }
@@ -87,6 +87,19 @@ export async function loadTests(): Promise<Test[]> {
       booked: r.booked ?? 0, closed: r.closed ?? 0, notes: r.notes ?? '', createdAt: r.created_at,
       delivery: r.delivery ?? '',
       syncedAt: r.synced_at ?? null,
+    }))
+  })
+}
+
+// Per-campaign per-day snapshot (from sd_daily). Keyed in the UI by client::label.
+export interface DailyPoint { client: string; label: string; day: string; spend: number; leads: number; cpl: number }
+export async function loadDaily(): Promise<DailyPoint[]> {
+  return cached(CK_DAILY, async () => {
+    const { data, error } = await (await sb()).from('sd_daily').select('client,label,day,spend,leads,cpl').order('day', { ascending: true })
+    if (error) { console.error('loadDaily', error); return [] }
+    return (data ?? []).map(r => ({
+      client: r.client ?? '', label: r.label ?? '', day: r.day,
+      spend: Number(r.spend) || 0, leads: r.leads ?? 0, cpl: Number(r.cpl) || 0,
     }))
   })
 }
