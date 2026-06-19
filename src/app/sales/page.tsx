@@ -8,7 +8,7 @@ import {
 } from '@/components/DesignSystem'
 import {
   SalesCall, CallSource, CallOutcome,
-  loadCalls, saveCalls,
+  loadCalls, createCall, updateCall, deleteCall,
   SOURCE_META, OUTCOME_META,
   computeStats,
   MONTHS, WEEKDAYS_SHORT,
@@ -571,29 +571,40 @@ export default function SalesTrackingPage() {
     | null
   >(null)
 
-  useEffect(() => { setCalls(loadCalls()) }, [])
+  useEffect(() => { loadCalls().then(setCalls).catch(e => console.error('loadCalls', e)) }, [])
 
-  function persist(next: SalesCall[]) { setCalls(next); saveCalls(next) }
+  // Keep the list in the same order Supabase returns: date desc, then newest first.
+  function sortCalls(list: SalesCall[]): SalesCall[] {
+    return [...list].sort((a, b) =>
+      a.date < b.date ? 1 : a.date > b.date ? -1 : b.createdAt - a.createdAt)
+  }
+
+  // On any write failure, re-pull from the server so the UI never lies.
+  function resync() { loadCalls().then(setCalls).catch(e => console.error('resync', e)) }
 
   function addCall(data: Omit<SalesCall, 'id' | 'createdAt'>) {
-    persist([{
-      ...data,
-      id: `sc_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-      createdAt: Date.now(),
-    }, ...calls])
     setModal(null)
+    createCall(data)
+      .then(call => setCalls(prev => sortCalls([call, ...prev])))
+      .catch(e => { console.error('addCall', e); resync() })
   }
 
-  function updateCall(data: Omit<SalesCall, 'id' | 'createdAt'>) {
+  function editCall(data: Omit<SalesCall, 'id' | 'createdAt'>) {
     if (modal?.kind !== 'edit') return
-    persist(calls.map(c => c.id === modal.call.id ? { ...c, ...data } : c))
+    const id = modal.call.id
     setModal(null)
+    updateCall(id, data)
+      .then(() => setCalls(prev => sortCalls(prev.map(c => c.id === id ? { ...c, ...data } : c))))
+      .catch(e => { console.error('editCall', e); resync() })
   }
 
-  function deleteCall() {
+  function removeCall() {
     if (modal?.kind !== 'edit') return
-    persist(calls.filter(c => c.id !== modal.call.id))
+    const id = modal.call.id
     setModal(null)
+    deleteCall(id)
+      .then(() => setCalls(prev => prev.filter(c => c.id !== id)))
+      .catch(e => { console.error('removeCall', e); resync() })
   }
 
   return (
@@ -642,7 +653,7 @@ export default function SalesTrackingPage() {
         <CallModal defaultDate={modal.defaultDate} onClose={() => setModal(null)} onSave={addCall} />
       )}
       {modal?.kind === 'edit' && (
-        <CallModal existing={modal.call} onClose={() => setModal(null)} onSave={updateCall} onDelete={deleteCall} />
+        <CallModal existing={modal.call} onClose={() => setModal(null)} onSave={editCall} onDelete={removeCall} />
       )}
     </PageContainer>
   )

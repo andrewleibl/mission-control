@@ -9,7 +9,7 @@ import {
   loadProspects, createProspect, advanceProspect, setProspectDay, bookProspect, deleteProspect,
   dueToday,
 } from '@/lib/sms'
-import { SalesCall, loadCalls, saveCalls } from '@/lib/sales-data'
+import { createCall } from '@/lib/sales-data'
 
 const DAYS = [1, 2, 3]
 
@@ -81,15 +81,12 @@ export default function SmsPipeline({ templates, onWinsChanged }: { templates: S
 
   // Booking → create a Sales call on the chosen date AND mark the prospect booked.
   async function bookWithSale(p: SmsProspect, date: string, time: string) {
-    const sc: SalesCall = {
-      id: `sc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-      createdAt: Date.now(),
+    await createCall({
       date, time: time || undefined,
       name: p.company || p.phone, business: p.company,
       source: 'cold_outreach', showed: false, qualified: false, outcome: 'pending',
       notes: p.notes || undefined,
-    }
-    saveCalls([sc, ...loadCalls()])
+    })
     await bookProspect(p)
     setProspects(prev => prev.map(x => x.id === p.id ? { ...x, stage: 'booked' } : x))
     setSelected(null)
