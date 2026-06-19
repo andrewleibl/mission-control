@@ -12,9 +12,10 @@ import { PercyChat, PercyChart, loadChats, askPercy, getChat, percyOnline, greet
 const QUICK_ASKS = [
   'How many sales calls this week?',
   'What did I net last month?',
-  'How many campaigns are active?',
-  'Graph my calls per day for the past two weeks',
-  'Pie breakdown of my call outcomes',
+  'How is my SMS outreach doing?',
+  'How many active clients and my MRR?',
+  'Anything overdue?',
+  'Graph my calls per day for two weeks',
 ]
 
 function TypingDots() {
@@ -144,7 +145,7 @@ export default function PercyPage() {
       <style>{`@keyframes percy-blink{0%,80%,100%{opacity:.25}40%{opacity:1}}.percy-dot{animation:percy-blink 1.2s infinite both}`}</style>
       <PageHeader
         title="Percy"
-        subtitle="Your in-house analyst — ask about your sales, campaigns, and finances."
+        subtitle="Your in-house analyst — ask about anything in Mission Control."
         action={
           <div style={{ display: 'flex', alignItems: 'center', gap: 7, ...mono, fontSize: 11, color: online ? colors.accent : colors.textMuted }}>
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: online ? colors.accent : colors.textSubtle, boxShadow: online ? `0 0 8px ${colors.accent}` : 'none' }} />

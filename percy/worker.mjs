@@ -151,6 +151,73 @@ const skills = {
       return { label: 'Net profit by month', points }
     },
   },
+
+  sms: {
+    description: 'cold SMS funnel — sends, positive replies, booked meetings, follow-up pipeline',
+    async summarize() {
+      const [tpl, sends, wins, pros] = await Promise.all([
+        sb.from('sms_templates').select('status'),
+        sb.from('sms_sends').select('day,count'),
+        sb.from('sms_wins').select('type'),
+        sb.from('sms_prospects').select('stage'),
+      ])
+      const sentAll = (sends.data ?? []).reduce((s, r) => s + (r.count || 0), 0)
+      const last7 = daysAgoIso(6)
+      const sentWeek = (sends.data ?? []).filter(r => r.day >= last7).reduce((s, r) => s + (r.count || 0), 0)
+      const wd = wins.data ?? []
+      const positives = wd.filter(r => r.type === 'positive_reply').length
+      const booked = wd.filter(r => r.type === 'booked_meeting').length
+      const stages = {}
+      for (const r of (pros.data ?? [])) stages[r.stage] = (stages[r.stage] || 0) + 1
+      return {
+        active_templates: (tpl.data ?? []).filter(r => r.status === 'active').length,
+        total_sent: sentAll, sent_this_week: sentWeek,
+        positive_replies: positives, booked_meetings: booked,
+        positive_rate: sentAll ? `${(positives / sentAll * 100).toFixed(1)}%` : 'n/a',
+        prospects_following_up: stages.following_up || 0, prospects_booked: stages.booked || 0, prospects_lost: stages.lost || 0,
+      }
+    },
+  },
+
+  tasks: {
+    description: 'task list — overdue, due today, upcoming, open count',
+    async summarize() {
+      const { data } = await sb.from('tasks').select('due_date,starred,completed_at')
+      const open = (data ?? []).filter(r => !r.completed_at)
+      const in7 = daysAgoIso(-7)
+      return {
+        open: open.length,
+        overdue: open.filter(r => r.due_date && r.due_date < TODAY_ISO).length,
+        due_today: open.filter(r => r.due_date === TODAY_ISO).length,
+        upcoming_7d: open.filter(r => r.due_date && r.due_date > TODAY_ISO && r.due_date <= in7).length,
+        starred_open: open.filter(r => r.starred).length,
+      }
+    },
+  },
+
+  clients: {
+    description: 'active clients and recurring monthly revenue (MRR)',
+    async summarize() {
+      const { data } = await sb.from('clients').select('name,status,monthly_retainer')
+      const active = (data ?? []).filter(r => r.status === 'active')
+      const mrr = active.reduce((s, r) => s + (Number(r.monthly_retainer) || 0), 0)
+      return { active_clients: active.length, mrr: +mrr.toFixed(2), active_names: active.map(r => r.name), total_clients: (data ?? []).length }
+    },
+  },
+
+  growth: {
+    description: 'growth goals — targets and current progress',
+    async summarize() {
+      const { data } = await sb.from('goals').select('*')
+      return {
+        goals: (data ?? []).map(r => ({
+          name: r.name ?? r.title ?? r.label ?? 'goal',
+          target: r.target_value, current: r.current_value, status: r.status,
+          progress: r.target_value ? `${Math.min(100, Math.round((r.current_value / r.target_value) * 100))}%` : 'n/a',
+        })),
+      }
+    },
+  },
 }
 
 // ── chart intent (v1 keyword detection; LLM routing comes later) ────────────
@@ -205,12 +272,12 @@ Rules:
 async function answer(row) {
   await sb.from('percy_chats').update({ status: 'working' }).eq('id', row.id)
   try {
-    const pack = {
-      today: TODAY_ISO,
-      sales_calls: await skills.sales_calls.summarize(),
-      campaigns: await skills.campaigns.summarize(),
-      finances: await skills.finances.summarize(),
-    }
+    // Auto-include every skill that exposes summarize() — new skills join the
+    // pack automatically. Parallel + fault-tolerant (one bad skill won't break Percy).
+    const pack = { today: TODAY_ISO }
+    const summable = Object.entries(skills).filter(([, s]) => typeof s.summarize === 'function')
+    const sums = await Promise.all(summable.map(([, s]) => s.summarize().catch(e => { console.error('skill', e?.message); return null })))
+    summable.forEach(([name], i) => { if (sums[i]) pack[name] = sums[i] })
     const chartReq = pickChart(row.question)
     let chart = null
     let dataForPrompt = pack
