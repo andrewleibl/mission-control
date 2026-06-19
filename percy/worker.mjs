@@ -57,9 +57,11 @@ const skills = {
       const inMonth = rows.filter(r => monthKey(r.date) === thisMonth)
       const outcomes = {}
       for (const r of rows) outcomes[r.outcome] = (outcomes[r.outcome] || 0) + 1
+      const prevWeekStart = daysAgoIso(13)
       return {
         total_all_time: rows.length,
         this_week: inWeek.length,
+        last_week: rows.filter(r => r.date >= prevWeekStart && r.date < last7).length,
         this_month: inMonth.length,
         last_month: rows.filter(r => monthKey(r.date) === lastMonth).length,
         show_rate_all_time: rows.length ? `${Math.round(rows.filter(r => r.showed).length / rows.length * 100)}%` : 'n/a',
@@ -308,12 +310,19 @@ Rules:
 - Lead with the answer/number, then a short bit of context. No preamble, no fluff.
 - Be direct and concise — a sharp analyst, not a chatbot. No emoji unless asked.
 - If the needed data isn't in what's provided, say so plainly. Never invent numbers.
+- Use the RECENT CONVERSATION for context — the user often builds on earlier answers ("what about last week?", "and the month before?", "graph that"). Resolve references like "that"/"those" from it.
 - Today's date is ${TODAY_ISO}.`
 
 // ── answer one question ─────────────────────────────────────────────────────
 async function answer(row) {
   await sb.from('percy_chats').update({ status: 'working' }).eq('id', row.id)
   try {
+    // Recent conversation so Percy can follow up ("what about last week?", "graph that").
+    const { data: hist } = await sb.from('percy_chats')
+      .select('question,answer,created_at').eq('status', 'answered')
+      .lt('created_at', row.created_at).order('created_at', { ascending: false }).limit(8)
+    const convo = (hist ?? []).reverse().map(h => `User: ${h.question}\nPercy: ${h.answer}`).join('\n\n')
+
     // Auto-include every skill that exposes summarize() — new skills join the
     // pack automatically. Parallel + fault-tolerant (one bad skill won't break Percy).
     const pack = { today: TODAY_ISO }
@@ -334,7 +343,8 @@ async function answer(row) {
       ? `A line chart of the "chart_series" data is being displayed to the user right now. Reply with ONLY one short caption sentence about the key trend in that series. No "Caption:" prefix, no bullet lists, no axis description, no claim that the data is missing — the series IS the data.`
       : `Answer the question directly from the data.`
 
-    const prompt = `${PERSONA}\n\n${instruction}\n\nDATA:\n${JSON.stringify(dataForPrompt)}\n\nQUESTION: ${row.question}`
+    const convoBlock = convo ? `RECENT CONVERSATION (oldest→newest; the user may refer back to it):\n${convo}\n\n` : ''
+    const prompt = `${PERSONA}\n\n${instruction}\n\n${convoBlock}DATA (live, current values):\n${JSON.stringify(dataForPrompt)}\n\nQUESTION: ${row.question}`
     const text = await runClaude(prompt)
 
     await sb.from('percy_chats').update({
