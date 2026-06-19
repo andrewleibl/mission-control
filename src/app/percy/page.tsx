@@ -7,7 +7,26 @@ import {
   PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from 'recharts'
 import { PageContainer, PageHeader, colors, cardStyle, borders, mono } from '@/components/DesignSystem'
-import { PercyChat, PercyChart, loadChats, askPercy, getChat, percyOnline } from '@/lib/percy'
+import { PercyChat, PercyChart, loadChats, askPercy, getChat, percyOnline, greetingStats } from '@/lib/percy'
+
+const QUICK_ASKS = [
+  'How many sales calls this week?',
+  'What did I net last month?',
+  'How many campaigns are active?',
+  'Graph my calls per day for the past two weeks',
+  'Pie breakdown of my call outcomes',
+]
+
+function TypingDots() {
+  return (
+    <span style={{ color: colors.textMuted, display: 'inline-flex', gap: 3, alignItems: 'center' }}>
+      Percy is thinking
+      <span className="percy-dot" style={{ width: 4, height: 4, borderRadius: '50%', background: colors.textMuted, animationDelay: '0s' }} />
+      <span className="percy-dot" style={{ width: 4, height: 4, borderRadius: '50%', background: colors.textMuted, animationDelay: '0.2s' }} />
+      <span className="percy-dot" style={{ width: 4, height: 4, borderRadius: '50%', background: colors.textMuted, animationDelay: '0.4s' }} />
+    </span>
+  )
+}
 
 // ── interactive chart renderer (line / area / bar / pie) via Recharts ────────
 const PALETTE = [colors.accent, colors.blue, colors.purple, colors.yellow, colors.orange, colors.red, '#4FD1C5', '#F687B3']
@@ -74,17 +93,25 @@ export default function PercyPage() {
   const [input, setInput] = useState('')
   const [online, setOnline] = useState<boolean | null>(null)
   const [sending, setSending] = useState(false)
+  const [greet, setGreet] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { loadChats().then(setChats).catch(e => console.error(e)) }, [])
+  useEffect(() => {
+    const hr = new Date().getHours()
+    const part = hr < 12 ? 'Morning' : hr < 18 ? 'Afternoon' : 'Evening'
+    greetingStats()
+      .then(s => setGreet(`${part}, Andrew. ${s.calls} call${s.calls === 1 ? '' : 's'} logged this week${s.campaigns ? `, ${s.campaigns} campaign${s.campaigns === 1 ? '' : 's'} live` : ''}. What do you want to know?`))
+      .catch(() => setGreet(`${part}, Andrew. What do you want to know?`))
+  }, [])
   useEffect(() => {
     const check = () => percyOnline().then(setOnline).catch(() => setOnline(false))
     check(); const t = setInterval(check, 20000); return () => clearInterval(t)
   }, [])
   useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' }) }, [chats])
 
-  const send = useCallback(async () => {
-    const q = input.trim()
+  const send = useCallback(async (text?: string) => {
+    const q = (text ?? input).trim()
     if (!q || sending) return
     setSending(true)
     setInput('')
@@ -114,6 +141,7 @@ export default function PercyPage() {
 
   return (
     <PageContainer>
+      <style>{`@keyframes percy-blink{0%,80%,100%{opacity:.25}40%{opacity:1}}.percy-dot{animation:percy-blink 1.2s infinite both}`}</style>
       <PageHeader
         title="Percy"
         subtitle="Your in-house analyst — ask about your sales, campaigns, and finances."
@@ -129,14 +157,12 @@ export default function PercyPage() {
         {/* conversation */}
         <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
           {chats.length === 0 && (
-            <div style={{ margin: 'auto', textAlign: 'center', color: colors.textSubtle, fontSize: 13, maxWidth: 360 }}>
-              <Sparkles size={22} color={colors.accent} style={{ marginBottom: 10 }} />
-              <div>Ask Percy anything about your business.</div>
-              <div style={{ marginTop: 8, fontSize: 12, lineHeight: 1.7 }}>
-                &ldquo;How many sales calls this week?&rdquo;<br />
-                &ldquo;What did I net in May?&rdquo;<br />
-                &ldquo;Graph my calls per day for the past two weeks&rdquo;
+            <div style={{ margin: 'auto', textAlign: 'center', color: colors.textSubtle, fontSize: 13, maxWidth: 440 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 11, margin: '0 auto 14px', background: 'rgba(56,161,87,0.15)', border: `1px solid rgba(56,161,87,0.3)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Sparkles size={20} color={colors.accent} />
               </div>
+              <div style={{ color: colors.text, fontSize: 14, fontWeight: 600, lineHeight: 1.5 }}>{greet || 'Ask Percy anything about your business.'}</div>
+              <div style={{ marginTop: 6, fontSize: 12, color: colors.textSubtle }}>Tap a suggestion below, or just type.</div>
             </div>
           )}
           {chats.map(c => (
@@ -150,7 +176,7 @@ export default function PercyPage() {
                 <div style={{ flexShrink: 0, width: 26, height: 26, borderRadius: 7, background: 'rgba(56,161,87,0.15)', border: `1px solid rgba(56,161,87,0.3)`, display: 'flex', alignItems: 'center', justifyContent: 'center', ...mono, fontSize: 12, fontWeight: 700, color: colors.accent }}>P</div>
                 <div style={{ background: colors.cardBgElevated, border: `1px solid ${colors.border}`, borderRadius: 12, borderBottomLeftRadius: 3, padding: '10px 14px', fontSize: 13, color: colors.text, lineHeight: 1.55, minWidth: 60 }}>
                   {c.status === 'pending' || c.status === 'working'
-                    ? <span style={{ color: colors.textMuted }}>Percy is thinking…</span>
+                    ? <TypingDots />
                     : c.status === 'error'
                       ? <span style={{ color: colors.red }}>Couldn&apos;t answer that one — try again.</span>
                       : <>
@@ -163,19 +189,26 @@ export default function PercyPage() {
           ))}
         </div>
 
-        {/* input */}
-        <div style={{ borderTop: `1px solid ${colors.border}`, padding: 12, display: 'flex', gap: 10 }}>
-          <input
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}
-            placeholder={online === false ? 'Percy is offline — start the worker on the Mac' : 'Ask Percy…'}
-            disabled={sending}
-            style={{ flex: 1, background: colors.bg, border: `1px solid ${colors.border}`, borderRadius: borders.radius.medium, color: colors.text, fontSize: 13, padding: '11px 14px', fontFamily: 'inherit', outline: 'none' }}
-          />
-          <button onClick={send} disabled={sending || !input.trim()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: colors.accent, border: 'none', borderRadius: borders.radius.medium, color: '#fff', fontSize: 13, fontWeight: 600, padding: '0 16px', cursor: sending || !input.trim() ? 'default' : 'pointer', opacity: sending || !input.trim() ? 0.5 : 1 }}>
-            <Send size={15} />
-          </button>
+        {/* quick-ask chips + input */}
+        <div style={{ borderTop: `1px solid ${colors.border}` }}>
+          <div style={{ display: 'flex', gap: 7, padding: '10px 12px 0', overflowX: 'auto' }}>
+            {QUICK_ASKS.map(qa => (
+              <button key={qa} onClick={() => send(qa)} disabled={sending} style={{ flexShrink: 0, background: colors.cardBgElevated, border: `1px solid ${colors.border}`, borderRadius: 999, color: colors.textMuted, fontSize: 11, padding: '6px 11px', cursor: sending ? 'default' : 'pointer', whiteSpace: 'nowrap', fontFamily: 'inherit', opacity: sending ? 0.5 : 1 }}>{qa}</button>
+            ))}
+          </div>
+          <div style={{ padding: 12, display: 'flex', gap: 10 }}>
+            <input
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}
+              placeholder={online === false ? 'Percy is offline — start the worker on the Mac' : 'Ask Percy…'}
+              disabled={sending}
+              style={{ flex: 1, background: colors.bg, border: `1px solid ${colors.border}`, borderRadius: borders.radius.medium, color: colors.text, fontSize: 13, padding: '11px 14px', fontFamily: 'inherit', outline: 'none' }}
+            />
+            <button onClick={() => send()} disabled={sending || !input.trim()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: colors.accent, border: 'none', borderRadius: borders.radius.medium, color: '#fff', fontSize: 13, fontWeight: 600, padding: '0 16px', cursor: sending || !input.trim() ? 'default' : 'pointer', opacity: sending || !input.trim() ? 0.5 : 1 }}>
+              <Send size={15} />
+            </button>
+          </div>
         </div>
       </div>
     </PageContainer>

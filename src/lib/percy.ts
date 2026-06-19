@@ -61,6 +61,21 @@ export async function getChat(id: string): Promise<PercyChat | null> {
   return data ? rowToChat(data) : null
 }
 
+// Lightweight stats for Percy's greeting (no worker round-trip).
+export async function greetingStats(): Promise<{ calls: number; campaigns: number }> {
+  const { createClient } = await import('@/lib/supabase')
+  const sb = createClient()
+  const d = new Date(); d.setDate(d.getDate() - 6)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const since = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  const [calls, camps] = await Promise.all([
+    sb.from('sales_calls').select('id', { count: 'exact', head: true }).gte('date', since),
+    sb.from('sd_tests').select('delivery'),
+  ])
+  const campaigns = (camps.data ?? []).filter((r: { delivery?: string }) => (r.delivery || '').toUpperCase() === 'ACTIVE').length
+  return { calls: calls.count ?? 0, campaigns }
+}
+
 // Worker heartbeats every ~30s; treat >90s of silence as offline.
 export async function percyOnline(): Promise<boolean> {
   const { createClient } = await import('@/lib/supabase')
