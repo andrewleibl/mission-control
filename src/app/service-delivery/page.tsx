@@ -652,6 +652,17 @@ function deliveryMeta(d: string): { label: string; color: string; rank: number }
   return { label: u.charAt(0) + u.slice(1).toLowerCase(), color: colors.textMuted, rank: 2 }
 }
 
+// Relative "freshness" label for the last Meta sync.
+function timeAgo(ms: number): string {
+  const s = Math.floor((Date.now() - ms) / 1000)
+  if (s < 60) return 'just now'
+  const m = Math.floor(s / 60)
+  if (m < 60) return `${m} min ago`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `${h}h ago`
+  return `${Math.floor(h / 24)}d ago`
+}
+
 function CampaignsTab({ tests, angles, creatives, copy, niches, angleName, selectedClient, setSelectedClient, onSave, onDelete, onImport, accounts, onSaveAccount, onDeleteAccount, onSync }: {
   tests: Test[]; angles: Angle[]; creatives: Creative[]; copy: Copy[]; niches: string[]; angleName: Map<string, string>
   selectedClient: string | null; setSelectedClient: (c: string | null) => void
@@ -681,6 +692,13 @@ function CampaignsTab({ tests, angles, creatives, copy, niches, angleName, selec
     [tests, selectedClient])
   const detailRollup = useMemo(() => rollupTests(detailTests), [detailTests])
 
+  // Freshest Meta sync across all campaigns — drives the "Last synced" label so
+  // you can always tell whether the numbers are live or stale.
+  const lastSynced = useMemo(() => {
+    const stamps = tests.map(t => t.syncedAt ?? 0).filter(Boolean)
+    return stamps.length ? Math.max(...stamps) : null
+  }, [tests])
+
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]; if (!f) return
     const text = await f.text()
@@ -693,7 +711,10 @@ function CampaignsTab({ tests, angles, creatives, copy, niches, angleName, selec
     <div style={{ display: 'grid', gap: 16 }}>
       {/* Toolbar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <div style={{ ...mono, fontSize: 11, color: colors.textMuted }}>Sync Meta pulls live campaigns per client · or drop a CSV.</div>
+        <div style={{ ...mono, fontSize: 11, color: colors.textMuted }}>
+          Sync Meta pulls live campaigns per client · or drop a CSV.
+          {lastSynced && <span style={{ color: colors.text }}> · Last synced {timeAgo(lastSynced)}</span>}
+        </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <input ref={fileRef} type="file" accept=".csv,text/csv" onChange={handleFile} style={{ display: 'none' }} />
           <button onClick={() => setShowAccounts(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'transparent', border: `1px solid ${colors.border}`, borderRadius: borders.radius.medium, color: colors.textMuted, fontSize: 13, fontWeight: 600, padding: '8px 12px', cursor: 'pointer' }}>Meta accounts</button>

@@ -6,5 +6,8 @@
   "framework": "nextjs",
   "env": {
     "NEXT_PUBLIC_APP_URL": "https://api.straightpointmarketing.com"
-  }
+  },
+  "crons": [
+    { "path": "/api/cron/meta-sync", "schedule": "0 */2 * * *" }
+  ]
 }

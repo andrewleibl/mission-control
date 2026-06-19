@@ -31,6 +31,7 @@ export interface Test {
   spend: number; leads: number; cpl: number; ctr: number; frequency: number
   booked: number; closed: number; notes: string; createdAt: number
   delivery: string  // Meta effective_status: ACTIVE / PAUSED / etc ('' if manual/unknown)
+  syncedAt: number | null  // epoch ms of the last Meta sync that touched this row (null if manual)
 }
 
 export interface MetaAccount { id: string; client: string; adAccountId: string; active: boolean; createdAt: number }
@@ -85,6 +86,7 @@ export async function loadTests(): Promise<Test[]> {
       ctr: Number(r.ctr) || 0, frequency: Number(r.frequency) || 0,
       booked: r.booked ?? 0, closed: r.closed ?? 0, notes: r.notes ?? '', createdAt: r.created_at,
       delivery: r.delivery ?? '',
+      syncedAt: r.synced_at ?? null,
     }))
   })
 }
@@ -159,7 +161,7 @@ export function newAccount(): MetaAccount { return { id: newId('acc'), client: '
 export function newAngle(): Angle { return { id: newId('ang'), name: '', niche: '', description: '', status: 'active', notes: '', createdAt: Date.now() } }
 export function newCreative(): Creative { return { id: newId('cre'), name: '', angleId: null, niche: '', format: 'image', assetUrl: '', thumbUrl: '', rating: 0, status: 'idea', notes: '', createdAt: Date.now() } }
 export function newCopyItem(): Copy { return { id: newId('cpy'), name: '', kind: 'primary', body: '', angleId: null, niche: '', rating: 0, status: 'idea', notes: '', createdAt: Date.now() } }
-export function newTest(): Test { return { id: newId('tst'), label: '', creativeId: null, copyId: null, angleId: null, niche: '', client: '', startedOn: null, endedOn: null, spend: 0, leads: 0, cpl: 0, ctr: 0, frequency: 0, booked: 0, closed: 0, notes: '', createdAt: Date.now(), delivery: '' } }
+export function newTest(): Test { return { id: newId('tst'), label: '', creativeId: null, copyId: null, angleId: null, niche: '', client: '', startedOn: null, endedOn: null, spend: 0, leads: 0, cpl: 0, ctr: 0, frequency: 0, booked: 0, closed: 0, notes: '', createdAt: Date.now(), delivery: '', syncedAt: null } }
 
 // ---------- Rollups: aggregate test metrics up to any dimension ----------
 export interface Rollup { spend: number; leads: number; cpl: number; ctr: number; frequency: number; booked: number; closed: number; tests: number }
