@@ -88,6 +88,25 @@ const skills = {
       for (const r of (data ?? [])) c[r.source] = (c[r.source] || 0) + 1
       return { label: 'Calls by source', points: Object.entries(c).map(([label, value]) => ({ label, value })) }
     },
+    async seriesBySource({ days = 30 }) {
+      const since = daysAgoIso(days - 1)
+      const { data } = await sb.from('sales_calls').select('date,source').gte('date', since)
+      const sources = new Set()
+      const byDaySource = {}
+      for (let i = days - 1; i >= 0; i--) byDaySource[daysAgoIso(i)] = {}
+      for (const r of (data ?? [])) {
+        const src = r.source || 'other'
+        sources.add(src)
+        if (r.date in byDaySource) byDaySource[r.date][src] = (byDaySource[r.date][src] || 0) + 1
+      }
+      const seriesKeys = [...sources].sort()
+      const points = Object.entries(byDaySource).map(([day, counts]) => {
+        const pt = { label: day }
+        for (const s of seriesKeys) pt[s] = counts[s] || 0
+        return pt
+      })
+      return { label: 'Calls booked by source', points, seriesKeys }
+    },
   },
 
   campaigns: {
@@ -155,28 +174,42 @@ const skills = {
   },
 
   sms: {
-    description: 'cold SMS funnel — sends, positive replies, booked meetings, follow-up pipeline',
+    description: 'cold SMS funnel — sends, positive replies, booked meetings, follow-up pipeline, and best/worst performing templates over the last 7 & 30 days',
     async summarize() {
       const [tpl, sends, wins, pros] = await Promise.all([
-        sb.from('sms_templates').select('status'),
-        sb.from('sms_sends').select('day,count'),
-        sb.from('sms_wins').select('type'),
+        sb.from('sms_templates').select('id,label,status'),
+        sb.from('sms_sends').select('template_id,day,count'),
+        sb.from('sms_wins').select('template_id,type,logged_at'),
         sb.from('sms_prospects').select('stage'),
       ])
-      const sentAll = (sends.data ?? []).reduce((s, r) => s + (r.count || 0), 0)
-      const last7 = daysAgoIso(6)
-      const sentWeek = (sends.data ?? []).filter(r => r.day >= last7).reduce((s, r) => s + (r.count || 0), 0)
-      const wd = wins.data ?? []
-      const positives = wd.filter(r => r.type === 'positive_reply').length
-      const booked = wd.filter(r => r.type === 'booked_meeting').length
+      const templates = tpl.data ?? [], sendRows = sends.data ?? [], winRows = wins.data ?? []
+      const last7 = daysAgoIso(6), last30 = daysAgoIso(29)
+      const sentAll = sendRows.reduce((s, r) => s + (r.count || 0), 0)
+      const sentWeek = sendRows.filter(r => r.day >= last7).reduce((s, r) => s + (r.count || 0), 0)
+      const positives = winRows.filter(r => r.type === 'positive_reply').length
+      const booked = winRows.filter(r => r.type === 'booked_meeting').length
       const stages = {}
       for (const r of (pros.data ?? [])) stages[r.stage] = (stages[r.stage] || 0) + 1
+      // Tag each win with its LOCAL calendar day so template windows line up with send windows.
+      const winsByDay = winRows.map(r => ({ ...r, day: iso(new Date(Number(r.logged_at))) }))
+      // Per-template performance within a window (since = inclusive YYYY-MM-DD start).
+      const perf = (since) => templates.map(t => {
+        const s = sendRows.filter(r => r.template_id === t.id && r.day >= since).reduce((a, r) => a + (r.count || 0), 0)
+        const w = winsByDay.filter(r => r.template_id === t.id && r.day >= since)
+        const pos = w.filter(r => r.type === 'positive_reply').length
+        const bk = w.filter(r => r.type === 'booked_meeting').length
+        return { template: t.label, status: t.status, sends: s, positive_replies: pos, booked: bk, positive_rate: s ? `${(pos / s * 100).toFixed(1)}%` : 'n/a' }
+      }).filter(r => r.sends > 0 || r.positive_replies > 0 || r.booked > 0)
+        .sort((a, b) => (parseFloat(b.positive_rate) || 0) - (parseFloat(a.positive_rate) || 0) || b.booked - a.booked || b.sends - a.sends)
       return {
-        active_templates: (tpl.data ?? []).filter(r => r.status === 'active').length,
+        active_templates: templates.filter(t => t.status === 'active').length,
         total_sent: sentAll, sent_this_week: sentWeek,
-        positive_replies: positives, booked_meetings: booked,
-        positive_rate: sentAll ? `${(positives / sentAll * 100).toFixed(1)}%` : 'n/a',
+        positive_replies_all_time: positives, booked_meetings_all_time: booked,
+        positive_rate_all_time: sentAll ? `${(positives / sentAll * 100).toFixed(1)}%` : 'n/a',
         prospects_following_up: stages.following_up || 0, prospects_booked: stages.booked || 0, prospects_lost: stages.lost || 0,
+        template_performance_last_7d: perf(last7),
+        template_performance_last_30d: perf(last30),
+        template_ranking_note: 'Per-template arrays are sorted best→worst by positive-reply rate (tiebreak: booked, then volume). Low send counts make the rate noisy — weigh by "sends". Rank by whichever metric the user asks: "positive_rate" = copy quality, "booked" = appointments. Only templates with activity in the window are listed.',
       }
     },
   },
@@ -262,25 +295,86 @@ const skills = {
       return { recent: (data ?? []).map(r => ({ client: r.client, type: r.report_type, week: r.week_start, spend: r.spend, leads: r.leads, revenue: r.revenue, roas: r.roas })) }
     },
   },
+
+  // Reference knowledge (not live data): Andrew's mentor's media-buying framework
+  // — the Miro "Media Buying Breakdown". Lets Percy answer how-to/process
+  // questions about structuring, launching, and optimizing Meta ad campaigns.
+  media_buying: {
+    description: 'media-buying framework / SOP (Andrew\'s mentor\'s playbook) — how to structure, launch, and optimize Meta ad campaigns (B2C client + B2B)',
+    async summarize() {
+      return {
+        _note: 'Reference SOP, not live numbers. Use it to answer how-to/process questions about running ad campaigns. Do not treat its example figures as current account data.',
+        b2c_client_ad_structure: {
+          campaign: 'CBO (Campaign Budget Optimization), $50-100/day, broad targeting — NO interest targeting',
+          ad_set: {
+            ages: '30-65+ (for most niches)',
+            ads: '8-12 diverse ads',
+            creative_mix: '60% video, 40% static',
+            offers: '3-4 different offers/angles per campaign — test variations of offers & angles',
+            placements: 'FB & IG Feed, FB & IG Stories, FB & IG Reels',
+            location: 'whatever area the client wants to target',
+          },
+          copy: {
+            primary_texts: "3 primary text/angles — don't reuse the same primary text across different angle types (a 'free estimate' angle and a 'get 20% off' angle need different primary text)",
+            headlines: '3 headlines',
+            descriptions: '1 description',
+          },
+          optimization_matrix: [
+            'Campaign launched → do NOT touch for 3-5 days (let it learn)',
+            'Getting a couple leads → let it run and continue to monitor',
+            'Got 1 lead → give it 24-48 more hours',
+            'No leads after the initial window → duplicate the campaign & change out ALL the ads, let it run 3-5 more days',
+            'Still no leads → duplicate the campaign & remove the ads that got most of the spend (usually 1-3)',
+          ],
+        },
+        b2b_ad_structure: {
+          campaign: 'CBO, $50-100/day, broad targeting — NO interest targeting',
+          ad_set: {
+            ages: '25-65+',
+            ads: '8-12 diverse ads; start with all static ads',
+            creative_mix: '60% direct-offer ads, 30% proven ads from Noah/competitors, 10% ads based on your ICP pain points/goals',
+            placements: 'FB & IG Feed, FB & IG Stories, FB & IG Reels',
+            location: 'the whole USA (or whatever market you are targeting)',
+          },
+          copy: '3 primary texts, 3 headlines, 1 description',
+        },
+        key_caveats: 'This is a TRAFFIC framework — it gets clicks cheaply and lets the algorithm find buyers; it assumes the funnel downstream of the click (lead capture → booking → follow-up) actually works. ALWAYS verify a test lead flows all the way through the funnel BEFORE spending. The matrix triggers on "leads," so a broken capture step makes a working ad look dead (this exact gap cost a real campaign ~$118 with a healthy 2.56% CTR and 0 captured leads). Minimum budget is $50/day per the framework — never run below $40/day or Meta cannot exit the learning phase.',
+      }
+    },
+  },
 }
 
 // ── chart intent (v1 keyword detection; LLM routing comes later) ────────────
-const CHART_RE = /\b(graph|chart|plot|trend(ing|s)?|over time|per day|each day|by day|by month|by client|by outcome|by source|breakdown|split|distribution|pie|bar|visuali[sz]e)\b/i
+const CHART_RE = /\b(graph|chart|plot|trend(ing|s)?|over time|per day|each day|by day|by month|by client|by outcome|by source|breakdown|split|distribution|pie|bar|visuali[sz]e|compar(e|ing)|vs)\b/i
+function parseDays(l) {
+  const wk = l.match(/(\d+)\s*(day|week)/)
+  if (wk) return wk[2] === 'week' ? +wk[1] * 7 : +wk[1]
+  if (/two weeks|2 weeks/.test(l)) return 14
+  // "june 1 to 30" / "first of june to the 30th" / "this month" / "the month"
+  if (/june|this month|the month/.test(l)) return 30
+  if (/month/.test(l)) return 30
+  return 14
+}
 function pickChart(q) {
   if (!CHART_RE.test(q)) return null
   const l = q.toLowerCase()
+  const isComparison = /\bvs\b|\bversus\b|\bcompar|\bwhere they came from\b/.test(l)
   // categorical breakdowns → pie or bar
-  if (/outcome|status/.test(l)) return { type: /pie|breakdown|split|distribution/.test(l) ? 'pie' : 'bar', skill: 'sales_calls', fn: 'byOutcome', args: {} }
-  if (/source|channel/.test(l)) return { type: 'bar', skill: 'sales_calls', fn: 'bySource', args: {} }
-  if (/client/.test(l) && /spend|campaign|budget|ad/.test(l)) return { type: /pie|breakdown|split/.test(l) ? 'pie' : 'bar', skill: 'campaigns', fn: 'byClient', args: {} }
-  // time series → line or area
-  let days = 14
-  const wk = l.match(/(\d+)\s*(day|week)/)
-  if (wk) days = wk[2] === 'week' ? +wk[1] * 7 : +wk[1]
-  else if (/two weeks|2 weeks/.test(l)) days = 14
-  else if (/month/.test(l)) days = 30
-  if (/spend|budget|ad/.test(l)) return { type: 'area', skill: 'campaigns', fn: 'series', args: { days } }
+  if (/outcome|status/.test(l) && !/per day|each day|by day|over time/.test(l)) return { type: /pie|breakdown|split|distribution/.test(l) ? 'pie' : 'bar', skill: 'sales_calls', fn: 'byOutcome', args: {} }
+  if (/source|channel/.test(l) && !/per day|each day|by day|over time/.test(l)) return { type: 'bar', skill: 'sales_calls', fn: 'bySource', args: {} }
+  if (/client/.test(l) && /spend|campaign|budget/.test(l) && !/call|book/.test(l)) return { type: /pie|breakdown|split/.test(l) ? 'pie' : 'bar', skill: 'campaigns', fn: 'byClient', args: {} }
+  const days = parseDays(l)
+  // Calls/bookings take priority over "ad" keyword (user might say "meta ads" meaning the source, not ad spend)
+  if (/call|booked|appointment|estimate/.test(l)) {
+    if (isComparison || /meta.*(outreach|cold)|cold.*meta|(outreach|cold).*(meta|ad)/.test(l) || (/source|where/.test(l) && /per day|each day|by day/.test(l))) {
+      return { type: 'line', skill: 'sales_calls', fn: 'seriesBySource', args: { days }, multi: true }
+    }
+    return { type: 'line', skill: 'sales_calls', fn: 'series', args: { days } }
+  }
+  if (/spend|budget/.test(l)) return { type: 'area', skill: 'campaigns', fn: 'series', args: { days } }
   if (/revenue|net|profit|income|finance/.test(l)) return { type: 'line', skill: 'finances', fn: 'series', args: { months: 6 } }
+  // Only route to campaigns if explicitly about ads/campaigns AND not about calls
+  if (/\bad\b|campaign/.test(l) && !/call|book/.test(l)) return { type: 'area', skill: 'campaigns', fn: 'series', args: { days } }
   return { type: 'line', skill: 'sales_calls', fn: 'series', args: { days } }
 }
 
@@ -310,6 +404,7 @@ Rules:
 - Lead with the answer/number, then a short bit of context. No preamble, no fluff.
 - Be direct and concise — a sharp analyst, not a chatbot. No emoji unless asked.
 - If the needed data isn't in what's provided, say so plainly. Never invent numbers.
+- Some provided items are reference knowledge (e.g. the media_buying framework/SOP), not live data — you can explain, teach, and walk through that process, not just report numbers. Don't mistake an SOP's example figures for current account data.
 - Use the RECENT CONVERSATION for context — the user often builds on earlier answers ("what about last week?", "and the month before?", "graph that"). Resolve references like "that"/"those" from it.
 - Today's date is ${TODAY_ISO}.`
 
@@ -335,12 +430,12 @@ async function answer(row) {
     if (chartReq) {
       const s = await skills[chartReq.skill][chartReq.fn](chartReq.args)
       chart = { type: chartReq.type, title: s.label, points: s.points }
-      // Feed the actual data to Percy so his caption reflects what's charted.
-      dataForPrompt = { ...pack, chart_series: { title: s.label, type: chartReq.type, points: s.points } }
+      if (s.seriesKeys) chart.seriesKeys = s.seriesKeys
+      dataForPrompt = { ...pack, chart_series: { title: s.label, type: chartReq.type, points: s.points, seriesKeys: s.seriesKeys || null } }
     }
 
     const instruction = chart
-      ? `A line chart of the "chart_series" data is being displayed to the user right now. Reply with ONLY one short caption sentence about the key trend in that series. No "Caption:" prefix, no bullet lists, no axis description, no claim that the data is missing — the series IS the data.`
+      ? `Answer the question using the data below. A chart is also being displayed to the user — reference the trends you see in chart_series naturally. Keep it concise: 1-3 sentences highlighting the key insight.`
       : `Answer the question directly from the data.`
 
     const convoBlock = convo ? `RECENT CONVERSATION (oldest→newest; the user may refer back to it):\n${convo}\n\n` : ''

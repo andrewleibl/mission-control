@@ -7,7 +7,7 @@ import {
   PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from 'recharts'
 import { PageContainer, PageHeader, colors, cardStyle, borders, mono } from '@/components/DesignSystem'
-import { PercyChat, PercyChart, loadChats, askPercy, getChat, percyOnline, greetingStats } from '@/lib/percy'
+import { PercyChat, PercyChart, PercyChartPoint, loadChats, askPercy, getChat, percyOnline, greetingStats } from '@/lib/percy'
 
 function TypingDots() {
   return (
@@ -31,9 +31,22 @@ function fmtLabel(s: string) {
   return s
 }
 
+function fmtSeriesKey(s: string) {
+  return s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+}
+
 function PercyChartView({ chart }: { chart: PercyChart }) {
-  // Normalize (handles both new {label} and legacy {day} point shapes).
-  const data = (chart.points || []).map((p: { label?: string; day?: string; value: number }) => ({ label: p.label ?? p.day ?? '', value: p.value }))
+  const isMulti = chart.seriesKeys && chart.seriesKeys.length > 0
+  // Multi-series: points already have one key per series. Single-series: normalize to {label, value}.
+  const data = (chart.points || []).map((p: PercyChartPoint) => {
+    const base: Record<string, string | number> = { label: p.label ?? p.day ?? '' }
+    if (isMulti) {
+      for (const k of chart.seriesKeys!) base[k] = (p[k] as number) ?? 0
+    } else {
+      base.value = p.value
+    }
+    return base
+  })
   if (data.length < 1) return null
   const type = chart.type || 'line'
 
@@ -68,6 +81,14 @@ function PercyChartView({ chart }: { chart: PercyChart }) {
               {grid}{xAxis}{yAxis}{tip}
               <Area type="monotone" dataKey="value" stroke={colors.accent} strokeWidth={2} fill="url(#percyArea)" dot={false} activeDot={{ r: 4 }} />
             </AreaChart>
+          ) : isMulti ? (
+            <LineChart data={data} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
+              {grid}{xAxis}{yAxis}{tip}
+              {chart.seriesKeys!.map((k, i) => (
+                <Line key={k} type="monotone" dataKey={k} name={fmtSeriesKey(k)} stroke={PALETTE[i % PALETTE.length]} strokeWidth={2} dot={{ r: 2, fill: PALETTE[i % PALETTE.length] }} activeDot={{ r: 4 }} />
+              ))}
+              <Legend wrapperStyle={{ fontSize: 11, color: colors.textMuted }} />
+            </LineChart>
           ) : (
             <LineChart data={data} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
               {grid}{xAxis}{yAxis}{tip}
